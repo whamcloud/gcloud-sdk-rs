@@ -5,11 +5,11 @@ use gcloud_sdk::GoogleRestApi;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Debug logging
-    let subscriber = tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::TRACE)
-        //.with_env_filter("gcloud_sdk=debug")
-        .finish();
-    tracing::subscriber::set_global_default(subscriber)?;
+    //let subscriber = tracing_subscriber::fmt()
+    //    .with_max_level(tracing::Level::TRACE)
+    //    .with_env_filter("gcloud_sdk=debug")
+    //    .finish();
+    //tracing::subscriber::set_global_default(subscriber)?;
 
     // Detect Google project ID using environment variables PROJECT_ID/GCP_PROJECT_ID
     // or GKE metadata server when the app runs inside GKE
@@ -21,7 +21,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let response = gcloud_sdk::google_rest_apis::lustre_v1alpha::projects_api::autopush_lustre_sandbox_projects_locations_instances_list(
         &google_rest_client.create_google_lustre_v1alpha_config().await?,
         gcloud_sdk::google_rest_apis::lustre_v1alpha::projects_api::AutopushLustreSandboxPeriodProjectsPeriodLocationsPeriodInstancesPeriodListParams  {
-            parent: format!("v1alpha/projects/{google_project_id}/locations/us-central1-a/instances"),
+            parent: format!("projects/{google_project_id}/locations/us-central1-a"),
             access_token: None,
             alt: None,
             callback: None,
@@ -40,7 +40,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     ).await?;
 
-    println!("{:?}", response);
+    println!("{:#?}", response);
 
     Ok(())
 }

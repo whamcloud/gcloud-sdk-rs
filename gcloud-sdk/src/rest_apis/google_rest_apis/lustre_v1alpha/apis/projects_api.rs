@@ -1001,7 +1001,7 @@ pub async fn autopush_lustre_sandbox_projects_locations_instances_list(
     let local_var_uri_str = format!(
         "{}/v1alpha/{parent}/instances",
         local_var_configuration.base_path,
-        parent = crate::google_rest_apis::lustre_v1alpha::apis::urlencode(parent)
+        //parent = crate::google_rest_apis::lustre_v1alpha::apis::urlencode(parent)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
