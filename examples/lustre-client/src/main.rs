@@ -18,10 +18,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let google_rest_client = gcloud_sdk::GoogleRestApi::new().await?;
 
-    let client = google_rest_client.create_google_lustre_v1alpha_config().await?;
-    println!("JDP");
     let response = gcloud_sdk::google_rest_apis::lustre_v1alpha::projects_api::autopush_lustre_sandbox_projects_locations_instances_list(
-        &client,
+        &google_rest_client.create_google_lustre_v1alpha_config().await?,
         gcloud_sdk::google_rest_apis::lustre_v1alpha::projects_api::AutopushLustreSandboxPeriodProjectsPeriodLocationsPeriodInstancesPeriodListParams  {
             parent: format!("v1alpha/projects/{google_project_id}/locations/us-central1-a/instances"),
             access_token: None,
