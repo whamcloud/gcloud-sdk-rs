@@ -1,7 +1,11 @@
 #![allow(dead_code)]
 use gcloud_sdk::google_rest_apis::lustre_v1alpha::Instance;
 
-async fn instances_create(project: &str, location: &str, instance_name: &str) -> Result<(), Box<dyn std::error::Error>>{
+async fn instances_create(
+    project: &str,
+    location: &str,
+    instance_name: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     let google_rest_client = gcloud_sdk::GoogleRestApi::new().await?;
 
     let instance = Instance {
@@ -41,7 +45,11 @@ async fn instances_create(project: &str, location: &str, instance_name: &str) ->
     Ok(())
 }
 
-async fn instances_delete(project: &str, location: &str, instance_name: &str) -> Result<(), Box<dyn std::error::Error>>{
+async fn instances_delete(
+    project: &str,
+    location: &str,
+    instance_name: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     let google_rest_client = gcloud_sdk::GoogleRestApi::new().await?;
 
     let response = gcloud_sdk::google_rest_apis::lustre_v1alpha::projects_api::autopush_lustre_sandbox_projects_locations_instances_delete(
@@ -66,7 +74,11 @@ async fn instances_delete(project: &str, location: &str, instance_name: &str) ->
     Ok(())
 }
 
-async fn instances_get(project: &str, location: &str, instance_name: &str) -> Result<gcloud_sdk::google_rest_apis::lustre_v1alpha::Instance, Box<dyn std::error::Error>>{
+async fn instances_get(
+    project: &str,
+    location: &str,
+    instance_name: &str,
+) -> Result<gcloud_sdk::google_rest_apis::lustre_v1alpha::Instance, Box<dyn std::error::Error>> {
     let google_rest_client = gcloud_sdk::GoogleRestApi::new().await?;
 
     let response = gcloud_sdk::google_rest_apis::lustre_v1alpha::projects_api::autopush_lustre_sandbox_projects_locations_instances_get(
@@ -89,7 +101,11 @@ async fn instances_get(project: &str, location: &str, instance_name: &str) -> Re
     Ok(response)
 }
 
-async fn instances_list(project: &str, location: &str) -> Result<Vec<gcloud_sdk::google_rest_apis::lustre_v1alpha::Instance>, Box<dyn std::error::Error>>{
+async fn instances_list(
+    project: &str,
+    location: &str,
+) -> Result<Vec<gcloud_sdk::google_rest_apis::lustre_v1alpha::Instance>, Box<dyn std::error::Error>>
+{
     let google_rest_client = gcloud_sdk::GoogleRestApi::new().await?;
 
     let response = gcloud_sdk::google_rest_apis::lustre_v1alpha::projects_api::autopush_lustre_sandbox_projects_locations_instances_list(

@@ -9,7 +9,9 @@ use serde::{Deserialize, Serialize}; /*
                                       */
 
 use super::{configuration, Error};
-use crate::{google_rest_apis::lustre_v1alpha::ResponseContent, google_rest_apis::lustre_v1alpha::models};
+use crate::{
+    google_rest_apis::lustre_v1alpha::models, google_rest_apis::lustre_v1alpha::ResponseContent,
+};
 use reqwest;
 
 /// struct for passing parameters to the method [`autopush_lustre_sandbox_projects_locations_instances_create`]
