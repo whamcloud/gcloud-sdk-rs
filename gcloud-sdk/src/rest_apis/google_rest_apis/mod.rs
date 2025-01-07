@@ -4,6 +4,9 @@ pub mod bigquery_v2;
 #[cfg(any(feature = "google-rest-compute-v1"))]
 pub mod compute_v1;
 
+#[cfg(any(feature = "google-rest-lustre-v1alpha"))]
+pub mod lustre_v1alpha;
+
 #[cfg(any(feature = "google-rest-dns-v1"))]
 pub mod dns_v1;
 

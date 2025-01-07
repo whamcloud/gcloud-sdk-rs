@@ -4,6 +4,7 @@ members = [
     "gcloud-sdk",
     "gcloud-protos-generator",
     "examples/firestore-client",
+    "examples/lustre-client",
     "examples/secrets-manager-client",
     "examples/gcs-rest-client",
     "examples/simple-api-client",
