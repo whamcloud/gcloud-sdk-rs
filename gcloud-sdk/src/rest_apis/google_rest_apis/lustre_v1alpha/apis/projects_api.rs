@@ -439,7 +439,7 @@ pub async fn autopush_lustre_sandbox_projects_locations_instances_create(
     let local_var_uri_str = format!(
         "{}/v1alpha/{parent}/instances",
         local_var_configuration.base_path,
-        parent = crate::google_rest_apis::lustre_v1alpha::apis::urlencode(parent)
+        //parent = crate::google_rest_apis::lustre_v1alpha::apis::urlencode(parent)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -557,7 +557,7 @@ pub async fn autopush_lustre_sandbox_projects_locations_instances_delete(
     let local_var_uri_str = format!(
         "{}/v1alpha/{name}",
         local_var_configuration.base_path,
-        name = crate::google_rest_apis::lustre_v1alpha::apis::urlencode(name)
+        //name = crate::google_rest_apis::lustre_v1alpha::apis::urlencode(name)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::DELETE, local_var_uri_str.as_str());
@@ -670,7 +670,7 @@ pub async fn autopush_lustre_sandbox_projects_locations_instances_export_data(
     let local_var_uri_str = format!(
         "{}/v1alpha/{name}:exportData",
         local_var_configuration.base_path,
-        name = crate::google_rest_apis::lustre_v1alpha::apis::urlencode(name)
+        //name = crate::google_rest_apis::lustre_v1alpha::apis::urlencode(name)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -779,7 +779,7 @@ pub async fn autopush_lustre_sandbox_projects_locations_instances_get(
     let local_var_uri_str = format!(
         "{}/v1alpha/{name}",
         local_var_configuration.base_path,
-        name = crate::google_rest_apis::lustre_v1alpha::apis::urlencode(name)
+        //name = crate::google_rest_apis::lustre_v1alpha::apis::urlencode(name)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -888,7 +888,7 @@ pub async fn autopush_lustre_sandbox_projects_locations_instances_import_data(
     let local_var_uri_str = format!(
         "{}/v1alpha/{name}:importData",
         local_var_configuration.base_path,
-        name = crate::google_rest_apis::lustre_v1alpha::apis::urlencode(name)
+        //name = crate::google_rest_apis::lustre_v1alpha::apis::urlencode(name)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -1128,7 +1128,7 @@ pub async fn autopush_lustre_sandbox_projects_locations_instances_patch(
     let local_var_uri_str = format!(
         "{}/v1alpha/{name}",
         local_var_configuration.base_path,
-        name = crate::google_rest_apis::lustre_v1alpha::apis::urlencode(name)
+        //name = crate::google_rest_apis::lustre_v1alpha::apis::urlencode(name)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::PATCH, local_var_uri_str.as_str());
@@ -1248,7 +1248,7 @@ pub async fn autopush_lustre_sandbox_projects_locations_list(
     let local_var_uri_str = format!(
         "{}/v1alpha/{name}/locations",
         local_var_configuration.base_path,
-        name = crate::google_rest_apis::lustre_v1alpha::apis::urlencode(name)
+        //name = crate::google_rest_apis::lustre_v1alpha::apis::urlencode(name)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -1369,7 +1369,7 @@ pub async fn autopush_lustre_sandbox_projects_locations_operations_cancel(
     let local_var_uri_str = format!(
         "{}/v1alpha/{name}:cancel",
         local_var_configuration.base_path,
-        name = crate::google_rest_apis::lustre_v1alpha::apis::urlencode(name)
+        //name = crate::google_rest_apis::lustre_v1alpha::apis::urlencode(name)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -1481,7 +1481,7 @@ pub async fn autopush_lustre_sandbox_projects_locations_operations_list(
     let local_var_uri_str = format!(
         "{}/v1alpha/{name}/operations",
         local_var_configuration.base_path,
-        name = crate::google_rest_apis::lustre_v1alpha::apis::urlencode(name)
+        //name = crate::google_rest_apis::lustre_v1alpha::apis::urlencode(name)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
