@@ -224,13 +224,13 @@ pub struct Tool {
     ///
     /// The model or system does not execute the function. Instead the defined
     /// function may be returned as a
-    /// [FunctionCall][google.ai.generativelanguage.v1beta.Part.function_call] with
-    /// arguments to the client side for execution. The model may decide to call a
-    /// subset of these functions by populating
-    /// [FunctionCall][google.ai.generativelanguage.v1beta.Part.function_call] in
+    /// [FunctionCall][google.ai.generativelanguage.v1alpha.Part.function_call]
+    /// with arguments to the client side for execution. The model may decide to
+    /// call a subset of these functions by populating
+    /// [FunctionCall][google.ai.generativelanguage.v1alpha.Part.function_call] in
     /// the response. The next conversation turn may contain a
-    /// [FunctionResponse][google.ai.generativelanguage.v1beta.Part.function_response]
-    /// with the [Content.role][google.ai.generativelanguage.v1beta.Content.role]
+    /// [FunctionResponse][google.ai.generativelanguage.v1alpha.Part.function_response]
+    /// with the [Content.role][google.ai.generativelanguage.v1alpha.Content.role]
     /// "function" generation context for the next model turn.
     #[prost(message, repeated, tag = "1")]
     pub function_declarations: ::prost::alloc::vec::Vec<FunctionDeclaration>,
@@ -818,13 +818,13 @@ pub mod cache_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.CacheService/ListCachedContents",
+                "/google.ai.generativelanguage.v1alpha.CacheService/ListCachedContents",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.CacheService",
+                        "google.ai.generativelanguage.v1alpha.CacheService",
                         "ListCachedContents",
                     ),
                 );
@@ -845,13 +845,13 @@ pub mod cache_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.CacheService/CreateCachedContent",
+                "/google.ai.generativelanguage.v1alpha.CacheService/CreateCachedContent",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.CacheService",
+                        "google.ai.generativelanguage.v1alpha.CacheService",
                         "CreateCachedContent",
                     ),
                 );
@@ -872,13 +872,13 @@ pub mod cache_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.CacheService/GetCachedContent",
+                "/google.ai.generativelanguage.v1alpha.CacheService/GetCachedContent",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.CacheService",
+                        "google.ai.generativelanguage.v1alpha.CacheService",
                         "GetCachedContent",
                     ),
                 );
@@ -899,13 +899,13 @@ pub mod cache_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.CacheService/UpdateCachedContent",
+                "/google.ai.generativelanguage.v1alpha.CacheService/UpdateCachedContent",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.CacheService",
+                        "google.ai.generativelanguage.v1alpha.CacheService",
                         "UpdateCachedContent",
                     ),
                 );
@@ -926,13 +926,13 @@ pub mod cache_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.CacheService/DeleteCachedContent",
+                "/google.ai.generativelanguage.v1alpha.CacheService/DeleteCachedContent",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.CacheService",
+                        "google.ai.generativelanguage.v1alpha.CacheService",
                         "DeleteCachedContent",
                     ),
                 );
@@ -1563,13 +1563,13 @@ pub mod discuss_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.DiscussService/GenerateMessage",
+                "/google.ai.generativelanguage.v1alpha.DiscussService/GenerateMessage",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.DiscussService",
+                        "google.ai.generativelanguage.v1alpha.DiscussService",
                         "GenerateMessage",
                     ),
                 );
@@ -1593,13 +1593,13 @@ pub mod discuss_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.DiscussService/CountMessageTokens",
+                "/google.ai.generativelanguage.v1alpha.DiscussService/CountMessageTokens",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.DiscussService",
+                        "google.ai.generativelanguage.v1alpha.DiscussService",
                         "CountMessageTokens",
                     ),
                 );
@@ -1881,13 +1881,13 @@ pub mod file_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.FileService/CreateFile",
+                "/google.ai.generativelanguage.v1alpha.FileService/CreateFile",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.FileService",
+                        "google.ai.generativelanguage.v1alpha.FileService",
                         "CreateFile",
                     ),
                 );
@@ -1911,13 +1911,13 @@ pub mod file_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.FileService/ListFiles",
+                "/google.ai.generativelanguage.v1alpha.FileService/ListFiles",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.FileService",
+                        "google.ai.generativelanguage.v1alpha.FileService",
                         "ListFiles",
                     ),
                 );
@@ -1938,13 +1938,13 @@ pub mod file_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.FileService/GetFile",
+                "/google.ai.generativelanguage.v1alpha.FileService/GetFile",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.FileService",
+                        "google.ai.generativelanguage.v1alpha.FileService",
                         "GetFile",
                     ),
                 );
@@ -1965,13 +1965,13 @@ pub mod file_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.FileService/DeleteFile",
+                "/google.ai.generativelanguage.v1alpha.FileService/DeleteFile",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.FileService",
+                        "google.ai.generativelanguage.v1alpha.FileService",
                         "DeleteFile",
                     ),
                 );
@@ -2461,7 +2461,7 @@ pub struct GenerationConfig {
     ///
     /// This penalty is binary on/off and not dependant on the number of times the
     /// token is used (after the first). Use
-    /// [frequency_penalty][google.ai.generativelanguage.v1beta.GenerationConfig.frequency_penalty]
+    /// [frequency_penalty][google.ai.generativelanguage.v1alpha.GenerationConfig.frequency_penalty]
     /// for a penalty that increases with each use.
     ///
     /// A positive penalty will discourage the use of tokens that have already
@@ -2485,7 +2485,7 @@ pub struct GenerationConfig {
     /// negative values will reduce the vocabulary of a response. Larger negative
     /// values will cause the model to start repeating a common token  until it
     /// hits the
-    /// [max_output_tokens][google.ai.generativelanguage.v1beta.GenerationConfig.max_output_tokens]
+    /// [max_output_tokens][google.ai.generativelanguage.v1alpha.GenerationConfig.max_output_tokens]
     /// limit.
     #[prost(float, optional, tag = "16")]
     pub frequency_penalty: ::core::option::Option<f32>,
@@ -2493,9 +2493,9 @@ pub struct GenerationConfig {
     #[prost(bool, optional, tag = "17")]
     pub response_logprobs: ::core::option::Option<bool>,
     /// Optional. Only valid if
-    /// [response_logprobs=True][google.ai.generativelanguage.v1beta.GenerationConfig.response_logprobs].
+    /// [response_logprobs=True][google.ai.generativelanguage.v1alpha.GenerationConfig.response_logprobs].
     /// This sets the number of top logprobs to return at each decoding step in the
-    /// [Candidate.logprobs_result][google.ai.generativelanguage.v1beta.Candidate.logprobs_result].
+    /// [Candidate.logprobs_result][google.ai.generativelanguage.v1alpha.Candidate.logprobs_result].
     #[prost(int32, optional, tag = "18")]
     pub logprobs: ::core::option::Option<i32>,
     /// Optional. Enables enhanced civic answers. It may not be available for all
@@ -3374,6 +3374,226 @@ pub struct CountTokensResponse {
     #[prost(int32, tag = "5")]
     pub cached_content_token_count: i32,
 }
+/// Message to be sent in the first and only first
+/// `BidiGenerateContentClientMessage`. Contains configuration that will apply
+/// for the duration of the streaming RPC.
+///
+/// Clients should wait for a `BidiGenerateContentSetupComplete` message before
+/// sending any additional messages.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BidiGenerateContentSetup {
+    /// Required. The model's resource name. This serves as an ID for the Model to
+    /// use.
+    ///
+    /// Format: `models/{model}`
+    #[prost(string, tag = "1")]
+    pub model: ::prost::alloc::string::String,
+    /// Optional. Generation config.
+    ///
+    /// The following fields are not supported:
+    ///
+    ///   - `response_logprobs`
+    ///   - `response_mime_type`
+    ///   - `logprobs`
+    ///   - `response_schema`
+    ///   - `stop_sequence`
+    ///   - `routing_config`
+    ///   - `audio_timestamp`
+    #[prost(message, optional, tag = "2")]
+    pub generation_config: ::core::option::Option<GenerationConfig>,
+    /// Optional. The user provided system instructions for the model.
+    ///
+    /// Note: Only text should be used in parts and content in each part will be
+    /// in a separate paragraph.
+    #[prost(message, optional, tag = "3")]
+    pub system_instruction: ::core::option::Option<Content>,
+    /// Optional. A list of `Tools` the model may use to generate the next
+    /// response.
+    ///
+    /// A `Tool` is a piece of code that enables the system to interact with
+    /// external systems to perform an action, or set of actions, outside of
+    /// knowledge and scope of the model.
+    #[prost(message, repeated, tag = "4")]
+    pub tools: ::prost::alloc::vec::Vec<Tool>,
+}
+/// Incremental update of the current conversation delivered from the client.
+/// All of the content here is unconditionally appended to the conversation
+/// history and used as part of the prompt to the model to generate content.
+///
+/// A message here will interrupt any current model generation.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BidiGenerateContentClientContent {
+    /// Optional. The content appended to the current conversation with the model.
+    ///
+    /// For single-turn queries, this is a single instance. For multi-turn
+    /// queries, this is a repeated field that contains conversation history and
+    /// the latest request.
+    #[prost(message, repeated, tag = "1")]
+    pub turns: ::prost::alloc::vec::Vec<Content>,
+    /// Optional. If true, indicates that the server content generation should
+    /// start with the currently accumulated prompt. Otherwise, the server awaits
+    /// additional messages before starting generation.
+    #[prost(bool, tag = "2")]
+    pub turn_complete: bool,
+}
+/// User input that is sent in real time.
+///
+/// This is different from
+/// [BidiGenerateContentClientContent][google.ai.generativelanguage.v1alpha.BidiGenerateContentClientContent]
+/// in a few ways:
+///
+///   - Can be sent continuously without interruption to model generation.
+///   - If there is a need to mix data interleaved across the
+///     [BidiGenerateContentClientContent][google.ai.generativelanguage.v1alpha.BidiGenerateContentClientContent]
+///     and the
+///     [BidiGenerateContentRealtimeInput][google.ai.generativelanguage.v1alpha.BidiGenerateContentRealtimeInput],
+///     the server attempts to optimize for best response, but there are no
+///     guarantees.
+///   - End of turn is not explicitly specified, but is rather derived from user
+///     activity (for example, end of speech).
+///   - Even before the end of turn, the data is processed incrementally
+///     to optimize for a fast start of the response from the model.
+///   - Is always direct user input that is sent in real time. Can be sent
+///     continuously without interruptions. The model automatically detects the
+///     beginning and the end of user speech and starts or terminates streaming
+///     the response accordingly. Data is processed incrementally as it arrives,
+///     minimizing latency.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BidiGenerateContentRealtimeInput {
+    /// Optional. Inlined bytes data for media input.
+    #[prost(message, repeated, tag = "1")]
+    pub media_chunks: ::prost::alloc::vec::Vec<Blob>,
+}
+/// Client generated response to a `ToolCall` received from the server.
+/// Individual `FunctionResponse` objects are matched to the respective
+/// `FunctionCall` objects by the `id` field.
+///
+/// Note that in the unary and server-streaming GenerateContent APIs function
+/// calling happens by exchanging the `Content` parts, while in the bidi
+/// GenerateContent APIs function calling happens over these dedicated set of
+/// messages.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BidiGenerateContentToolResponse {
+    /// Optional. The response to the function calls.
+    #[prost(message, repeated, tag = "1")]
+    pub function_responses: ::prost::alloc::vec::Vec<FunctionResponse>,
+}
+/// Messages sent by the client in the BidiGenerateContent call.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BidiGenerateContentClientMessage {
+    /// The type of the message.
+    #[prost(
+        oneof = "bidi_generate_content_client_message::MessageType",
+        tags = "1, 2, 3, 4"
+    )]
+    pub message_type: ::core::option::Option<
+        bidi_generate_content_client_message::MessageType,
+    >,
+}
+/// Nested message and enum types in `BidiGenerateContentClientMessage`.
+pub mod bidi_generate_content_client_message {
+    /// The type of the message.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum MessageType {
+        /// Optional. Session configuration sent in the first and only first client
+        /// message.
+        #[prost(message, tag = "1")]
+        Setup(super::BidiGenerateContentSetup),
+        /// Optional. Incremental update of the current conversation delivered from
+        /// the client.
+        #[prost(message, tag = "2")]
+        ClientContent(super::BidiGenerateContentClientContent),
+        /// Optional. User input that is sent in real time.
+        #[prost(message, tag = "3")]
+        RealtimeInput(super::BidiGenerateContentRealtimeInput),
+        /// Optional. Response to a `ToolCallMessage` received from the server.
+        #[prost(message, tag = "4")]
+        ToolResponse(super::BidiGenerateContentToolResponse),
+    }
+}
+/// Sent in response to a `BidiGenerateContentSetup` message from the client.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct BidiGenerateContentSetupComplete {}
+/// Incremental server update generated by the model in response to client
+/// messages.
+///
+/// Content is generated as quickly as possible, and not in real time. Clients
+/// may choose to buffer and play it out in real time.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BidiGenerateContentServerContent {
+    /// Output only. The content that the model has generated as part of the
+    /// current conversation with the user.
+    #[prost(message, optional, tag = "1")]
+    pub model_turn: ::core::option::Option<Content>,
+    /// Output only. If true, indicates that the model is done generating.
+    /// Generation will only start in response to additional client messages. Can
+    /// be set alongside `content`, indicating that the `content` is the last in
+    /// the turn.
+    #[prost(bool, tag = "2")]
+    pub turn_complete: bool,
+    /// Output only. If true, indicates that a client message has interrupted
+    /// current model generation. If the client is playing out the content in real
+    /// time, this is a good signal to stop and empty the current playback queue.
+    #[prost(bool, tag = "3")]
+    pub interrupted: bool,
+    /// Output only. Grounding metadata for the generated content.
+    #[prost(message, optional, tag = "4")]
+    pub grounding_metadata: ::core::option::Option<GroundingMetadata>,
+}
+/// Request for the client to execute the `function_calls` and return the
+/// responses with the matching `id`s.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BidiGenerateContentToolCall {
+    /// Output only. The function call to be executed.
+    #[prost(message, repeated, tag = "2")]
+    pub function_calls: ::prost::alloc::vec::Vec<FunctionCall>,
+}
+/// Notification for the client that a previously issued `ToolCallMessage`
+/// with the specified `id`s should have been not executed and should be
+/// cancelled. If there were side-effects to those tool calls, clients may
+/// attempt to undo the tool calls. This message occurs only in cases where the
+/// clients interrupt server turns.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BidiGenerateContentToolCallCancellation {
+    /// Output only. The ids of the tool calls to be cancelled.
+    #[prost(string, repeated, tag = "1")]
+    pub ids: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+/// Response message for the BidiGenerateContent call.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BidiGenerateContentServerMessage {
+    /// The type of the message.
+    #[prost(
+        oneof = "bidi_generate_content_server_message::MessageType",
+        tags = "2, 3, 4, 5"
+    )]
+    pub message_type: ::core::option::Option<
+        bidi_generate_content_server_message::MessageType,
+    >,
+}
+/// Nested message and enum types in `BidiGenerateContentServerMessage`.
+pub mod bidi_generate_content_server_message {
+    /// The type of the message.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum MessageType {
+        /// Output only. Sent in response to a `BidiGenerateContentSetup` message
+        /// from the client when setup is complete.
+        #[prost(message, tag = "2")]
+        SetupComplete(super::BidiGenerateContentSetupComplete),
+        /// Output only. Content generated by the model in response to client
+        /// messages.
+        #[prost(message, tag = "3")]
+        ServerContent(super::BidiGenerateContentServerContent),
+        /// Output only. Request for the client to execute the `function_calls` and
+        /// return the responses with the matching `id`s.
+        #[prost(message, tag = "4")]
+        ToolCall(super::BidiGenerateContentToolCall),
+        /// Output only. Notification for the client that a previously issued
+        /// `ToolCallMessage` with the specified `id`s should be cancelled.
+        #[prost(message, tag = "5")]
+        ToolCallCancellation(super::BidiGenerateContentToolCallCancellation),
+    }
+}
 /// Type of task for which the embedding will be used.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
@@ -3544,13 +3764,13 @@ pub mod generative_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.GenerativeService/GenerateContent",
+                "/google.ai.generativelanguage.v1alpha.GenerativeService/GenerateContent",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.GenerativeService",
+                        "google.ai.generativelanguage.v1alpha.GenerativeService",
                         "GenerateContent",
                     ),
                 );
@@ -3575,13 +3795,13 @@ pub mod generative_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.GenerativeService/GenerateAnswer",
+                "/google.ai.generativelanguage.v1alpha.GenerativeService/GenerateAnswer",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.GenerativeService",
+                        "google.ai.generativelanguage.v1alpha.GenerativeService",
                         "GenerateAnswer",
                     ),
                 );
@@ -3607,13 +3827,13 @@ pub mod generative_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.GenerativeService/StreamGenerateContent",
+                "/google.ai.generativelanguage.v1alpha.GenerativeService/StreamGenerateContent",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.GenerativeService",
+                        "google.ai.generativelanguage.v1alpha.GenerativeService",
                         "StreamGenerateContent",
                     ),
                 );
@@ -3639,13 +3859,13 @@ pub mod generative_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.GenerativeService/EmbedContent",
+                "/google.ai.generativelanguage.v1alpha.GenerativeService/EmbedContent",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.GenerativeService",
+                        "google.ai.generativelanguage.v1alpha.GenerativeService",
                         "EmbedContent",
                     ),
                 );
@@ -3671,13 +3891,13 @@ pub mod generative_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.GenerativeService/BatchEmbedContents",
+                "/google.ai.generativelanguage.v1alpha.GenerativeService/BatchEmbedContents",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.GenerativeService",
+                        "google.ai.generativelanguage.v1alpha.GenerativeService",
                         "BatchEmbedContents",
                     ),
                 );
@@ -3703,17 +3923,52 @@ pub mod generative_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.GenerativeService/CountTokens",
+                "/google.ai.generativelanguage.v1alpha.GenerativeService/CountTokens",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.GenerativeService",
+                        "google.ai.generativelanguage.v1alpha.GenerativeService",
                         "CountTokens",
                     ),
                 );
             self.inner.unary(req, path, codec).await
+        }
+        /// Low-Latency bidirectional streaming API that supports audio and video
+        /// streaming inputs can produce multimodal output streams (audio and text).
+        pub async fn bidi_generate_content(
+            &mut self,
+            request: impl tonic::IntoStreamingRequest<
+                Message = super::BidiGenerateContentClientMessage,
+            >,
+        ) -> std::result::Result<
+            tonic::Response<
+                tonic::codec::Streaming<super::BidiGenerateContentServerMessage>,
+            >,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.ai.generativelanguage.v1alpha.GenerativeService/BidiGenerateContent",
+            );
+            let mut req = request.into_streaming_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.ai.generativelanguage.v1alpha.GenerativeService",
+                        "BidiGenerateContent",
+                    ),
+                );
+            self.inner.streaming(req, path, codec).await
         }
     }
 }
@@ -4026,6 +4281,63 @@ pub struct TuningExamples {
     /// in a set must be of the same type.
     #[prost(message, repeated, tag = "1")]
     pub examples: ::prost::alloc::vec::Vec<TuningExample>,
+    /// Content examples. For multiturn conversations.
+    #[prost(message, repeated, tag = "2")]
+    pub multiturn_examples: ::prost::alloc::vec::Vec<TuningMultiturnExample>,
+}
+/// A datatype containing data that is part of a multi-part `TuningContent`
+/// message.
+///
+/// This is a subset of the Part used for model inference, with limited type
+/// support.
+///
+/// A `Part` consists of data which has an associated datatype. A `Part` can
+/// only contain one of the accepted types in `Part.data`.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TuningPart {
+    /// Data for the part. Only text supported.
+    #[prost(oneof = "tuning_part::Data", tags = "2")]
+    pub data: ::core::option::Option<tuning_part::Data>,
+}
+/// Nested message and enum types in `TuningPart`.
+pub mod tuning_part {
+    /// Data for the part. Only text supported.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Data {
+        /// Inline text.
+        #[prost(string, tag = "2")]
+        Text(::prost::alloc::string::String),
+    }
+}
+/// The structured datatype containing multi-part content of an example message.
+///
+/// This is a subset of the Content proto used during model inference with
+/// limited type support. A `Content` includes a `role` field designating the
+/// producer of the `Content` and a `parts` field containing multi-part data
+/// that contains the content of the message turn.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TuningContent {
+    /// Ordered `Parts` that constitute a single message. Parts may have different
+    /// MIME types.
+    #[prost(message, repeated, tag = "1")]
+    pub parts: ::prost::alloc::vec::Vec<TuningPart>,
+    /// Optional. The producer of the content. Must be either 'user' or 'model'.
+    ///
+    /// Useful to set for multi-turn conversations, otherwise can be left blank
+    /// or unset.
+    #[prost(string, tag = "2")]
+    pub role: ::prost::alloc::string::String,
+}
+/// A tuning example with multiturn input.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TuningMultiturnExample {
+    /// Optional. Developer set system instructions.
+    /// Currently, text only.
+    #[prost(message, optional, tag = "8")]
+    pub system_instruction: ::core::option::Option<TuningContent>,
+    /// Each Content represents a turn in the conversation.
+    #[prost(message, repeated, tag = "1")]
+    pub contents: ::prost::alloc::vec::Vec<TuningContent>,
 }
 /// A single example for tuning.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -4327,13 +4639,13 @@ pub mod model_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.ModelService/GetModel",
+                "/google.ai.generativelanguage.v1alpha.ModelService/GetModel",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.ModelService",
+                        "google.ai.generativelanguage.v1alpha.ModelService",
                         "GetModel",
                     ),
                 );
@@ -4358,13 +4670,13 @@ pub mod model_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.ModelService/ListModels",
+                "/google.ai.generativelanguage.v1alpha.ModelService/ListModels",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.ModelService",
+                        "google.ai.generativelanguage.v1alpha.ModelService",
                         "ListModels",
                     ),
                 );
@@ -4385,13 +4697,13 @@ pub mod model_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.ModelService/GetTunedModel",
+                "/google.ai.generativelanguage.v1alpha.ModelService/GetTunedModel",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.ModelService",
+                        "google.ai.generativelanguage.v1alpha.ModelService",
                         "GetTunedModel",
                     ),
                 );
@@ -4415,13 +4727,13 @@ pub mod model_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.ModelService/ListTunedModels",
+                "/google.ai.generativelanguage.v1alpha.ModelService/ListTunedModels",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.ModelService",
+                        "google.ai.generativelanguage.v1alpha.ModelService",
                         "ListTunedModels",
                     ),
                 );
@@ -4451,13 +4763,13 @@ pub mod model_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.ModelService/CreateTunedModel",
+                "/google.ai.generativelanguage.v1alpha.ModelService/CreateTunedModel",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.ModelService",
+                        "google.ai.generativelanguage.v1alpha.ModelService",
                         "CreateTunedModel",
                     ),
                 );
@@ -4478,13 +4790,13 @@ pub mod model_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.ModelService/UpdateTunedModel",
+                "/google.ai.generativelanguage.v1alpha.ModelService/UpdateTunedModel",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.ModelService",
+                        "google.ai.generativelanguage.v1alpha.ModelService",
                         "UpdateTunedModel",
                     ),
                 );
@@ -4505,13 +4817,13 @@ pub mod model_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.ModelService/DeleteTunedModel",
+                "/google.ai.generativelanguage.v1alpha.ModelService/DeleteTunedModel",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.ModelService",
+                        "google.ai.generativelanguage.v1alpha.ModelService",
                         "DeleteTunedModel",
                     ),
                 );
@@ -4862,13 +5174,13 @@ pub mod permission_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.PermissionService/CreatePermission",
+                "/google.ai.generativelanguage.v1alpha.PermissionService/CreatePermission",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.PermissionService",
+                        "google.ai.generativelanguage.v1alpha.PermissionService",
                         "CreatePermission",
                     ),
                 );
@@ -4889,13 +5201,13 @@ pub mod permission_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.PermissionService/GetPermission",
+                "/google.ai.generativelanguage.v1alpha.PermissionService/GetPermission",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.PermissionService",
+                        "google.ai.generativelanguage.v1alpha.PermissionService",
                         "GetPermission",
                     ),
                 );
@@ -4919,13 +5231,13 @@ pub mod permission_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.PermissionService/ListPermissions",
+                "/google.ai.generativelanguage.v1alpha.PermissionService/ListPermissions",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.PermissionService",
+                        "google.ai.generativelanguage.v1alpha.PermissionService",
                         "ListPermissions",
                     ),
                 );
@@ -4946,13 +5258,13 @@ pub mod permission_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.PermissionService/UpdatePermission",
+                "/google.ai.generativelanguage.v1alpha.PermissionService/UpdatePermission",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.PermissionService",
+                        "google.ai.generativelanguage.v1alpha.PermissionService",
                         "UpdatePermission",
                     ),
                 );
@@ -4973,13 +5285,13 @@ pub mod permission_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.PermissionService/DeletePermission",
+                "/google.ai.generativelanguage.v1alpha.PermissionService/DeletePermission",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.PermissionService",
+                        "google.ai.generativelanguage.v1alpha.PermissionService",
                         "DeletePermission",
                     ),
                 );
@@ -5005,13 +5317,13 @@ pub mod permission_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.PermissionService/TransferOwnership",
+                "/google.ai.generativelanguage.v1alpha.PermissionService/TransferOwnership",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.PermissionService",
+                        "google.ai.generativelanguage.v1alpha.PermissionService",
                         "TransferOwnership",
                     ),
                 );
@@ -5020,7 +5332,7 @@ pub mod permission_service_client {
     }
 }
 /// Request message for
-/// [PredictionService.Predict][google.ai.generativelanguage.v1beta.PredictionService.Predict].
+/// [PredictionService.Predict][google.ai.generativelanguage.v1alpha.PredictionService.Predict].
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PredictRequest {
     /// Required. The name of the model for prediction.
@@ -5151,13 +5463,13 @@ pub mod prediction_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.PredictionService/Predict",
+                "/google.ai.generativelanguage.v1alpha.PredictionService/Predict",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.PredictionService",
+                        "google.ai.generativelanguage.v1alpha.PredictionService",
                         "Predict",
                     ),
                 );
@@ -5679,13 +5991,13 @@ pub mod retriever_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.RetrieverService/CreateCorpus",
+                "/google.ai.generativelanguage.v1alpha.RetrieverService/CreateCorpus",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.RetrieverService",
+                        "google.ai.generativelanguage.v1alpha.RetrieverService",
                         "CreateCorpus",
                     ),
                 );
@@ -5706,13 +6018,13 @@ pub mod retriever_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.RetrieverService/GetCorpus",
+                "/google.ai.generativelanguage.v1alpha.RetrieverService/GetCorpus",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.RetrieverService",
+                        "google.ai.generativelanguage.v1alpha.RetrieverService",
                         "GetCorpus",
                     ),
                 );
@@ -5733,13 +6045,13 @@ pub mod retriever_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.RetrieverService/UpdateCorpus",
+                "/google.ai.generativelanguage.v1alpha.RetrieverService/UpdateCorpus",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.RetrieverService",
+                        "google.ai.generativelanguage.v1alpha.RetrieverService",
                         "UpdateCorpus",
                     ),
                 );
@@ -5760,13 +6072,13 @@ pub mod retriever_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.RetrieverService/DeleteCorpus",
+                "/google.ai.generativelanguage.v1alpha.RetrieverService/DeleteCorpus",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.RetrieverService",
+                        "google.ai.generativelanguage.v1alpha.RetrieverService",
                         "DeleteCorpus",
                     ),
                 );
@@ -5790,13 +6102,13 @@ pub mod retriever_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.RetrieverService/ListCorpora",
+                "/google.ai.generativelanguage.v1alpha.RetrieverService/ListCorpora",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.RetrieverService",
+                        "google.ai.generativelanguage.v1alpha.RetrieverService",
                         "ListCorpora",
                     ),
                 );
@@ -5820,13 +6132,13 @@ pub mod retriever_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.RetrieverService/QueryCorpus",
+                "/google.ai.generativelanguage.v1alpha.RetrieverService/QueryCorpus",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.RetrieverService",
+                        "google.ai.generativelanguage.v1alpha.RetrieverService",
                         "QueryCorpus",
                     ),
                 );
@@ -5847,13 +6159,13 @@ pub mod retriever_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.RetrieverService/CreateDocument",
+                "/google.ai.generativelanguage.v1alpha.RetrieverService/CreateDocument",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.RetrieverService",
+                        "google.ai.generativelanguage.v1alpha.RetrieverService",
                         "CreateDocument",
                     ),
                 );
@@ -5874,13 +6186,13 @@ pub mod retriever_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.RetrieverService/GetDocument",
+                "/google.ai.generativelanguage.v1alpha.RetrieverService/GetDocument",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.RetrieverService",
+                        "google.ai.generativelanguage.v1alpha.RetrieverService",
                         "GetDocument",
                     ),
                 );
@@ -5901,13 +6213,13 @@ pub mod retriever_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.RetrieverService/UpdateDocument",
+                "/google.ai.generativelanguage.v1alpha.RetrieverService/UpdateDocument",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.RetrieverService",
+                        "google.ai.generativelanguage.v1alpha.RetrieverService",
                         "UpdateDocument",
                     ),
                 );
@@ -5928,13 +6240,13 @@ pub mod retriever_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.RetrieverService/DeleteDocument",
+                "/google.ai.generativelanguage.v1alpha.RetrieverService/DeleteDocument",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.RetrieverService",
+                        "google.ai.generativelanguage.v1alpha.RetrieverService",
                         "DeleteDocument",
                     ),
                 );
@@ -5958,13 +6270,13 @@ pub mod retriever_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.RetrieverService/ListDocuments",
+                "/google.ai.generativelanguage.v1alpha.RetrieverService/ListDocuments",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.RetrieverService",
+                        "google.ai.generativelanguage.v1alpha.RetrieverService",
                         "ListDocuments",
                     ),
                 );
@@ -5988,13 +6300,13 @@ pub mod retriever_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.RetrieverService/QueryDocument",
+                "/google.ai.generativelanguage.v1alpha.RetrieverService/QueryDocument",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.RetrieverService",
+                        "google.ai.generativelanguage.v1alpha.RetrieverService",
                         "QueryDocument",
                     ),
                 );
@@ -6015,13 +6327,13 @@ pub mod retriever_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.RetrieverService/CreateChunk",
+                "/google.ai.generativelanguage.v1alpha.RetrieverService/CreateChunk",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.RetrieverService",
+                        "google.ai.generativelanguage.v1alpha.RetrieverService",
                         "CreateChunk",
                     ),
                 );
@@ -6045,13 +6357,13 @@ pub mod retriever_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.RetrieverService/BatchCreateChunks",
+                "/google.ai.generativelanguage.v1alpha.RetrieverService/BatchCreateChunks",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.RetrieverService",
+                        "google.ai.generativelanguage.v1alpha.RetrieverService",
                         "BatchCreateChunks",
                     ),
                 );
@@ -6072,13 +6384,13 @@ pub mod retriever_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.RetrieverService/GetChunk",
+                "/google.ai.generativelanguage.v1alpha.RetrieverService/GetChunk",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.RetrieverService",
+                        "google.ai.generativelanguage.v1alpha.RetrieverService",
                         "GetChunk",
                     ),
                 );
@@ -6099,13 +6411,13 @@ pub mod retriever_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.RetrieverService/UpdateChunk",
+                "/google.ai.generativelanguage.v1alpha.RetrieverService/UpdateChunk",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.RetrieverService",
+                        "google.ai.generativelanguage.v1alpha.RetrieverService",
                         "UpdateChunk",
                     ),
                 );
@@ -6129,13 +6441,13 @@ pub mod retriever_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.RetrieverService/BatchUpdateChunks",
+                "/google.ai.generativelanguage.v1alpha.RetrieverService/BatchUpdateChunks",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.RetrieverService",
+                        "google.ai.generativelanguage.v1alpha.RetrieverService",
                         "BatchUpdateChunks",
                     ),
                 );
@@ -6156,13 +6468,13 @@ pub mod retriever_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.RetrieverService/DeleteChunk",
+                "/google.ai.generativelanguage.v1alpha.RetrieverService/DeleteChunk",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.RetrieverService",
+                        "google.ai.generativelanguage.v1alpha.RetrieverService",
                         "DeleteChunk",
                     ),
                 );
@@ -6183,13 +6495,13 @@ pub mod retriever_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.RetrieverService/BatchDeleteChunks",
+                "/google.ai.generativelanguage.v1alpha.RetrieverService/BatchDeleteChunks",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.RetrieverService",
+                        "google.ai.generativelanguage.v1alpha.RetrieverService",
                         "BatchDeleteChunks",
                     ),
                 );
@@ -6213,13 +6525,13 @@ pub mod retriever_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.RetrieverService/ListChunks",
+                "/google.ai.generativelanguage.v1alpha.RetrieverService/ListChunks",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.RetrieverService",
+                        "google.ai.generativelanguage.v1alpha.RetrieverService",
                         "ListChunks",
                     ),
                 );
@@ -6555,13 +6867,13 @@ pub mod text_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.TextService/GenerateText",
+                "/google.ai.generativelanguage.v1alpha.TextService/GenerateText",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.TextService",
+                        "google.ai.generativelanguage.v1alpha.TextService",
                         "GenerateText",
                     ),
                 );
@@ -6585,13 +6897,13 @@ pub mod text_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.TextService/EmbedText",
+                "/google.ai.generativelanguage.v1alpha.TextService/EmbedText",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.TextService",
+                        "google.ai.generativelanguage.v1alpha.TextService",
                         "EmbedText",
                     ),
                 );
@@ -6616,13 +6928,13 @@ pub mod text_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.TextService/BatchEmbedText",
+                "/google.ai.generativelanguage.v1alpha.TextService/BatchEmbedText",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.TextService",
+                        "google.ai.generativelanguage.v1alpha.TextService",
                         "BatchEmbedText",
                     ),
                 );
@@ -6646,13 +6958,13 @@ pub mod text_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/google.ai.generativelanguage.v1beta.TextService/CountTextTokens",
+                "/google.ai.generativelanguage.v1alpha.TextService/CountTextTokens",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "google.ai.generativelanguage.v1beta.TextService",
+                        "google.ai.generativelanguage.v1alpha.TextService",
                         "CountTextTokens",
                     ),
                 );
