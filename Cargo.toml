@@ -15,4 +15,5 @@ members = [
     "examples/iam-client",
     "examples/servicecontrol-client",
     "examples/artifact-registry-client",
+    "examples/servicecontrol-client",
 ]
