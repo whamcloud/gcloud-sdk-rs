@@ -4178,7 +4178,8 @@ pub struct Entry {
     /// `{project_id_or_number}.{location_id}.{aspect_type_id}@{path}`
     #[prost(map = "string, message", tag = "9")]
     pub aspects: ::std::collections::HashMap<::prost::alloc::string::String, Aspect>,
-    /// Optional. Immutable. The resource name of the parent entry.
+    /// Optional. Immutable. The resource name of the parent entry, in the format
+    /// `projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}/entries/{entry_id}`.
     #[prost(string, tag = "10")]
     pub parent_entry: ::prost::alloc::string::String,
     /// Optional. A name for the entry that can be referenced by an external
@@ -4621,7 +4622,7 @@ pub struct UpdateEntryRequest {
     /// specified path. For example, to attach an aspect to a field that is
     /// specified by the `schema` aspect, the path should have the format
     /// `Schema.<field_name>`.
-    /// * `<aspect_type_reference>*` - matches aspects of the given type for all
+    /// * `<aspect_type_reference>@*` - matches aspects of the given type for all
     /// paths.
     /// * `*@path` - matches aspects of all types on the given path.
     ///
@@ -4744,6 +4745,8 @@ pub struct SearchEntriesRequest {
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
     /// Required. The query against which entries in scope should be matched.
+    /// The query syntax is defined in [Search syntax for Dataplex
+    /// Catalog](<https://cloud.google.com/dataplex/docs/search-syntax>).
     #[prost(string, tag = "2")]
     pub query: ::prost::alloc::string::String,
     /// Optional. Number of results in the search page. If <=0, then defaults
@@ -4756,6 +4759,11 @@ pub struct SearchEntriesRequest {
     #[prost(string, tag = "4")]
     pub page_token: ::prost::alloc::string::String,
     /// Optional. Specifies the ordering of results.
+    /// Supported values are:
+    ///
+    /// * `relevance` (default)
+    /// * `last_modified_timestamp`
+    /// * `last_modified_timestamp asc`
     #[prost(string, tag = "5")]
     pub order_by: ::prost::alloc::string::String,
     /// Optional. The scope under which the search should be operating. It must
@@ -4848,9 +4856,9 @@ pub struct ImportItem {
     /// aspect type and are attached directly to the entry.
     /// * `{aspect_type_reference}@{path}`: matches aspects that belong to the
     /// specified aspect type and path.
-    /// * `{aspect_type_reference}@*`: matches aspects that belong to the specified
-    /// aspect type for all paths.
-    ///
+    /// * `<aspect_type_reference>@*` : matches aspects of the given type for all
+    /// paths.
+    /// * `*@path` : matches aspects of all types on the given path.
     /// Replace `{aspect_type_reference}` with a reference to the aspect type, in
     /// the format
     /// `{project_id_or_number}.{location_id}.{aspect_type_id}`.
@@ -5127,6 +5135,10 @@ pub mod metadata_job {
             /// metadata import file are modified. Use this mode to modify a subset of
             /// resources while leaving unreferenced resources unchanged.
             Incremental = 2,
+            /// If entry sync mode is NONE, then the entry-specific fields (apart from
+            /// aspects) are not modified and the aspects are modified according to the
+            /// aspect_sync_mode
+            None = 3,
         }
         impl SyncMode {
             /// String value of the enum field names used in the ProtoBuf definition.
@@ -5138,6 +5150,7 @@ pub mod metadata_job {
                     Self::Unspecified => "SYNC_MODE_UNSPECIFIED",
                     Self::Full => "FULL",
                     Self::Incremental => "INCREMENTAL",
+                    Self::None => "NONE",
                 }
             }
             /// Creates an enum from field names used in the ProtoBuf definition.
@@ -5146,6 +5159,7 @@ pub mod metadata_job {
                     "SYNC_MODE_UNSPECIFIED" => Some(Self::Unspecified),
                     "FULL" => Some(Self::Full),
                     "INCREMENTAL" => Some(Self::Incremental),
+                    "NONE" => Some(Self::None),
                     _ => None,
                 }
             }
@@ -7609,11 +7623,11 @@ pub struct DataQualityRuleResult {
     /// evaluation, or
     /// * exclude `null` rows from the `evaluated_count`, by setting
     /// `ignore_nulls = true`.
+    ///
+    /// This field is not set for rule SqlAssertion.
     #[prost(int64, tag = "9")]
     pub evaluated_count: i64,
-    /// The number of rows which passed a rule evaluation.
-    ///
-    /// This field is only valid for row-level type rules.
+    /// This field is not set for rule SqlAssertion.
     #[prost(int64, tag = "8")]
     pub passed_count: i64,
     /// The number of rows with null values in the specified column.
@@ -9046,7 +9060,7 @@ pub struct UpdateDataScanRequest {
     /// Only fields specified in `update_mask` are updated.
     #[prost(message, optional, tag = "1")]
     pub data_scan: ::core::option::Option<DataScan>,
-    /// Required. Mask of fields to update.
+    /// Optional. Mask of fields to update.
     #[prost(message, optional, tag = "2")]
     pub update_mask: ::core::option::Option<::prost_types::FieldMask>,
     /// Optional. Only validate the request, but do not perform mutations.
@@ -9063,6 +9077,11 @@ pub struct DeleteDataScanRequest {
     /// `location_id` refers to a GCP region.
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
+    /// Optional. If set to true, any child resources of this data scan will also
+    /// be deleted. (Otherwise, the request will only work if the data scan has no
+    /// child resources.)
+    #[prost(bool, tag = "2")]
+    pub force: bool,
 }
 /// Get dataScan request.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -9320,15 +9339,21 @@ pub struct GenerateDataQualityRulesResponse {
 ///
 /// For example:
 ///
-/// * Data Quality: generates queries based on the rules and runs against the
-///    data to get data quality check results.
-/// * Data Profile: analyzes the data in table(s) and generates insights about
+/// * Data quality: generates queries based on the rules and runs against the
+///    data to get data quality check results. For more information, see [Auto
+///    data quality
+///    overview](<https://cloud.google.com/dataplex/docs/auto-data-quality-overview>).
+/// * Data profile: analyzes the data in tables and generates insights about
 ///    the structure, content and relationships (such as null percent,
-///    cardinality, min/max/mean, etc).
+///    cardinality, min/max/mean, etc). For more information, see [About data
+///    profiling](<https://cloud.google.com/dataplex/docs/data-profiling-overview>).
+/// * Data discovery: scans data in Cloud Storage buckets to extract and then
+///    catalog metadata. For more information, see [Discover and catalog Cloud
+///    Storage data](<https://cloud.google.com/bigquery/docs/automatic-discovery>).
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DataScan {
-    /// Output only. The relative resource name of the scan, of the form:
-    /// `projects/{project}/locations/{location_id}/dataScans/{datascan_id}`,
+    /// Output only. Identifier. The relative resource name of the scan, of the
+    /// form: `projects/{project}/locations/{location_id}/dataScans/{datascan_id}`,
     /// where `project` refers to a *project_id* or *project_number* and
     /// `location_id` refers to a GCP region.
     #[prost(string, tag = "1")]
@@ -9425,10 +9450,10 @@ pub mod data_scan {
     /// Status of the data scan execution.
     #[derive(Clone, Copy, PartialEq, ::prost::Message)]
     pub struct ExecutionStatus {
-        /// The time when the latest DataScanJob started.
+        /// Optional. The time when the latest DataScanJob started.
         #[prost(message, optional, tag = "4")]
         pub latest_job_start_time: ::core::option::Option<::prost_types::Timestamp>,
-        /// The time when the latest DataScanJob ended.
+        /// Optional. The time when the latest DataScanJob ended.
         #[prost(message, optional, tag = "5")]
         pub latest_job_end_time: ::core::option::Option<::prost_types::Timestamp>,
         /// Optional. The time when the DataScanJob execution was created.
@@ -9468,7 +9493,8 @@ pub mod data_scan {
 /// A DataScanJob represents an instance of DataScan execution.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DataScanJob {
-    /// Output only. The relative resource name of the DataScanJob, of the form:
+    /// Output only. Identifier. The relative resource name of the DataScanJob, of
+    /// the form:
     /// `projects/{project}/locations/{location_id}/dataScans/{datascan_id}/jobs/{job_id}`,
     /// where `project` refers to a *project_id* or *project_number* and
     /// `location_id` refers to a GCP region.

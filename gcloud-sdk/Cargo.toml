@@ -1,6 +1,6 @@
 [package]
 name = "gcloud-sdk"
-version = "0.26.0"
+version = "0.26.3"
 authors = ["Abdulla Abdurakhmanov <me@abdolence.dev>","mechiru <u9053u6d41@gmail.com>"]
 edition = "2021"
 license = "MIT OR Apache-2.0"
@@ -425,11 +425,13 @@ maps-fleetengine-v1 = []
 
 # REST features
 google-rest-bigquery-v2 = ["rest"]
-google-rest-lustre-v1alpha = ["rest"]
-google-rest-storage-v1 = ["rest"]
-google-rest-sqladmin-v1 = ["rest"]
-google-rest-dns-v1 = ["rest"]
 google-rest-compute-v1 = ["rest"]
+google-rest-dns-v1 = ["rest"]
+google-rest-identitytoolkit-v3 = ["rest"]
+google-rest-lustre-v1alpha = ["rest"]
+google-rest-servicecontrol-v1 = ["rest"]
+google-rest-sqladmin-v1 = ["rest"]
+google-rest-storage-v1 = ["rest"]
 
 [dependencies]
 tonic = { version = "0.12", features = ["tls"] }
@@ -452,13 +454,12 @@ secret-vault-value = { version="0.3", features=["proto", "serde"] }
 once_cell = "1.19"
 reqwest = { version=">=0.12.7", features=["multipart", "json", "gzip", "stream"], default-features = false  }
 bytes = { version = "1"}
-serde_with = { version = "3", optional = true }
+serde_with = { version = "3", optional = true, features = ["base64"] }
 aws-config = { version = "1.1", features = ["behavior-version-latest"], optional = true }
 aws-sigv4 = { version = "1.2" , optional = true }
 aws-credential-types = { version = "1.2.1", optional = true }
 percent-encoding = { version = "2.3", optional = true }
-[dev-dependencies]
-cargo-audit = "0.21"
+
 
 [package.metadata.release]
 tag-prefix=""
