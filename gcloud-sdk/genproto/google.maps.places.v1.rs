@@ -298,6 +298,8 @@ pub enum EvConnectorType {
     UnspecifiedGbT = 8,
     /// Unspecified wall outlet.
     UnspecifiedWallOutlet = 9,
+    /// The North American Charging System (NACS), standardized as SAE J3400.
+    Nacs = 10,
 }
 impl EvConnectorType {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -316,6 +318,7 @@ impl EvConnectorType {
             Self::Tesla => "EV_CONNECTOR_TYPE_TESLA",
             Self::UnspecifiedGbT => "EV_CONNECTOR_TYPE_UNSPECIFIED_GB_T",
             Self::UnspecifiedWallOutlet => "EV_CONNECTOR_TYPE_UNSPECIFIED_WALL_OUTLET",
+            Self::Nacs => "EV_CONNECTOR_TYPE_NACS",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -333,6 +336,7 @@ impl EvConnectorType {
             "EV_CONNECTOR_TYPE_UNSPECIFIED_WALL_OUTLET" => {
                 Some(Self::UnspecifiedWallOutlet)
             }
+            "EV_CONNECTOR_TYPE_NACS" => Some(Self::Nacs),
             _ => None,
         }
     }
@@ -381,6 +385,8 @@ pub mod fuel_options {
             Unspecified = 0,
             /// Diesel fuel.
             Diesel = 1,
+            /// Diesel plus fuel.
+            DieselPlus = 19,
             /// Regular unleaded.
             RegularUnleaded = 2,
             /// Midgrade.
@@ -403,12 +409,14 @@ pub mod fuel_options {
             Sp99 = 11,
             /// SP 100.
             Sp100 = 12,
-            /// LPG.
+            /// Liquefied Petroleum Gas.
             Lpg = 13,
             /// E 80.
             E80 = 14,
             /// E 85.
             E85 = 15,
+            /// E 100.
+            E100 = 20,
             /// Methane.
             Methane = 16,
             /// Bio-diesel.
@@ -425,6 +433,7 @@ pub mod fuel_options {
                 match self {
                     Self::Unspecified => "FUEL_TYPE_UNSPECIFIED",
                     Self::Diesel => "DIESEL",
+                    Self::DieselPlus => "DIESEL_PLUS",
                     Self::RegularUnleaded => "REGULAR_UNLEADED",
                     Self::Midgrade => "MIDGRADE",
                     Self::Premium => "PREMIUM",
@@ -439,6 +448,7 @@ pub mod fuel_options {
                     Self::Lpg => "LPG",
                     Self::E80 => "E80",
                     Self::E85 => "E85",
+                    Self::E100 => "E100",
                     Self::Methane => "METHANE",
                     Self::BioDiesel => "BIO_DIESEL",
                     Self::TruckDiesel => "TRUCK_DIESEL",
@@ -449,6 +459,7 @@ pub mod fuel_options {
                 match value {
                     "FUEL_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
                     "DIESEL" => Some(Self::Diesel),
+                    "DIESEL_PLUS" => Some(Self::DieselPlus),
                     "REGULAR_UNLEADED" => Some(Self::RegularUnleaded),
                     "MIDGRADE" => Some(Self::Midgrade),
                     "PREMIUM" => Some(Self::Premium),
@@ -463,6 +474,7 @@ pub mod fuel_options {
                     "LPG" => Some(Self::Lpg),
                     "E80" => Some(Self::E80),
                     "E85" => Some(Self::E85),
+                    "E100" => Some(Self::E100),
                     "METHANE" => Some(Self::Methane),
                     "BIO_DIESEL" => Some(Self::BioDiesel),
                     "TRUCK_DIESEL" => Some(Self::TruckDiesel),
