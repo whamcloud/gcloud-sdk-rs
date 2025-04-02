@@ -700,6 +700,7 @@ pub struct IosRoboTest {
     /// An optional Roboscript to customize the crawl. See
     /// <https://firebase.google.com/docs/test-lab/android/robo-scripts-reference>
     /// for more information about Roboscripts.
+    /// The maximum allowed file size of the roboscript is 10MiB.
     #[prost(message, optional, tag = "5")]
     pub robo_script: ::core::option::Option<FileReference>,
 }
@@ -1729,7 +1730,6 @@ impl InvalidMatrixDetails {
         }
     }
 }
-/// The state (i.e., progress) of a test execution or matrix.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum TestState {
@@ -3156,6 +3156,10 @@ pub struct LabInfo {
     /// If empty, the device is hosted in a Google owned lab.
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
+    /// The Unicode country/region code (CLDR) of the lab where the device is
+    /// hosted. E.g. "US" for United States, "CH" for Switzerland.
+    #[prost(string, tag = "2")]
+    pub region_code: ::prost::alloc::string::String,
 }
 /// The currently supported iOS devices.
 #[derive(Clone, PartialEq, ::prost::Message)]

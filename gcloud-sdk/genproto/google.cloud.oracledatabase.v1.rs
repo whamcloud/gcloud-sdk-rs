@@ -42,11 +42,11 @@ pub struct AutonomousDatabase {
         ::prost::alloc::string::String,
         ::prost::alloc::string::String,
     >,
-    /// Required. The name of the VPC network used by the Autonomous Database in
+    /// Optional. The name of the VPC network used by the Autonomous Database in
     /// the following format: projects/{project}/global/networks/{network}
     #[prost(string, tag = "9")]
     pub network: ::prost::alloc::string::String,
-    /// Required. The subnet CIDR range for the Autonmous Database.
+    /// Optional. The subnet CIDR range for the Autonmous Database.
     #[prost(string, tag = "10")]
     pub cidr: ::prost::alloc::string::String,
     /// Output only. The date and time that the Autonomous Database was created.
@@ -2081,6 +2081,10 @@ pub mod entitlement {
         AccountNotActive = 2,
         /// Entitlement and Account are active.
         Active = 3,
+        /// Account is suspended.
+        AccountSuspended = 4,
+        /// Entitlement is not approved in private marketplace.
+        NotApprovedInPrivateMarketplace = 5,
     }
     impl State {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -2093,6 +2097,10 @@ pub mod entitlement {
                 Self::AccountNotLinked => "ACCOUNT_NOT_LINKED",
                 Self::AccountNotActive => "ACCOUNT_NOT_ACTIVE",
                 Self::Active => "ACTIVE",
+                Self::AccountSuspended => "ACCOUNT_SUSPENDED",
+                Self::NotApprovedInPrivateMarketplace => {
+                    "NOT_APPROVED_IN_PRIVATE_MARKETPLACE"
+                }
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -2102,6 +2110,10 @@ pub mod entitlement {
                 "ACCOUNT_NOT_LINKED" => Some(Self::AccountNotLinked),
                 "ACCOUNT_NOT_ACTIVE" => Some(Self::AccountNotActive),
                 "ACTIVE" => Some(Self::Active),
+                "ACCOUNT_SUSPENDED" => Some(Self::AccountSuspended),
+                "NOT_APPROVED_IN_PRIVATE_MARKETPLACE" => {
+                    Some(Self::NotApprovedInPrivateMarketplace)
+                }
                 _ => None,
             }
         }
@@ -2192,19 +2204,19 @@ pub struct CloudExadataInfrastructureProperties {
     /// Output only. Deep link to the OCI console to view this resource.
     #[prost(string, tag = "9")]
     pub oci_url: ::prost::alloc::string::String,
-    /// Optional. The number of enabled CPU cores.
+    /// Output only. The number of enabled CPU cores.
     #[prost(int32, tag = "10")]
     pub cpu_count: i32,
     /// Output only. The total number of CPU cores available.
     #[prost(int32, tag = "11")]
     pub max_cpu_count: i32,
-    /// Optional. The memory allocated in GBs.
+    /// Output only. The memory allocated in GBs.
     #[prost(int32, tag = "12")]
     pub memory_size_gb: i32,
     /// Output only. The total memory available in GBs.
     #[prost(int32, tag = "13")]
     pub max_memory_gb: i32,
-    /// Optional. The local node storage allocated in GBs.
+    /// Output only. The local node storage allocated in GBs.
     #[prost(int32, tag = "14")]
     pub db_node_storage_size_gb: i32,
     /// Output only. The total local node storage available in GBs.
@@ -2365,8 +2377,7 @@ pub struct MaintenanceWindow {
     #[prost(int32, tag = "6")]
     pub lead_time_week: i32,
     /// Optional. Cloud CloudExadataInfrastructure node patching method, either
-    /// "ROLLING"
-    ///   or "NONROLLING". Default value is ROLLING.
+    /// "ROLLING" or "NONROLLING". Default value is ROLLING.
     #[prost(enumeration = "maintenance_window::PatchingMode", tag = "7")]
     pub patching_mode: i32,
     /// Optional. Determines the amount of time the system will wait before the
@@ -2613,7 +2624,7 @@ pub struct CloudVmClusterProperties {
     /// Required. Number of enabled CPU cores.
     #[prost(int32, tag = "26")]
     pub cpu_core_count: i32,
-    /// Output only. Operating system version of the image.
+    /// Optional. Operating system version of the image.
     #[prost(string, tag = "27")]
     pub system_version: ::prost::alloc::string::String,
     /// Output only. OCIDs of scan IPs.
