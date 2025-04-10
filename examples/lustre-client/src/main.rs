@@ -24,7 +24,8 @@ async fn instances_create(
     let response = gcloud_sdk::google_rest_apis::lustre_v1alpha::projects_api::autopush_lustre_sandbox_projects_locations_instances_create(
         &google_rest_client.create_google_lustre_v1alpha_config().await?,
         gcloud_sdk::google_rest_apis::lustre_v1alpha::projects_api::AutopushLustreSandboxPeriodProjectsPeriodLocationsPeriodInstancesPeriodCreateParams  {
-            parent: format!("projects/{project}/locations/{location}"),
+            project: project.to_string(),
+            location: location.to_string(),
             access_token: None,
             alt: None,
             callback: None,
@@ -55,7 +56,8 @@ async fn instances_delete(
     let response = gcloud_sdk::google_rest_apis::lustre_v1alpha::projects_api::autopush_lustre_sandbox_projects_locations_instances_delete(
         &google_rest_client.create_google_lustre_v1alpha_config().await?,
         gcloud_sdk::google_rest_apis::lustre_v1alpha::projects_api::AutopushLustreSandboxPeriodProjectsPeriodLocationsPeriodInstancesPeriodDeleteParams {
-            name: format!("projects/{project}/locations/{location}/instances/{instance_name}"),
+            project: project.to_string(),
+            location: location.to_string(),
             access_token: None,
             alt: None,
             callback: None,
@@ -84,7 +86,8 @@ async fn instances_get(
     let response = gcloud_sdk::google_rest_apis::lustre_v1alpha::projects_api::autopush_lustre_sandbox_projects_locations_instances_get(
         &google_rest_client.create_google_lustre_v1alpha_config().await?,
         gcloud_sdk::google_rest_apis::lustre_v1alpha::projects_api::AutopushLustreSandboxPeriodProjectsPeriodLocationsPeriodInstancesPeriodGetParams  {
-            name: format!("projects/{project}/locations/{location}/instances/{instance_name}"),
+            project: project.to_string(),
+            location: location.to_string(),
             access_token: None,
             alt: None,
             callback: None,
@@ -111,7 +114,8 @@ async fn instances_list(
     let response = gcloud_sdk::google_rest_apis::lustre_v1alpha::projects_api::autopush_lustre_sandbox_projects_locations_instances_list(
         &google_rest_client.create_google_lustre_v1alpha_config().await?,
         gcloud_sdk::google_rest_apis::lustre_v1alpha::projects_api::AutopushLustreSandboxPeriodProjectsPeriodLocationsPeriodInstancesPeriodListParams  {
-            parent: format!("projects/{project}/locations/{location}"),
+            project: project.to_string(),
+            location: location.to_string(),
             access_token: None,
             alt: None,
             callback: None,

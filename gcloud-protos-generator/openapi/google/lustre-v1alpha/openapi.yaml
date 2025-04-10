@@ -13,7 +13,7 @@ info:
 servers:
   - url: 'https://autopush-lustre.sandbox.googleapis.com/'
 paths:
-  '/v1alpha/{+name}':
+  '/v1alpha/projects/{project}/locations/{location}/instances/{instance_name}':
     parameters:
       - $ref: '#/components/parameters/access_token'
       - $ref: '#/components/parameters/alt'
@@ -28,9 +28,21 @@ paths:
       - $ref: '#/components/parameters/_.xgafv'
     delete:
       parameters:
-        - description: Required. Name of the resource
+        - description: Required. Project value
           in: path
-          name: name
+          name: project
+          required: true
+          schema:
+            type: string
+        - description: Required. Location value
+          in: path
+          name: location
+          required: true
+          schema:
+            type: string
+        - description: Required. Instance Name value
+          in: path
+          name: instance_name
           required: true
           schema:
             type: string
@@ -69,9 +81,21 @@ paths:
       operationId: autopush_lustre_sandbox.projects.locations.instances.delete
     get:
       parameters:
-        - description: Required. Name of the resource
+        - description: Required. Project value
           in: path
-          name: name
+          name: project
+          required: true
+          schema:
+            type: string
+        - description: Required. Location value
+          in: path
+          name: location
+          required: true
+          schema:
+            type: string
+        - description: Required. Instance Name value
+          in: path
+          name: instance_name
           required: true
           schema:
             type: string
@@ -93,9 +117,21 @@ paths:
       operationId: autopush_lustre_sandbox.projects.locations.instances.get
     patch:
       parameters:
-        - description: Identifier. name of resource
+        - description: Required. Project value
           in: path
-          name: name
+          name: project
+          required: true
+          schema:
+            type: string
+        - description: Required. Location value
+          in: path
+          name: location
+          required: true
+          schema:
+            type: string
+        - description: Required. Instance Name value
+          in: path
+          name: instance_name
           required: true
           schema:
             type: string
@@ -148,7 +184,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Instance'
-  '/v1alpha/{+name}/locations':
+  '/v1alpha/projects/{project}/locations/{location}/locations':
     parameters:
       - $ref: '#/components/parameters/access_token'
       - $ref: '#/components/parameters/alt'
@@ -163,9 +199,15 @@ paths:
       - $ref: '#/components/parameters/_.xgafv'
     get:
       parameters:
-        - description: 'The resource that owns the locations collection, if applicable.'
+        - description: Required. Project value
           in: path
-          name: name
+          name: project
+          required: true
+          schema:
+            type: string
+        - description: Required. Location value
+          in: path
+          name: location
           required: true
           schema:
             type: string
@@ -207,7 +249,7 @@ paths:
         - projects
       description: Lists information about the supported locations for this service.
       operationId: autopush_lustre_sandbox.projects.locations.list
-  '/v1alpha/{+name}/operations':
+  '/v1alpha/projects/{project}/locations/{location}/operations':
     parameters:
       - $ref: '#/components/parameters/access_token'
       - $ref: '#/components/parameters/alt'
@@ -222,9 +264,15 @@ paths:
       - $ref: '#/components/parameters/_.xgafv'
     get:
       parameters:
-        - description: The name of the operation's parent resource.
+        - description: Required. Project value
           in: path
-          name: name
+          name: project
+          required: true
+          schema:
+            type: string
+        - description: Required. Location value
+          in: path
+          name: location
           required: true
           schema:
             type: string
@@ -261,7 +309,7 @@ paths:
         Lists operations that match the specified filter in the request. If the
         server doesn't support this method, it returns `UNIMPLEMENTED`.
       operationId: autopush_lustre_sandbox.projects.locations.operations.list
-  '/v1alpha/{+name}:cancel':
+  '/v1alpha/projects/{project}/locations/{location}:cancel':
     parameters:
       - $ref: '#/components/parameters/access_token'
       - $ref: '#/components/parameters/alt'
@@ -276,9 +324,15 @@ paths:
       - $ref: '#/components/parameters/_.xgafv'
     post:
       parameters:
-        - description: The name of the operation resource to be cancelled.
+        - description: Required. Project value
           in: path
-          name: name
+          name: project
+          required: true
+          schema:
+            type: string
+        - description: Required. Location value
+          in: path
+          name: location
           required: true
           schema:
             type: string
@@ -312,7 +366,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CancelOperationRequest'
-  '/v1alpha/{+name}:exportData':
+  '/v1alpha/projects/{project}/locations/{location}:exportData':
     parameters:
       - $ref: '#/components/parameters/access_token'
       - $ref: '#/components/parameters/alt'
@@ -327,9 +381,15 @@ paths:
       - $ref: '#/components/parameters/_.xgafv'
     post:
       parameters:
-        - description: Required. Name of the resource.
+        - description: Required. Project value
           in: path
-          name: name
+          name: project
+          required: true
+          schema:
+            type: string
+        - description: Required. Location value
+          in: path
+          name: location
           required: true
           schema:
             type: string
@@ -354,7 +414,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ExportDataRequest'
-  '/v1alpha/{+name}:importData':
+  '/v1alpha/projects/{project}/locations/{location}:importData':
     parameters:
       - $ref: '#/components/parameters/access_token'
       - $ref: '#/components/parameters/alt'
@@ -369,9 +429,15 @@ paths:
       - $ref: '#/components/parameters/_.xgafv'
     post:
       parameters:
-        - description: Required. Name of the resource.
+        - description: Required. Project value
           in: path
-          name: name
+          name: project
+          required: true
+          schema:
+            type: string
+        - description: Required. Location value
+          in: path
+          name: location
           required: true
           schema:
             type: string
@@ -396,7 +462,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ImportDataRequest'
-  '/v1alpha/{+parent}/instances':
+  '/v1alpha/projects/{project}/locations/{location}/instances':
     parameters:
       - $ref: '#/components/parameters/access_token'
       - $ref: '#/components/parameters/alt'
@@ -411,9 +477,15 @@ paths:
       - $ref: '#/components/parameters/_.xgafv'
     get:
       parameters:
-        - description: Required. Parent value for ListInstancesRequest
+        - description: Required. Project value for ListInstancesRequest
           in: path
-          name: parent
+          name: project
+          required: true
+          schema:
+            type: string
+        - description: Required. Location value for ListInstancesRequest
+          in: path
+          name: location
           required: true
           schema:
             type: string
@@ -459,9 +531,15 @@ paths:
       operationId: autopush_lustre_sandbox.projects.locations.instances.list
     post:
       parameters:
-        - description: Required. Value for parent.
+        - description: Required. Project value
           in: path
-          name: parent
+          name: project
+          required: true
+          schema:
+            type: string
+        - description: Required. Location value
+          in: path
+          name: location
           required: true
           schema:
             type: string
@@ -945,4 +1023,3 @@ tags:
   - name: projects
 externalDocs:
   url: go/managedlustre
-
