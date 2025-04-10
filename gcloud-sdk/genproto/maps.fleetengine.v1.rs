@@ -1143,6 +1143,19 @@ pub struct GetTripRequest {
         ::prost_types::Timestamp,
     >,
 }
+/// DeleteTrip request message.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteTripRequest {
+    /// Optional. The standard Fleet Engine request header.
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<RequestHeader>,
+    /// Required. Must be in the format `providers/{provider}/trips/{trip}`.
+    /// The provider must be the Project ID (for example, `sample-cloud-project`)
+    /// of the Google Cloud Project of which the service account making
+    /// this call is a member.
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+}
 /// ReportBillableTrip request message.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReportBillableTripRequest {
@@ -1357,7 +1370,7 @@ pub mod trip_service_client {
     }
     impl<T> TripServiceClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -1378,13 +1391,13 @@ pub mod trip_service_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             TripServiceClient::new(InterceptedService::new(inner, interceptor))
@@ -1464,6 +1477,33 @@ pub mod trip_service_client {
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("maps.fleetengine.v1.TripService", "GetTrip"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Deletes a single Trip.
+        ///
+        /// Returns FAILED_PRECONDITION if the Trip is active and assigned to a
+        /// vehicle.
+        pub async fn delete_trip(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteTripRequest>,
+        ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/maps.fleetengine.v1.TripService/DeleteTrip",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("maps.fleetengine.v1.TripService", "DeleteTrip"),
+                );
             self.inner.unary(req, path, codec).await
         }
         /// Report billable trip usage.
@@ -1566,6 +1606,13 @@ pub struct Vehicle {
     /// Last reported location of the vehicle.
     #[prost(message, optional, tag = "5")]
     pub last_location: ::core::option::Option<VehicleLocation>,
+    /// Input only. Locations where this vehicle has been in the past that haven't
+    /// yet been reported to Fleet Engine. This is used in `UpdateVehicleRequest`
+    /// to record locations which were previously unable to be sent to the server.
+    /// Typically this happens when the vehicle does not have internet
+    /// connectivity.
+    #[prost(message, repeated, tag = "30")]
+    pub past_locations: ::prost::alloc::vec::Vec<VehicleLocation>,
     /// The total numbers of riders this vehicle can carry.  The driver is not
     /// considered in this value. This value must be greater than or equal to one.
     #[prost(int32, tag = "6")]
@@ -2126,6 +2173,20 @@ pub struct GetVehicleRequest {
     /// unspecified, `vehicle.waypoints` is always retrieved.
     #[prost(message, optional, tag = "5")]
     pub waypoints_version: ::core::option::Option<::prost_types::Timestamp>,
+}
+/// DeleteVehicle request message.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteVehicleRequest {
+    /// Optional. The standard Fleet Engine request header.
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<RequestHeader>,
+    /// Required. Must be in the format
+    /// `providers/{provider}/vehicles/{vehicle}`.
+    /// The {provider} must be the Project ID (for example, `sample-cloud-project`)
+    /// of the Google Cloud Project of which the service account making
+    /// this call is a member.
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
 }
 /// `UpdateVehicle request message.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -2698,13 +2759,12 @@ pub struct VehicleMatch {
     /// Type of the vehicle match.
     #[prost(enumeration = "vehicle_match::VehicleMatchType", tag = "8")]
     pub vehicle_match_type: i32,
-    /// The order requested for sorting vehicle matches.
+    /// The order requested for sorting vehicle matches. Equivalent to
+    /// `ordered_by`.
     #[prost(enumeration = "search_vehicles_request::VehicleMatchOrder", tag = "9")]
     pub requested_ordered_by: i32,
-    /// The actual order that was used for this vehicle. Normally this
-    /// will match the 'order_by' field from the request; however, in certain
-    /// circumstances such as an internal server error, a different method
-    /// may be used (such as `PICKUP_POINT_STRAIGHT_DISTANCE`).
+    /// The order requested for sorting vehicle matches. Equivalent to
+    /// `requested_ordered_by`.
     #[prost(enumeration = "search_vehicles_request::VehicleMatchOrder", tag = "10")]
     pub ordered_by: i32,
 }
@@ -2803,7 +2863,7 @@ pub mod vehicle_service_client {
     }
     impl<T> VehicleServiceClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -2824,13 +2884,13 @@ pub mod vehicle_service_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             VehicleServiceClient::new(InterceptedService::new(inner, interceptor))
@@ -2941,6 +3001,36 @@ pub mod vehicle_service_client {
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new("maps.fleetengine.v1.VehicleService", "GetVehicle"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Deletes a Vehicle from the Fleet Engine.
+        ///
+        /// Returns FAILED_PRECONDITION if the Vehicle has active Trips.
+        /// assigned to it.
+        pub async fn delete_vehicle(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteVehicleRequest>,
+        ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/maps.fleetengine.v1.VehicleService/DeleteVehicle",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "maps.fleetengine.v1.VehicleService",
+                        "DeleteVehicle",
+                    ),
                 );
             self.inner.unary(req, path, codec).await
         }

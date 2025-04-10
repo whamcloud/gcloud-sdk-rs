@@ -196,7 +196,7 @@ pub struct AccessConfig {
     /// The DNS domain name for the public PTR record. You can set this field only if the `setPublicPtr` field is enabled in accessConfig. If this field is unspecified in ipv6AccessConfig, a default PTR record will be created for first IP in associated external IPv6 range.
     #[prost(string, optional, tag = "316599167")]
     pub public_ptr_domain_name: ::core::option::Option<::prost::alloc::string::String>,
-    /// \[Output Only\] The resource URL for the security policy associated with this access config.
+    /// The resource URL for the security policy associated with this access config.
     #[prost(string, optional, tag = "171082513")]
     pub security_policy: ::core::option::Option<::prost::alloc::string::String>,
     /// Specifies whether a public DNS 'PTR' record should be created to map the external IP address of the instance to a DNS domain name. This field is not used in ipv6AccessConfig. A default PTR record will be created if the VM has external IPv6 range associated.
@@ -474,6 +474,28 @@ pub struct AddNodesNodeGroupRequest {
     /// The name of the zone for this request.
     #[prost(string, tag = "3744684")]
     pub zone: ::prost::alloc::string::String,
+}
+/// A request message for NetworkFirewallPolicies.AddPacketMirroringRule. See the method description for details.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AddPacketMirroringRuleNetworkFirewallPolicyRequest {
+    /// Name of the firewall policy to update.
+    #[prost(string, tag = "498173265")]
+    pub firewall_policy: ::prost::alloc::string::String,
+    /// The body resource for this request
+    #[prost(message, optional, tag = "250523523")]
+    pub firewall_policy_rule_resource: ::core::option::Option<FirewallPolicyRule>,
+    /// When rule.priority is not specified, auto choose a unused priority between minPriority and maxPriority>. This field is exclusive with rule.priority.
+    #[prost(int32, optional, tag = "329635359")]
+    pub max_priority: ::core::option::Option<i32>,
+    /// When rule.priority is not specified, auto choose a unused priority between minPriority and maxPriority>. This field is exclusive with rule.priority.
+    #[prost(int32, optional, tag = "267190513")]
+    pub min_priority: ::core::option::Option<i32>,
+    /// Project ID for this request.
+    #[prost(string, tag = "227560217")]
+    pub project: ::prost::alloc::string::String,
+    /// An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported ( 00000000-0000-0000-0000-000000000000).
+    #[prost(string, optional, tag = "37109963")]
+    pub request_id: ::core::option::Option<::prost::alloc::string::String>,
 }
 /// A request message for Networks.AddPeering. See the method description for details.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1735,6 +1757,34 @@ pub struct AggregatedListNetworkEndpointGroupsRequest {
     #[prost(int64, optional, tag = "316757497")]
     pub service_project_number: ::core::option::Option<i64>,
 }
+/// A request message for NetworkFirewallPolicies.AggregatedList. See the method description for details.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AggregatedListNetworkFirewallPoliciesRequest {
+    /// A filter expression that filters resources listed in the response. Most Compute resources support two types of filter expressions: expressions that support regular expressions and expressions that follow API improvement proposal AIP-160. These two types of filter expressions cannot be mixed in one request. If you want to use AIP-160, your expression must specify the field name, an operator, and the value that you want to use for filtering. The value must be a string, a number, or a boolean. The operator must be either `=`, `!=`, `>`, `<`, `<=`, `>=` or `:`. For example, if you are filtering Compute Engine instances, you can exclude instances named `example-instance` by specifying `name != example-instance`. The `:*` comparison can be used to test whether a key has been defined. For example, to find all objects with `owner` label use: ``` labels.owner:* ``` You can also filter nested fields. For example, you could specify `scheduling.automaticRestart = false` to include instances only if they are not scheduled for automatic restarts. You can use filtering on nested fields to filter based on resource labels. To filter on multiple expressions, provide each separate expression within parentheses. For example: ``` (scheduling.automaticRestart = true) (cpuPlatform = "Intel Skylake") ``` By default, each expression is an `AND` expression. However, you can include `AND` and `OR` expressions explicitly. For example: ``` (cpuPlatform = "Intel Skylake") OR (cpuPlatform = "Intel Broadwell") AND (scheduling.automaticRestart = true) ``` If you want to use a regular expression, use the `eq` (equal) or `ne` (not equal) operator against a single un-parenthesized expression with or without quotes or against multiple parenthesized expressions. Examples: `fieldname eq unquoted literal` `fieldname eq 'single quoted literal'` `fieldname eq "double quoted literal"` `(fieldname1 eq literal) (fieldname2 ne "literal")` The literal value is interpreted as a regular expression using Google RE2 library syntax. The literal value must match the entire field. For example, to filter for instances that do not end with name "instance", you would use `name ne .*instance`. You cannot combine constraints on multiple fields using regular expressions.
+    #[prost(string, optional, tag = "336120696")]
+    pub filter: ::core::option::Option<::prost::alloc::string::String>,
+    /// Indicates whether every visible scope for each scope type (zone, region, global) should be included in the response. For new resource types added after this field, the flag has no effect as new resource types will always include every visible scope for each scope type in response. For resource types which predate this field, if this flag is omitted or false, only scopes of the scope types where the resource type is expected to be found will be included.
+    #[prost(bool, optional, tag = "391327988")]
+    pub include_all_scopes: ::core::option::Option<bool>,
+    /// The maximum number of results per page that should be returned. If the number of available results is larger than `maxResults`, Compute Engine returns a `nextPageToken` that can be used to get the next page of results in subsequent list requests. Acceptable values are `0` to `500`, inclusive. (Default: `500`)
+    #[prost(uint32, optional, tag = "54715419")]
+    pub max_results: ::core::option::Option<u32>,
+    /// Sorts list results by a certain order. By default, results are returned in alphanumerical order based on the resource name. You can also sort results in descending order based on the creation timestamp using `orderBy="creationTimestamp desc"`. This sorts results based on the `creationTimestamp` field in reverse chronological order (newest result first). Use this to sort resources like operations so that the newest operation is returned first. Currently, only sorting by `name` or `creationTimestamp desc` is supported.
+    #[prost(string, optional, tag = "160562920")]
+    pub order_by: ::core::option::Option<::prost::alloc::string::String>,
+    /// Specifies a page token to use. Set `pageToken` to the `nextPageToken` returned by a previous list request to get the next page of results.
+    #[prost(string, optional, tag = "19994697")]
+    pub page_token: ::core::option::Option<::prost::alloc::string::String>,
+    /// Project ID for this request.
+    #[prost(string, tag = "227560217")]
+    pub project: ::prost::alloc::string::String,
+    /// Opt-in for partial success behavior which provides partial results in case of failure. The default value is false. For example, when partial success behavior is enabled, aggregatedList for a single zone scope either returns all resources in the zone or no resources, with an error code.
+    #[prost(bool, optional, tag = "517198390")]
+    pub return_partial_success: ::core::option::Option<bool>,
+    /// The Shared VPC service project id or service project number for which aggregated list request is invoked for subnetworks list-usable api.
+    #[prost(int64, optional, tag = "316757497")]
+    pub service_project_number: ::core::option::Option<i64>,
+}
 /// A request message for NodeGroups.AggregatedList. See the method description for details.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AggregatedListNodeGroupsRequest {
@@ -2488,8 +2538,10 @@ pub mod allocation_aggregate_reservation {
         CloudTpuDeviceCt3 = 42845948,
         CloudTpuLiteDeviceCt5l = 108020067,
         CloudTpuLitePodSliceCt5lp = 18705267,
+        CloudTpuLitePodSliceCt6e = 398926997,
         CloudTpuPodSliceCt3p = 517384376,
         CloudTpuPodSliceCt4p = 517384407,
+        CloudTpuPodSliceCt5p = 517384438,
     }
     impl VmFamily {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -2504,8 +2556,12 @@ pub mod allocation_aggregate_reservation {
                 Self::CloudTpuLitePodSliceCt5lp => {
                     "VM_FAMILY_CLOUD_TPU_LITE_POD_SLICE_CT5LP"
                 }
+                Self::CloudTpuLitePodSliceCt6e => {
+                    "VM_FAMILY_CLOUD_TPU_LITE_POD_SLICE_CT6E"
+                }
                 Self::CloudTpuPodSliceCt3p => "VM_FAMILY_CLOUD_TPU_POD_SLICE_CT3P",
                 Self::CloudTpuPodSliceCt4p => "VM_FAMILY_CLOUD_TPU_POD_SLICE_CT4P",
+                Self::CloudTpuPodSliceCt5p => "VM_FAMILY_CLOUD_TPU_POD_SLICE_CT5P",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -2519,8 +2575,12 @@ pub mod allocation_aggregate_reservation {
                 "VM_FAMILY_CLOUD_TPU_LITE_POD_SLICE_CT5LP" => {
                     Some(Self::CloudTpuLitePodSliceCt5lp)
                 }
+                "VM_FAMILY_CLOUD_TPU_LITE_POD_SLICE_CT6E" => {
+                    Some(Self::CloudTpuLitePodSliceCt6e)
+                }
                 "VM_FAMILY_CLOUD_TPU_POD_SLICE_CT3P" => Some(Self::CloudTpuPodSliceCt3p),
                 "VM_FAMILY_CLOUD_TPU_POD_SLICE_CT4P" => Some(Self::CloudTpuPodSliceCt4p),
+                "VM_FAMILY_CLOUD_TPU_POD_SLICE_CT5P" => Some(Self::CloudTpuPodSliceCt5p),
                 _ => None,
             }
         }
@@ -2591,6 +2651,63 @@ pub struct AllocationAggregateReservationReservedResourceInfoAccelerator {
     #[prost(string, optional, tag = "138031246")]
     pub accelerator_type: ::core::option::Option<::prost::alloc::string::String>,
 }
+///
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AllocationReservationSharingPolicy {
+    /// Sharing config for all Google Cloud services.
+    /// Check the ServiceShareType enum for the list of possible values.
+    #[prost(string, optional, tag = "514508644")]
+    pub service_share_type: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// Nested message and enum types in `AllocationReservationSharingPolicy`.
+pub mod allocation_reservation_sharing_policy {
+    /// Sharing config for all Google Cloud services.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum ServiceShareType {
+        /// A value indicating that the enum field is not set.
+        UndefinedServiceShareType = 0,
+        /// Allow all Google Cloud managed services to share reservations.
+        AllowAll = 475536235,
+        /// \[Default\] Disallow sharing with all Google Cloud services.
+        DisallowAll = 277786301,
+        Unspecified = 279057148,
+    }
+    impl ServiceShareType {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedServiceShareType => "UNDEFINED_SERVICE_SHARE_TYPE",
+                Self::AllowAll => "ALLOW_ALL",
+                Self::DisallowAll => "DISALLOW_ALL",
+                Self::Unspecified => "SERVICE_SHARE_TYPE_UNSPECIFIED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_SERVICE_SHARE_TYPE" => Some(Self::UndefinedServiceShareType),
+                "ALLOW_ALL" => Some(Self::AllowAll),
+                "DISALLOW_ALL" => Some(Self::DisallowAll),
+                "SERVICE_SHARE_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+                _ => None,
+            }
+        }
+    }
+}
 /// \[Output Only\] Contains output only fields.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AllocationResourceStatus {
@@ -2608,6 +2725,9 @@ pub struct AllocationResourceStatusSpecificSkuAllocation {
     pub source_instance_template_id: ::core::option::Option<
         ::prost::alloc::string::String,
     >,
+    /// Per service utilization breakdown. The Key is the Google Cloud managed service name.
+    #[prost(map = "string, int64", tag = "402495121")]
+    pub utilizations: ::std::collections::HashMap<::prost::alloc::string::String, i64>,
 }
 ///
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -3203,7 +3323,7 @@ pub struct AttachedDiskInitializeParams {
     /// The customer-supplied encryption key of the source image. Required if the source image is protected by a customer-supplied encryption key. InstanceTemplate and InstancePropertiesPatch do not store customer-supplied encryption keys, so you cannot create disks for instances in a managed instance group if the source images are encrypted with your own keys.
     #[prost(message, optional, tag = "381503659")]
     pub source_image_encryption_key: ::core::option::Option<CustomerEncryptionKey>,
-    /// The source snapshot to create this disk. When creating a new instance boot disk, one of initializeParams.sourceSnapshot or initializeParams.sourceImage or disks.source is required. To create a disk with a snapshot that you created, specify the snapshot name in the following format: global/snapshots/my-backup If the source snapshot is deleted later, this field will not be set.
+    /// The source snapshot to create this disk. When creating a new instance boot disk, one of initializeParams.sourceSnapshot or initializeParams.sourceImage or disks.source is required. To create a disk with a snapshot that you created, specify the snapshot name in the following format: global/snapshots/my-backup If the source snapshot is deleted later, this field will not be set. Note: You cannot create VMs in bulk using a snapshot as the source. Use an image instead when you create VMs using the bulk insert method.
     #[prost(string, optional, tag = "126061928")]
     pub source_snapshot: ::core::option::Option<::prost::alloc::string::String>,
     /// The customer-supplied encryption key of the source snapshot.
@@ -3981,13 +4101,16 @@ pub struct Backend {
     /// A multiplier applied to the backend's target capacity of its balancing mode. The default value is 1, which means the group serves up to 100% of its configured capacity (depending on balancingMode). A setting of 0 means the group is completely drained, offering 0% of its available capacity. The valid ranges are 0.0 and \[0.1,1.0\]. You cannot configure a setting larger than 0 and smaller than 0.1. You cannot configure a setting of 0 when there is only one backend attached to the backend service. Not available with backends that don't support using a balancingMode. This includes backends such as global internet NEGs, regional serverless NEGs, and PSC NEGs.
     #[prost(float, optional, tag = "315958157")]
     pub capacity_scaler: ::core::option::Option<f32>,
+    /// List of custom metrics that are used for CUSTOM_METRICS BalancingMode.
+    #[prost(message, repeated, tag = "429453813")]
+    pub custom_metrics: ::prost::alloc::vec::Vec<BackendCustomMetric>,
     /// An optional description of this resource. Provide this property when you create the resource.
     #[prost(string, optional, tag = "422937596")]
     pub description: ::core::option::Option<::prost::alloc::string::String>,
     /// This field designates whether this is a failover backend. More than one failover backend can be configured for a given BackendService.
     #[prost(bool, optional, tag = "138892530")]
     pub failover: ::core::option::Option<bool>,
-    /// The fully-qualified URL of an instance group or network endpoint group (NEG) resource. To determine what types of backends a load balancer supports, see the [Backend services overview](<https://cloud.google.com/load-balancing/docs/backend-service#backends>). You must use the *fully-qualified* URL (starting with <https://www.googleapis.com/>) to specify the instance group or NEG. Partial URLs are not supported.
+    /// The fully-qualified URL of an instance group or network endpoint group (NEG) resource. To determine what types of backends a load balancer supports, see the [Backend services overview](<https://cloud.google.com/load-balancing/docs/backend-service#backends>). You must use the *fully-qualified* URL (starting with <https://www.googleapis.com/>) to specify the instance group or NEG. Partial URLs are not supported. If haPolicy is specified, backends must refer to NEG resources of type GCE_VM_IP.
     #[prost(string, optional, tag = "98629247")]
     pub group: ::core::option::Option<::prost::alloc::string::String>,
     /// Defines a target maximum number of simultaneous connections. For usage guidelines, see Connection balancing mode and Utilization balancing mode. Not available if the backend's balancingMode is RATE.
@@ -4036,6 +4159,8 @@ pub mod backend {
         UndefinedBalancingMode = 0,
         /// Balance based on the number of simultaneous connections.
         Connection = 246311646,
+        /// Based on custom defined and reported metrics.
+        CustomMetrics = 331575765,
         /// Balance based on requests per second (RPS).
         Rate = 2508000,
         /// Balance based on the backend utilization.
@@ -4050,6 +4175,7 @@ pub mod backend {
             match self {
                 Self::UndefinedBalancingMode => "UNDEFINED_BALANCING_MODE",
                 Self::Connection => "CONNECTION",
+                Self::CustomMetrics => "CUSTOM_METRICS",
                 Self::Rate => "RATE",
                 Self::Utilization => "UTILIZATION",
             }
@@ -4059,6 +4185,7 @@ pub mod backend {
             match value {
                 "UNDEFINED_BALANCING_MODE" => Some(Self::UndefinedBalancingMode),
                 "CONNECTION" => Some(Self::Connection),
+                "CUSTOM_METRICS" => Some(Self::CustomMetrics),
                 "RATE" => Some(Self::Rate),
                 "UTILIZATION" => Some(Self::Utilization),
                 _ => None,
@@ -4216,7 +4343,7 @@ pub struct BackendBucketCdnPolicy {
     /// The CacheKeyPolicy for this CdnPolicy.
     #[prost(message, optional, tag = "159263727")]
     pub cache_key_policy: ::core::option::Option<BackendBucketCdnPolicyCacheKeyPolicy>,
-    /// Specifies the cache setting for all responses from this backend. The possible values are: USE_ORIGIN_HEADERS Requires the origin to set valid caching headers to cache content. Responses without these headers will not be cached at Google's edge, and will require a full trip to the origin on every request, potentially impacting performance and increasing load on the origin server. FORCE_CACHE_ALL Cache all content, ignoring any "private", "no-store" or "no-cache" directives in Cache-Control response headers. Warning: this may result in Cloud CDN caching private, per-user (user identifiable) content. CACHE_ALL_STATIC Automatically cache static content, including common image formats, media (video and audio), and web assets (JavaScript and CSS). Requests and responses that are marked as uncacheable, as well as dynamic content (including HTML), will not be cached.
+    /// Specifies the cache setting for all responses from this backend. The possible values are: USE_ORIGIN_HEADERS Requires the origin to set valid caching headers to cache content. Responses without these headers will not be cached at Google's edge, and will require a full trip to the origin on every request, potentially impacting performance and increasing load on the origin server. FORCE_CACHE_ALL Cache all content, ignoring any "private", "no-store" or "no-cache" directives in Cache-Control response headers. Warning: this may result in Cloud CDN caching private, per-user (user identifiable) content. CACHE_ALL_STATIC Automatically cache static content, including common image formats, media (video and audio), and web assets (JavaScript and CSS). Requests and responses that are marked as uncacheable, as well as dynamic content (including HTML), will not be cached. If no value is provided for cdnPolicy.cacheMode, it defaults to CACHE_ALL_STATIC.
     /// Check the CacheMode enum for the list of possible values.
     #[prost(string, optional, tag = "28877888")]
     pub cache_mode: ::core::option::Option<::prost::alloc::string::String>,
@@ -4252,7 +4379,7 @@ pub struct BackendBucketCdnPolicy {
 }
 /// Nested message and enum types in `BackendBucketCdnPolicy`.
 pub mod backend_bucket_cdn_policy {
-    /// Specifies the cache setting for all responses from this backend. The possible values are: USE_ORIGIN_HEADERS Requires the origin to set valid caching headers to cache content. Responses without these headers will not be cached at Google's edge, and will require a full trip to the origin on every request, potentially impacting performance and increasing load on the origin server. FORCE_CACHE_ALL Cache all content, ignoring any "private", "no-store" or "no-cache" directives in Cache-Control response headers. Warning: this may result in Cloud CDN caching private, per-user (user identifiable) content. CACHE_ALL_STATIC Automatically cache static content, including common image formats, media (video and audio), and web assets (JavaScript and CSS). Requests and responses that are marked as uncacheable, as well as dynamic content (including HTML), will not be cached.
+    /// Specifies the cache setting for all responses from this backend. The possible values are: USE_ORIGIN_HEADERS Requires the origin to set valid caching headers to cache content. Responses without these headers will not be cached at Google's edge, and will require a full trip to the origin on every request, potentially impacting performance and increasing load on the origin server. FORCE_CACHE_ALL Cache all content, ignoring any "private", "no-store" or "no-cache" directives in Cache-Control response headers. Warning: this may result in Cloud CDN caching private, per-user (user identifiable) content. CACHE_ALL_STATIC Automatically cache static content, including common image formats, media (video and audio), and web assets (JavaScript and CSS). Requests and responses that are marked as uncacheable, as well as dynamic content (including HTML), will not be cached. If no value is provided for cdnPolicy.cacheMode, it defaults to CACHE_ALL_STATIC.
     #[derive(
         Clone,
         Copy,
@@ -4359,6 +4486,19 @@ pub struct BackendBucketUsedBy {
     #[prost(string, optional, tag = "148586315")]
     pub reference: ::core::option::Option<::prost::alloc::string::String>,
 }
+/// Custom Metrics are used for CUSTOM_METRICS balancing_mode.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BackendCustomMetric {
+    /// If true, the metric data is collected and reported to Cloud Monitoring, but is not used for load balancing.
+    #[prost(bool, optional, tag = "323854839")]
+    pub dry_run: ::core::option::Option<bool>,
+    /// Optional parameter to define a target utilization for the Custom Metrics balancing mode. The valid range is \[0.0, 1.0\].
+    #[prost(float, optional, tag = "148192199")]
+    pub max_utilization: ::core::option::Option<f32>,
+    /// Name of a custom utilization signal. The name must be 1-64 characters long and match the regular expression [a-z](\[-_.a-z0-9\]*[a-z0-9])? which means the first character must be a lowercase letter, and all following characters must be a dash, period, underscore, lowercase letter, or digit, except the last character, which cannot be a dash, period, or underscore. For usage guidelines, see Custom Metrics balancing mode. This field can only be used for a global or regional backend service with the loadBalancingScheme set to EXTERNAL_MANAGED, INTERNAL_MANAGED INTERNAL_SELF_MANAGED.
+    #[prost(string, optional, tag = "3373707")]
+    pub name: ::core::option::Option<::prost::alloc::string::String>,
+}
 /// Represents a Backend Service resource. A backend service defines how Google Cloud load balancers distribute traffic. The backend service configuration contains a set of values, such as the protocol used to connect to backends, various distribution and session settings, health checks, and timeouts. These settings provide fine-grained control over how your load balancer behaves. Most of the settings have default values that allow for easy configuration if you need to get started quickly. Backend services in Google Compute Engine can be either regionally or globally scoped. * [Global](<https://cloud.google.com/compute/docs/reference/rest/v1/backendServices>) * [Regional](<https://cloud.google.com/compute/docs/reference/rest/v1/regionBackendServices>) For more information, see Backend Services.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct BackendService {
@@ -4377,9 +4517,10 @@ pub struct BackendService {
     /// Check the CompressionMode enum for the list of possible values.
     #[prost(string, optional, tag = "95520988")]
     pub compression_mode: ::core::option::Option<::prost::alloc::string::String>,
+    /// connectionDraining cannot be specified with haPolicy.
     #[prost(message, optional, tag = "461096747")]
     pub connection_draining: ::core::option::Option<ConnectionDraining>,
-    /// Connection Tracking configuration for this BackendService. Connection tracking policy settings are only available for external passthrough Network Load Balancers and internal passthrough Network Load Balancers.
+    /// Connection Tracking configuration for this BackendService. Connection tracking policy settings are only available for external passthrough Network Load Balancers and internal passthrough Network Load Balancers. connectionTrackingPolicy cannot be specified with haPolicy.
     #[prost(message, optional, tag = "143994969")]
     pub connection_tracking_policy: ::core::option::Option<
         BackendServiceConnectionTrackingPolicy,
@@ -4390,6 +4531,9 @@ pub struct BackendService {
     /// \[Output Only\] Creation timestamp in RFC3339 text format.
     #[prost(string, optional, tag = "30525366")]
     pub creation_timestamp: ::core::option::Option<::prost::alloc::string::String>,
+    /// List of custom metrics that are used for the WEIGHTED_ROUND_ROBIN locality_lb_policy.
+    #[prost(message, repeated, tag = "429453813")]
+    pub custom_metrics: ::prost::alloc::vec::Vec<BackendServiceCustomMetric>,
     /// Headers that the load balancer adds to proxied requests. See [Creating custom headers](<https://cloud.google.com/load-balancing/docs/custom-headers>).
     #[prost(string, repeated, tag = "27977992")]
     pub custom_request_headers: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
@@ -4407,13 +4551,16 @@ pub struct BackendService {
     /// If true, enables Cloud CDN for the backend service of a global external Application Load Balancer.
     #[prost(bool, optional, tag = "250733499")]
     pub enable_c_d_n: ::core::option::Option<bool>,
-    /// Requires at least one backend instance group to be defined as a backup (failover) backend. For load balancers that have configurable failover: [Internal passthrough Network Load Balancers](<https://cloud.google.com/load-balancing/docs/internal/failover-overview>) and [external passthrough Network Load Balancers](<https://cloud.google.com/load-balancing/docs/network/networklb-failover-overview>).
+    /// Requires at least one backend instance group to be defined as a backup (failover) backend. For load balancers that have configurable failover: [Internal passthrough Network Load Balancers](<https://cloud.google.com/load-balancing/docs/internal/failover-overview>) and [external passthrough Network Load Balancers](<https://cloud.google.com/load-balancing/docs/network/networklb-failover-overview>). failoverPolicy cannot be specified with haPolicy.
     #[prost(message, optional, tag = "105658655")]
     pub failover_policy: ::core::option::Option<BackendServiceFailoverPolicy>,
     /// Fingerprint of this resource. A hash of the contents stored in this object. This field is used in optimistic locking. This field will be ignored when inserting a BackendService. An up-to-date fingerprint must be provided in order to update the BackendService, otherwise the request will fail with error 412 conditionNotMet. To see the latest fingerprint, make a get() request to retrieve a BackendService.
     #[prost(string, optional, tag = "234678500")]
     pub fingerprint: ::core::option::Option<::prost::alloc::string::String>,
-    /// The list of URLs to the healthChecks, httpHealthChecks (legacy), or httpsHealthChecks (legacy) resource for health checking this backend service. Not all backend services support legacy health checks. See Load balancer guide. Currently, at most one health check can be specified for each backend service. Backend services with instance group or zonal NEG backends must have a health check. Backend services with internet or serverless NEG backends must not have a health check.
+    /// Configures self-managed High Availability (HA) for External and Internal Protocol Forwarding. The backends of this regional backend service must only specify zonal network endpoint groups (NEGs) of type GCE_VM_IP. When haPolicy is set for an Internal Passthrough Network Load Balancer, the regional backend service must set the network field. All zonal NEGs must belong to the same network. However, individual NEGs can belong to different subnetworks of that network. When haPolicy is specified, the set of attached network endpoints across all backends comprise an High Availability domain from which one endpoint is selected as the active endpoint (the leader) that receives all traffic. haPolicy can be added only at backend service creation time. Once set up, it cannot be deleted. Note that haPolicy is not for load balancing, and therefore cannot be specified with sessionAffinity, connectionTrackingPolicy, and failoverPolicy. haPolicy requires customers to be responsible for tracking backend endpoint health and electing a leader among the healthy endpoints. Therefore, haPolicy cannot be specified with healthChecks. haPolicy can only be specified for External Passthrough Network Load Balancers and Internal Passthrough Network Load Balancers.
+    #[prost(message, optional, tag = "519879480")]
+    pub ha_policy: ::core::option::Option<BackendServiceHaPolicy>,
+    /// The list of URLs to the healthChecks, httpHealthChecks (legacy), or httpsHealthChecks (legacy) resource for health checking this backend service. Not all backend services support legacy health checks. See Load balancer guide. Currently, at most one health check can be specified for each backend service. Backend services with instance group or zonal NEG backends must have a health check unless haPolicy is specified. Backend services with internet or serverless NEG backends must not have a health check. healthChecks\[\] cannot be specified with haPolicy.
     #[prost(string, repeated, tag = "448370606")]
     pub health_checks: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
     /// The configurations for Identity-Aware Proxy on this resource. Not available for internal passthrough Network Load Balancers and external passthrough Network Load Balancers.
@@ -4440,7 +4587,7 @@ pub struct BackendService {
     pub locality_lb_policies: ::prost::alloc::vec::Vec<
         BackendServiceLocalityLoadBalancingPolicyConfig,
     >,
-    /// The load balancing algorithm used within the scope of the locality. The possible values are: - ROUND_ROBIN: This is a simple policy in which each healthy backend is selected in round robin order. This is the default. - LEAST_REQUEST: An O(1) algorithm which selects two random healthy hosts and picks the host which has fewer active requests. - RING_HASH: The ring/modulo hash load balancer implements consistent hashing to backends. The algorithm has the property that the addition/removal of a host from a set of N hosts only affects 1/N of the requests. - RANDOM: The load balancer selects a random healthy host. - ORIGINAL_DESTINATION: Backend host is selected based on the client connection metadata, i.e., connections are opened to the same address as the destination address of the incoming connection before the connection was redirected to the load balancer. - MAGLEV: used as a drop in replacement for the ring hash load balancer. Maglev is not as stable as ring hash but has faster table lookup build times and host selection times. For more information about Maglev, see <https://ai.google/research/pubs/pub44824> This field is applicable to either: - A regional backend service with the service_protocol set to HTTP, HTTPS, or HTTP2, and load_balancing_scheme set to INTERNAL_MANAGED. - A global backend service with the load_balancing_scheme set to INTERNAL_SELF_MANAGED, INTERNAL_MANAGED, or EXTERNAL_MANAGED. If sessionAffinity is not configured—that is, if session affinity remains at the default value of NONE—then the default value for localityLbPolicy is ROUND_ROBIN. If session affinity is set to a value other than NONE, then the default value for localityLbPolicy is MAGLEV. Only ROUND_ROBIN and RING_HASH are supported when the backend service is referenced by a URL map that is bound to target gRPC proxy that has validateForProxyless field set to true.
+    /// The load balancing algorithm used within the scope of the locality. The possible values are: - ROUND_ROBIN: This is a simple policy in which each healthy backend is selected in round robin order. This is the default. - LEAST_REQUEST: An O(1) algorithm which selects two random healthy hosts and picks the host which has fewer active requests. - RING_HASH: The ring/modulo hash load balancer implements consistent hashing to backends. The algorithm has the property that the addition/removal of a host from a set of N hosts only affects 1/N of the requests. - RANDOM: The load balancer selects a random healthy host. - ORIGINAL_DESTINATION: Backend host is selected based on the client connection metadata, i.e., connections are opened to the same address as the destination address of the incoming connection before the connection was redirected to the load balancer. - MAGLEV: used as a drop in replacement for the ring hash load balancer. Maglev is not as stable as ring hash but has faster table lookup build times and host selection times. For more information about Maglev, see <https://ai.google/research/pubs/pub44824> This field is applicable to either: - A regional backend service with the service_protocol set to HTTP, HTTPS, or HTTP2, and load_balancing_scheme set to INTERNAL_MANAGED. - A global backend service with the load_balancing_scheme set to INTERNAL_SELF_MANAGED, INTERNAL_MANAGED, or EXTERNAL_MANAGED. If sessionAffinity is not configured—that is, if session affinity remains at the default value of NONE—then the default value for localityLbPolicy is ROUND_ROBIN. If session affinity is set to a value other than NONE, then the default value for localityLbPolicy is MAGLEV. Only ROUND_ROBIN and RING_HASH are supported when the backend service is referenced by a URL map that is bound to target gRPC proxy that has validateForProxyless field set to true. localityLbPolicy cannot be specified with haPolicy.
     /// Check the LocalityLbPolicy enum for the list of possible values.
     #[prost(string, optional, tag = "131431487")]
     pub locality_lb_policy: ::core::option::Option<::prost::alloc::string::String>,
@@ -4459,7 +4606,7 @@ pub struct BackendService {
     /// Name of the resource. Provided by the client when the resource is created. The name must be 1-63 characters long, and comply with RFC1035. Specifically, the name must be 1-63 characters long and match the regular expression `[a-z](\[-a-z0-9\]*[a-z0-9])?` which means the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.
     #[prost(string, optional, tag = "3373707")]
     pub name: ::core::option::Option<::prost::alloc::string::String>,
-    /// The URL of the network to which this backend service belongs. This field can only be specified when the load balancing scheme is set to INTERNAL.
+    /// The URL of the network to which this backend service belongs. This field must be set for Internal Passthrough Network Load Balancers when the haPolicy is enabled, and for External Passthrough Network Load Balancers when the haPolicy fastIpMove is enabled. This field can only be specified when the load balancing scheme is set to INTERNAL.
     #[prost(string, optional, tag = "232872494")]
     pub network: ::core::option::Option<::prost::alloc::string::String>,
     /// Settings controlling the ejection of unhealthy backend endpoints from the load balancing pool of each individual proxy instance that processes the traffic for the given backend service. If not set, this feature is considered disabled. Results of the outlier detection algorithm (ejection of endpoints from the load balancing pool and returning them back to the pool) are executed independently by each proxy instance of the load balancer. In most cases, more than one proxy instance handles the traffic received by a backend service. Thus, it is possible that an unhealthy endpoint is detected and ejected by only some of the proxies, and while this happens, other proxies may continue to send requests to the same unhealthy endpoint until they detect and eject the unhealthy endpoint. Applicable backend endpoints can be: - VM instances in an Instance Group - Endpoints in a Zonal NEG (GCE_VM_IP, GCE_VM_IP_PORT) - Endpoints in a Hybrid Connectivity NEG (NON_GCP_PRIVATE_IP_PORT) - Serverless NEGs, that resolve to Cloud Run, App Engine, or Cloud Functions Services - Private Service Connect NEGs, that resolve to Google-managed regional API endpoints or managed services published using Private Service Connect Applicable backend service types can be: - A global backend service with the loadBalancingScheme set to INTERNAL_SELF_MANAGED or EXTERNAL_MANAGED. - A regional backend service with the serviceProtocol set to HTTP, HTTPS, or HTTP2, and loadBalancingScheme set to INTERNAL_MANAGED or EXTERNAL_MANAGED. Not supported for Serverless NEGs. Not supported when the backend service is referenced by a URL map that is bound to target gRPC proxy that has validateForProxyless field set to true.
@@ -4493,13 +4640,14 @@ pub struct BackendService {
     /// URL to networkservices.ServiceLbPolicy resource. Can only be set if load balancing scheme is EXTERNAL, EXTERNAL_MANAGED, INTERNAL_MANAGED or INTERNAL_SELF_MANAGED and the scope is global.
     #[prost(string, optional, tag = "94848785")]
     pub service_lb_policy: ::core::option::Option<::prost::alloc::string::String>,
-    /// Type of session affinity to use. The default is NONE. Only NONE and HEADER_FIELD are supported when the backend service is referenced by a URL map that is bound to target gRPC proxy that has validateForProxyless field set to true. For more details, see: [Session Affinity](<https://cloud.google.com/load-balancing/docs/backend-service#session_affinity>).
+    /// Type of session affinity to use. The default is NONE. Only NONE and HEADER_FIELD are supported when the backend service is referenced by a URL map that is bound to target gRPC proxy that has validateForProxyless field set to true. For more details, see: [Session Affinity](<https://cloud.google.com/load-balancing/docs/backend-service#session_affinity>). sessionAffinity cannot be specified with haPolicy.
     /// Check the SessionAffinity enum for the list of possible values.
     #[prost(string, optional, tag = "463888561")]
     pub session_affinity: ::core::option::Option<::prost::alloc::string::String>,
     /// Describes the HTTP cookie used for stateful session affinity. This field is applicable and required if the sessionAffinity is set to STRONG_COOKIE_AFFINITY.
     #[prost(message, optional, tag = "238195722")]
     pub strong_session_affinity_cookie: ::core::option::Option<BackendServiceHttpCookie>,
+    /// subsetting cannot be specified with haPolicy.
     #[prost(message, optional, tag = "450283536")]
     pub subsetting: ::core::option::Option<Subsetting>,
     /// The backend service timeout has a different meaning depending on the type of load balancer. For more information see, Backend service settings. The default is 30 seconds. The full range of timeout values allowed goes from 1 through 2,147,483,647 seconds. This value can be overridden in the PathMatcher configuration of the UrlMap that references this backend service. Not supported when the backend service is referenced by a URL map that is bound to target gRPC proxy that has validateForProxyless field set to true. Instead, use maxStreamDuration.
@@ -4669,7 +4817,7 @@ pub mod backend_service {
             }
         }
     }
-    /// The load balancing algorithm used within the scope of the locality. The possible values are: - ROUND_ROBIN: This is a simple policy in which each healthy backend is selected in round robin order. This is the default. - LEAST_REQUEST: An O(1) algorithm which selects two random healthy hosts and picks the host which has fewer active requests. - RING_HASH: The ring/modulo hash load balancer implements consistent hashing to backends. The algorithm has the property that the addition/removal of a host from a set of N hosts only affects 1/N of the requests. - RANDOM: The load balancer selects a random healthy host. - ORIGINAL_DESTINATION: Backend host is selected based on the client connection metadata, i.e., connections are opened to the same address as the destination address of the incoming connection before the connection was redirected to the load balancer. - MAGLEV: used as a drop in replacement for the ring hash load balancer. Maglev is not as stable as ring hash but has faster table lookup build times and host selection times. For more information about Maglev, see <https://ai.google/research/pubs/pub44824> This field is applicable to either: - A regional backend service with the service_protocol set to HTTP, HTTPS, or HTTP2, and load_balancing_scheme set to INTERNAL_MANAGED. - A global backend service with the load_balancing_scheme set to INTERNAL_SELF_MANAGED, INTERNAL_MANAGED, or EXTERNAL_MANAGED. If sessionAffinity is not configured—that is, if session affinity remains at the default value of NONE—then the default value for localityLbPolicy is ROUND_ROBIN. If session affinity is set to a value other than NONE, then the default value for localityLbPolicy is MAGLEV. Only ROUND_ROBIN and RING_HASH are supported when the backend service is referenced by a URL map that is bound to target gRPC proxy that has validateForProxyless field set to true.
+    /// The load balancing algorithm used within the scope of the locality. The possible values are: - ROUND_ROBIN: This is a simple policy in which each healthy backend is selected in round robin order. This is the default. - LEAST_REQUEST: An O(1) algorithm which selects two random healthy hosts and picks the host which has fewer active requests. - RING_HASH: The ring/modulo hash load balancer implements consistent hashing to backends. The algorithm has the property that the addition/removal of a host from a set of N hosts only affects 1/N of the requests. - RANDOM: The load balancer selects a random healthy host. - ORIGINAL_DESTINATION: Backend host is selected based on the client connection metadata, i.e., connections are opened to the same address as the destination address of the incoming connection before the connection was redirected to the load balancer. - MAGLEV: used as a drop in replacement for the ring hash load balancer. Maglev is not as stable as ring hash but has faster table lookup build times and host selection times. For more information about Maglev, see <https://ai.google/research/pubs/pub44824> This field is applicable to either: - A regional backend service with the service_protocol set to HTTP, HTTPS, or HTTP2, and load_balancing_scheme set to INTERNAL_MANAGED. - A global backend service with the load_balancing_scheme set to INTERNAL_SELF_MANAGED, INTERNAL_MANAGED, or EXTERNAL_MANAGED. If sessionAffinity is not configured—that is, if session affinity remains at the default value of NONE—then the default value for localityLbPolicy is ROUND_ROBIN. If session affinity is set to a value other than NONE, then the default value for localityLbPolicy is MAGLEV. Only ROUND_ROBIN and RING_HASH are supported when the backend service is referenced by a URL map that is bound to target gRPC proxy that has validateForProxyless field set to true. localityLbPolicy cannot be specified with haPolicy.
     #[derive(
         Clone,
         Copy,
@@ -4700,6 +4848,8 @@ pub mod backend_service {
         RoundRobin = 153895801,
         /// Per-instance weighted Load Balancing via health check reported weights. If set, the Backend Service must configure a non legacy HTTP-based Health Check, and health check replies are expected to contain non-standard HTTP response header field X-Load-Balancing-Endpoint-Weight to specify the per-instance weights. If set, Load Balancing is weighted based on the per-instance weights reported in the last processed health check replies, as long as every instance either reported a valid weight or had UNAVAILABLE_WEIGHT. Otherwise, Load Balancing remains equal-weight. This option is only supported in Network Load Balancing.
         WeightedMaglev = 254930962,
+        /// Per-endpoint weighted round-robin Load Balancing using weights computed from Backend reported Custom Metrics. If set, the Backend Service responses are expected to contain non-standard HTTP response header field X-Endpoint-Load-Metrics. The reported metrics to use for computing the weights are specified via the backends\[\].customMetrics fields.
+        WeightedRoundRobin = 5584977,
     }
     impl LocalityLbPolicy {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -4717,6 +4867,7 @@ pub mod backend_service {
                 Self::RingHash => "RING_HASH",
                 Self::RoundRobin => "ROUND_ROBIN",
                 Self::WeightedMaglev => "WEIGHTED_MAGLEV",
+                Self::WeightedRoundRobin => "WEIGHTED_ROUND_ROBIN",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -4731,6 +4882,7 @@ pub mod backend_service {
                 "RING_HASH" => Some(Self::RingHash),
                 "ROUND_ROBIN" => Some(Self::RoundRobin),
                 "WEIGHTED_MAGLEV" => Some(Self::WeightedMaglev),
+                "WEIGHTED_ROUND_ROBIN" => Some(Self::WeightedRoundRobin),
                 _ => None,
             }
         }
@@ -4800,7 +4952,7 @@ pub mod backend_service {
             }
         }
     }
-    /// Type of session affinity to use. The default is NONE. Only NONE and HEADER_FIELD are supported when the backend service is referenced by a URL map that is bound to target gRPC proxy that has validateForProxyless field set to true. For more details, see: [Session Affinity](<https://cloud.google.com/load-balancing/docs/backend-service#session_affinity>).
+    /// Type of session affinity to use. The default is NONE. Only NONE and HEADER_FIELD are supported when the backend service is referenced by a URL map that is bound to target gRPC proxy that has validateForProxyless field set to true. For more details, see: [Session Affinity](<https://cloud.google.com/load-balancing/docs/backend-service#session_affinity>). sessionAffinity cannot be specified with haPolicy.
     #[derive(
         Clone,
         Copy,
@@ -4911,7 +5063,7 @@ pub struct BackendServiceCdnPolicy {
     /// The CacheKeyPolicy for this CdnPolicy.
     #[prost(message, optional, tag = "159263727")]
     pub cache_key_policy: ::core::option::Option<CacheKeyPolicy>,
-    /// Specifies the cache setting for all responses from this backend. The possible values are: USE_ORIGIN_HEADERS Requires the origin to set valid caching headers to cache content. Responses without these headers will not be cached at Google's edge, and will require a full trip to the origin on every request, potentially impacting performance and increasing load on the origin server. FORCE_CACHE_ALL Cache all content, ignoring any "private", "no-store" or "no-cache" directives in Cache-Control response headers. Warning: this may result in Cloud CDN caching private, per-user (user identifiable) content. CACHE_ALL_STATIC Automatically cache static content, including common image formats, media (video and audio), and web assets (JavaScript and CSS). Requests and responses that are marked as uncacheable, as well as dynamic content (including HTML), will not be cached.
+    /// Specifies the cache setting for all responses from this backend. The possible values are: USE_ORIGIN_HEADERS Requires the origin to set valid caching headers to cache content. Responses without these headers will not be cached at Google's edge, and will require a full trip to the origin on every request, potentially impacting performance and increasing load on the origin server. FORCE_CACHE_ALL Cache all content, ignoring any "private", "no-store" or "no-cache" directives in Cache-Control response headers. Warning: this may result in Cloud CDN caching private, per-user (user identifiable) content. CACHE_ALL_STATIC Automatically cache static content, including common image formats, media (video and audio), and web assets (JavaScript and CSS). Requests and responses that are marked as uncacheable, as well as dynamic content (including HTML), will not be cached. If no value is provided for cdnPolicy.cacheMode, it defaults to CACHE_ALL_STATIC.
     /// Check the CacheMode enum for the list of possible values.
     #[prost(string, optional, tag = "28877888")]
     pub cache_mode: ::core::option::Option<::prost::alloc::string::String>,
@@ -4947,7 +5099,7 @@ pub struct BackendServiceCdnPolicy {
 }
 /// Nested message and enum types in `BackendServiceCdnPolicy`.
 pub mod backend_service_cdn_policy {
-    /// Specifies the cache setting for all responses from this backend. The possible values are: USE_ORIGIN_HEADERS Requires the origin to set valid caching headers to cache content. Responses without these headers will not be cached at Google's edge, and will require a full trip to the origin on every request, potentially impacting performance and increasing load on the origin server. FORCE_CACHE_ALL Cache all content, ignoring any "private", "no-store" or "no-cache" directives in Cache-Control response headers. Warning: this may result in Cloud CDN caching private, per-user (user identifiable) content. CACHE_ALL_STATIC Automatically cache static content, including common image formats, media (video and audio), and web assets (JavaScript and CSS). Requests and responses that are marked as uncacheable, as well as dynamic content (including HTML), will not be cached.
+    /// Specifies the cache setting for all responses from this backend. The possible values are: USE_ORIGIN_HEADERS Requires the origin to set valid caching headers to cache content. Responses without these headers will not be cached at Google's edge, and will require a full trip to the origin on every request, potentially impacting performance and increasing load on the origin server. FORCE_CACHE_ALL Cache all content, ignoring any "private", "no-store" or "no-cache" directives in Cache-Control response headers. Warning: this may result in Cloud CDN caching private, per-user (user identifiable) content. CACHE_ALL_STATIC Automatically cache static content, including common image formats, media (video and audio), and web assets (JavaScript and CSS). Requests and responses that are marked as uncacheable, as well as dynamic content (including HTML), will not be cached. If no value is provided for cdnPolicy.cacheMode, it defaults to CACHE_ALL_STATIC.
     #[derive(
         Clone,
         Copy,
@@ -5130,6 +5282,16 @@ pub mod backend_service_connection_tracking_policy {
         }
     }
 }
+/// Custom Metrics are used for WEIGHTED_ROUND_ROBIN locality_lb_policy.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BackendServiceCustomMetric {
+    /// If true, the metric data is not used for load balancing.
+    #[prost(bool, optional, tag = "323854839")]
+    pub dry_run: ::core::option::Option<bool>,
+    /// Name of a custom utilization signal. The name must be 1-64 characters long and match the regular expression [a-z](\[-_.a-z0-9\]*[a-z0-9])? which means the first character must be a lowercase letter, and all following characters must be a dash, period, underscore, lowercase letter, or digit, except the last character, which cannot be a dash, period, or underscore. For usage guidelines, see Custom Metrics balancing mode. This field can only be used for a global or regional backend service with the loadBalancingScheme set to EXTERNAL_MANAGED, INTERNAL_MANAGED INTERNAL_SELF_MANAGED.
+    #[prost(string, optional, tag = "3373707")]
+    pub name: ::core::option::Option<::prost::alloc::string::String>,
+}
 /// For load balancers that have configurable failover: [Internal passthrough Network Load Balancers](<https://cloud.google.com/load-balancing/docs/internal/failover-overview>) and [external passthrough Network Load Balancers](<https://cloud.google.com/load-balancing/docs/network/networklb-failover-overview>). On failover or failback, this field indicates whether connection draining will be honored. Google Cloud has a fixed connection draining timeout of 10 minutes. A setting of true terminates existing TCP connections to the active pool during failover and failback, immediately draining traffic. A setting of false allows existing TCP connections to persist, even on VMs no longer in the active pool, for up to the duration of the connection draining timeout (10 minutes).
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct BackendServiceFailoverPolicy {
@@ -5158,6 +5320,58 @@ pub struct BackendServiceGroupHealth {
     /// \[Output Only\] Type of resource. Always compute#backendServiceGroupHealth for the health of backend services.
     #[prost(string, optional, tag = "3292052")]
     pub kind: ::core::option::Option<::prost::alloc::string::String>,
+}
+///
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BackendServiceHaPolicy {
+    /// Specifies whether fast IP move is enabled, and if so, the mechanism to achieve it. Supported values are: - DISABLED: Fast IP Move is disabled. You can only use the haPolicy.leader API to update the leader. - >GARP_RA: Provides a method to very quickly define a new network endpoint as the leader. This method is faster than updating the leader using the haPolicy.leader API. Fast IP move works as follows: The VM hosting the network endpoint that should become the new leader sends either a Gratuitous ARP (GARP) packet (IPv4) or an ICMPv6 Router Advertisement(RA) packet (IPv6). Google Cloud immediately but temporarily associates the forwarding rule IP address with that VM, and both new and in-flight packets are quickly delivered to that VM. Note the important properties of the Fast IP Move functionality: - The GARP/RA-initiated re-routing stays active for approximately 20 minutes. After triggering fast failover, you must also appropriately set the haPolicy.leader. - The new leader instance should continue to send GARP/RA packets periodically every 10 seconds until at least 10 minutes after updating the haPolicy.leader (but stop immediately if it is no longer the leader). - After triggering a fast failover, we recommend that you wait at least 3 seconds before sending another GARP/RA packet from a different VM instance to avoid race conditions. - Don't send GARP/RA packets from different VM instances at the same time. If multiple instances continue to send GARP/RA packets, traffic might be routed to different destinations in an alternating order. This condition ceases when a single instance issues a GARP/RA packet. - The GARP/RA request always takes priority over the leader API. Using the haPolicy.leader API to change the leader to a different instance will have no effect until the GARP/RA request becomes inactive. - The GARP/RA packets should follow the GARP/RA Packet Specifications.. - When multiple forwarding rules refer to a regional backend service, you need only send a GARP or RA packet for a single forwarding rule virtual IP. The virtual IPs for all forwarding rules targeting the same backend service will also be moved to the sender of the GARP or RA packet. The following are the Fast IP Move limitations (that is, when fastIPMove is not DISABLED): - Multiple forwarding rules cannot use the same IP address if one of them refers to a regional backend service with fastIPMove. - The regional backend service must set the network field, and all NEGs must belong to that network. However, individual NEGs can belong to different subnetworks of that network. - The maximum number of network endpoints across all backends of a backend service with fastIPMove is 64. - The maximum number of backend services with fastIPMove that can have the same network endpoint attached to one of its backends is 64. - The maximum number of backend services with fastIPMove in a VPC in a region is 64. - The network endpoints that are attached to a backend of a backend service with fastIPMove cannot resolve to C3 machines. - Traffic directed to the leader by a static route next hop will not be redirected to a new leader by fast failover. Such traffic will only be redirected once an haPolicy.leader update has taken effect. Only traffic to the forwarding rule's virtual IP will be redirected to a new leader by fast failover. haPolicy.fastIPMove can be set only at backend service creation time. Once set, it cannot be updated. By default, fastIpMove is set to DISABLED.
+    /// Check the FastIPMove enum for the list of possible values.
+    #[prost(string, optional, tag = "222633817")]
+    pub fast_i_p_move: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// Nested message and enum types in `BackendServiceHAPolicy`.
+pub mod backend_service_ha_policy {
+    /// Specifies whether fast IP move is enabled, and if so, the mechanism to achieve it. Supported values are: - DISABLED: Fast IP Move is disabled. You can only use the haPolicy.leader API to update the leader. - >GARP_RA: Provides a method to very quickly define a new network endpoint as the leader. This method is faster than updating the leader using the haPolicy.leader API. Fast IP move works as follows: The VM hosting the network endpoint that should become the new leader sends either a Gratuitous ARP (GARP) packet (IPv4) or an ICMPv6 Router Advertisement(RA) packet (IPv6). Google Cloud immediately but temporarily associates the forwarding rule IP address with that VM, and both new and in-flight packets are quickly delivered to that VM. Note the important properties of the Fast IP Move functionality: - The GARP/RA-initiated re-routing stays active for approximately 20 minutes. After triggering fast failover, you must also appropriately set the haPolicy.leader. - The new leader instance should continue to send GARP/RA packets periodically every 10 seconds until at least 10 minutes after updating the haPolicy.leader (but stop immediately if it is no longer the leader). - After triggering a fast failover, we recommend that you wait at least 3 seconds before sending another GARP/RA packet from a different VM instance to avoid race conditions. - Don't send GARP/RA packets from different VM instances at the same time. If multiple instances continue to send GARP/RA packets, traffic might be routed to different destinations in an alternating order. This condition ceases when a single instance issues a GARP/RA packet. - The GARP/RA request always takes priority over the leader API. Using the haPolicy.leader API to change the leader to a different instance will have no effect until the GARP/RA request becomes inactive. - The GARP/RA packets should follow the GARP/RA Packet Specifications.. - When multiple forwarding rules refer to a regional backend service, you need only send a GARP or RA packet for a single forwarding rule virtual IP. The virtual IPs for all forwarding rules targeting the same backend service will also be moved to the sender of the GARP or RA packet. The following are the Fast IP Move limitations (that is, when fastIPMove is not DISABLED): - Multiple forwarding rules cannot use the same IP address if one of them refers to a regional backend service with fastIPMove. - The regional backend service must set the network field, and all NEGs must belong to that network. However, individual NEGs can belong to different subnetworks of that network. - The maximum number of network endpoints across all backends of a backend service with fastIPMove is 64. - The maximum number of backend services with fastIPMove that can have the same network endpoint attached to one of its backends is 64. - The maximum number of backend services with fastIPMove in a VPC in a region is 64. - The network endpoints that are attached to a backend of a backend service with fastIPMove cannot resolve to C3 machines. - Traffic directed to the leader by a static route next hop will not be redirected to a new leader by fast failover. Such traffic will only be redirected once an haPolicy.leader update has taken effect. Only traffic to the forwarding rule's virtual IP will be redirected to a new leader by fast failover. haPolicy.fastIPMove can be set only at backend service creation time. Once set, it cannot be updated. By default, fastIpMove is set to DISABLED.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum FastIpMove {
+        /// A value indicating that the enum field is not set.
+        UndefinedFastIPMove = 0,
+        Disabled = 516696700,
+        GarpRa = 527352630,
+    }
+    impl FastIpMove {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedFastIPMove => "UNDEFINED_FAST_I_P_MOVE",
+                Self::Disabled => "DISABLED",
+                Self::GarpRa => "GARP_RA",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_FAST_I_P_MOVE" => Some(Self::UndefinedFastIPMove),
+                "DISABLED" => Some(Self::Disabled),
+                "GARP_RA" => Some(Self::GarpRa),
+                _ => None,
+            }
+        }
+    }
 }
 /// The HTTP cookie used for stateful session affinity.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -5297,6 +5511,8 @@ pub mod backend_service_locality_load_balancing_policy_config_policy {
         RoundRobin = 153895801,
         /// Per-instance weighted Load Balancing via health check reported weights. If set, the Backend Service must configure a non legacy HTTP-based Health Check, and health check replies are expected to contain non-standard HTTP response header field X-Load-Balancing-Endpoint-Weight to specify the per-instance weights. If set, Load Balancing is weighted based on the per-instance weights reported in the last processed health check replies, as long as every instance either reported a valid weight or had UNAVAILABLE_WEIGHT. Otherwise, Load Balancing remains equal-weight. This option is only supported in Network Load Balancing.
         WeightedMaglev = 254930962,
+        /// Per-endpoint weighted round-robin Load Balancing using weights computed from Backend reported Custom Metrics. If set, the Backend Service responses are expected to contain non-standard HTTP response header field X-Endpoint-Load-Metrics. The reported metrics to use for computing the weights are specified via the backends\[\].customMetrics fields.
+        WeightedRoundRobin = 5584977,
     }
     impl Name {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -5314,6 +5530,7 @@ pub mod backend_service_locality_load_balancing_policy_config_policy {
                 Self::RingHash => "RING_HASH",
                 Self::RoundRobin => "ROUND_ROBIN",
                 Self::WeightedMaglev => "WEIGHTED_MAGLEV",
+                Self::WeightedRoundRobin => "WEIGHTED_ROUND_ROBIN",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -5328,6 +5545,7 @@ pub mod backend_service_locality_load_balancing_policy_config_policy {
                 "RING_HASH" => Some(Self::RingHash),
                 "ROUND_ROBIN" => Some(Self::RoundRobin),
                 "WEIGHTED_MAGLEV" => Some(Self::WeightedMaglev),
+                "WEIGHTED_ROUND_ROBIN" => Some(Self::WeightedRoundRobin),
                 _ => None,
             }
         }
@@ -5828,6 +6046,138 @@ pub struct BfdStatusPacketCounts {
     #[prost(uint32, optional, tag = "39375325")]
     pub num_tx: ::core::option::Option<u32>,
 }
+///
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BgpRoute {
+    /// \[Output only\] AS-PATH for the route
+    #[prost(message, repeated, tag = "137568929")]
+    pub as_paths: ::prost::alloc::vec::Vec<BgpRouteAsPath>,
+    /// \[Output only\] BGP communities in human-readable A:B format.
+    #[prost(string, repeated, tag = "188262983")]
+    pub communities: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// \[Output only\] Destination IP range for the route, in human-readable CIDR format
+    #[prost(message, optional, tag = "180765710")]
+    pub destination: ::core::option::Option<BgpRouteNetworkLayerReachabilityInformation>,
+    /// \[Output only\] BGP multi-exit discriminator
+    #[prost(uint32, optional, tag = "107980")]
+    pub med: ::core::option::Option<u32>,
+    /// \[Output only\] BGP origin (EGP, IGP or INCOMPLETE)
+    /// Check the Origin enum for the list of possible values.
+    #[prost(string, optional, tag = "65122086")]
+    pub origin: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// Nested message and enum types in `BgpRoute`.
+pub mod bgp_route {
+    /// \[Output only\] BGP origin (EGP, IGP or INCOMPLETE)
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Origin {
+        /// A value indicating that the enum field is not set.
+        UndefinedOrigin = 0,
+        BgpOriginEgp = 378906473,
+        BgpOriginIgp = 378910317,
+        BgpOriginIncomplete = 452839811,
+    }
+    impl Origin {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedOrigin => "UNDEFINED_ORIGIN",
+                Self::BgpOriginEgp => "BGP_ORIGIN_EGP",
+                Self::BgpOriginIgp => "BGP_ORIGIN_IGP",
+                Self::BgpOriginIncomplete => "BGP_ORIGIN_INCOMPLETE",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_ORIGIN" => Some(Self::UndefinedOrigin),
+                "BGP_ORIGIN_EGP" => Some(Self::BgpOriginEgp),
+                "BGP_ORIGIN_IGP" => Some(Self::BgpOriginIgp),
+                "BGP_ORIGIN_INCOMPLETE" => Some(Self::BgpOriginIncomplete),
+                _ => None,
+            }
+        }
+    }
+}
+///
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BgpRouteAsPath {
+    /// \[Output only\] ASNs in the path segment. When type is SEQUENCE, these are ordered.
+    #[prost(int32, repeated, tag = "3003767")]
+    pub asns: ::prost::alloc::vec::Vec<i32>,
+    /// \[Output only\] Type of AS-PATH segment (SEQUENCE or SET)
+    /// Check the Type enum for the list of possible values.
+    #[prost(string, optional, tag = "3575610")]
+    pub r#type: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// Nested message and enum types in `BgpRouteAsPath`.
+pub mod bgp_route_as_path {
+    /// \[Output only\] Type of AS-PATH segment (SEQUENCE or SET)
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Type {
+        /// A value indicating that the enum field is not set.
+        UndefinedType = 0,
+        AsPathTypeSequence = 362887609,
+        AsPathTypeSet = 302584650,
+    }
+    impl Type {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedType => "UNDEFINED_TYPE",
+                Self::AsPathTypeSequence => "AS_PATH_TYPE_SEQUENCE",
+                Self::AsPathTypeSet => "AS_PATH_TYPE_SET",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_TYPE" => Some(Self::UndefinedType),
+                "AS_PATH_TYPE_SEQUENCE" => Some(Self::AsPathTypeSequence),
+                "AS_PATH_TYPE_SET" => Some(Self::AsPathTypeSet),
+                _ => None,
+            }
+        }
+    }
+}
+/// Network Layer Reachability Information (NLRI) for a route.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BgpRouteNetworkLayerReachabilityInformation {
+    /// If the BGP session supports multiple paths (RFC 7911), the path identifier for this route.
+    #[prost(uint32, optional, tag = "282287989")]
+    pub path_id: ::core::option::Option<u32>,
+    /// Human readable CIDR notation for a prefix. E.g. 10.42.0.0/16.
+    #[prost(string, optional, tag = "93631122")]
+    pub prefix: ::core::option::Option<::prost::alloc::string::String>,
+}
 /// Associates `members`, or principals, with a `role`.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Binding {
@@ -6155,29 +6505,28 @@ pub struct CloneRulesRegionNetworkFirewallPolicyRequest {
     #[prost(string, optional, tag = "25013549")]
     pub source_firewall_policy: ::core::option::Option<::prost::alloc::string::String>,
 }
-/// Represents a regional Commitment resource. Creating a commitment resource means that you are purchasing a committed use contract with an explicit start and end time. You can create commitments based on vCPUs and memory usage and receive discounted rates. For full details, read Signing Up for Committed Use Discounts.
+/// Represents a regional resource-based commitment resource. Creating this commitment resource means that you are purchasing a resource-based committed use contract, with an explicit start and end time. You can purchase resource-based commitments for both hardware and software resources. For more information, read Resource-based committed use discounts
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Commitment {
-    /// Specifies whether to enable automatic renewal for the commitment. The default value is false if not specified. The field can be updated until the day of the commitment expiration at 12:00am PST. If the field is set to true, the commitment will be automatically renewed for either one or three years according to the terms of the existing commitment.
+    /// Specifies whether to automatically renew the commitment at the end of its current term. The default value is false. If you set the field to true, each time your commitment reaches the end of its term, Compute Engine automatically renews it for another term. You can update this field anytime before the commitment expires. For example, if the commitment is set to expire at 12 AM UTC-8 on January 3, 2027, you can update this field until 11:59 PM UTC-8 on January 2, 2027.
     #[prost(bool, optional, tag = "495520765")]
     pub auto_renew: ::core::option::Option<bool>,
-    /// The category of the commitment. Category MACHINE specifies commitments composed of machine resources such as VCPU or MEMORY, listed in resources. Category LICENSE specifies commitments composed of software licenses, listed in licenseResources. Note that only MACHINE commitments should have a Type specified.
+    /// The category of the commitment; specifies whether the commitment is for hardware or software resources. Category MACHINE specifies that you are committing to hardware machine resources such as VCPU or MEMORY, listed in resources. Category LICENSE specifies that you are committing to software licenses, listed in licenseResources. Note that if you specify MACHINE commitments, then you must also specify a type to indicate the machine series of the hardware resource that you are committing to.
     /// Check the Category enum for the list of possible values.
     #[prost(string, optional, tag = "50511102")]
     pub category: ::core::option::Option<::prost::alloc::string::String>,
     /// \[Output Only\] Creation timestamp in RFC3339 text format.
     #[prost(string, optional, tag = "30525366")]
     pub creation_timestamp: ::core::option::Option<::prost::alloc::string::String>,
-    /// \[Input Only\] Optional, specifies the CUD end time requested by the customer in RFC3339 text format. Needed when the customer wants CUD's end date is later than the start date + term duration.
+    /// \[Input Only\] Optional, specifies the requested commitment end time in RFC3339 text format. Use this option when the desired commitment's end date is later than the start date + term duration.
     #[prost(string, optional, tag = "181770852")]
     pub custom_end_timestamp: ::core::option::Option<::prost::alloc::string::String>,
-    /// An optional description of this resource. Provide this property when you create the resource.
+    /// An optional description of the commitment. You can provide this property when you create the resource.
     #[prost(string, optional, tag = "422937596")]
     pub description: ::core::option::Option<::prost::alloc::string::String>,
     /// \[Output Only\] Commitment end time in RFC3339 text format.
     #[prost(string, optional, tag = "468096690")]
     pub end_timestamp: ::core::option::Option<::prost::alloc::string::String>,
-    /// Specifies the already existing reservations to attach to the Commitment. This field is optional, and it can be a full or partial URL. For example, the following are valid URLs to an reservation: - <https://www.googleapis.com/compute/v1/projects/project/zones/zone> /reservations/reservation - projects/project/zones/zone/reservations/reservation
     #[prost(string, repeated, tag = "493028443")]
     pub existing_reservations: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
     /// \[Output Only\] The unique identifier for the resource. This identifier is defined by the server.
@@ -6189,54 +6538,54 @@ pub struct Commitment {
     /// The license specification required as part of a license commitment.
     #[prost(message, optional, tag = "437955148")]
     pub license_resource: ::core::option::Option<LicenseResourceCommitment>,
-    /// List of source commitments to be merged into a new commitment.
+    /// The list of source commitments that you are merging to create the new merged commitment. For more information, see Merging commitments.
     #[prost(string, repeated, tag = "188093761")]
     pub merge_source_commitments: ::prost::alloc::vec::Vec<
         ::prost::alloc::string::String,
     >,
-    /// Name of the resource. Provided by the client when the resource is created. The name must be 1-63 characters long, and comply with RFC1035. Specifically, the name must be 1-63 characters long and match the regular expression `[a-z](\[-a-z0-9\]*[a-z0-9])?` which means the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.
+    /// Name of the commitment. You must specify a name when you purchase the commitment. The name must be 1-63 characters long, and comply with RFC1035. Specifically, the name must be 1-63 characters long and match the regular expression `[a-z](\[-a-z0-9\]*[a-z0-9])?` which means the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.
     #[prost(string, optional, tag = "3373707")]
     pub name: ::core::option::Option<::prost::alloc::string::String>,
-    /// The plan for this commitment, which determines duration and discount rate. The currently supported plans are TWELVE_MONTH (1 year), and THIRTY_SIX_MONTH (3 years).
+    /// The minimum time duration that you commit to purchasing resources. The plan that you choose determines the preset term length of the commitment (which is 1 year or 3 years) and affects the discount rate that you receive for your resources. Committing to a longer time duration typically gives you a higher discount rate. The supported values for this field are TWELVE_MONTH (1 year), and THIRTY_SIX_MONTH (3 years).
     /// Check the Plan enum for the list of possible values.
     #[prost(string, optional, tag = "3443497")]
     pub plan: ::core::option::Option<::prost::alloc::string::String>,
-    /// \[Output Only\] URL of the region where this commitment may be used.
+    /// \[Output Only\] URL of the region where the commitment and committed resources are located.
     #[prost(string, optional, tag = "138946292")]
     pub region: ::core::option::Option<::prost::alloc::string::String>,
-    /// List of create-on-create reservations for this commitment.
+    /// The list of new reservations that you want to create and attach to this commitment. You must attach reservations to your commitment if your commitment specifies any GPUs or Local SSD disks. For more information, see Attach reservations to resource-based commitments. Specify this property only if you want to create new reservations to attach. To attach existing reservations, specify the existingReservations property instead.
     #[prost(message, repeated, tag = "399717927")]
     pub reservations: ::prost::alloc::vec::Vec<Reservation>,
     /// \[Output Only\] Status information for Commitment resource.
     #[prost(message, optional, tag = "249429315")]
     pub resource_status: ::core::option::Option<CommitmentResourceStatus>,
-    /// A list of commitment amounts for particular resources. Note that VCPU and MEMORY resource commitments must occur together.
+    /// The list of all the hardware resources, with their types and amounts, that you want to commit to. Specify as a separate entry in the list for each individual resource type.
     #[prost(message, repeated, tag = "164412965")]
     pub resources: ::prost::alloc::vec::Vec<ResourceCommitment>,
     /// \[Output Only\] Server-defined URL for the resource.
     #[prost(string, optional, tag = "456214797")]
     pub self_link: ::core::option::Option<::prost::alloc::string::String>,
-    /// Source commitment to be split into a new commitment.
+    /// The source commitment from which you are transferring resources to create the new split commitment. For more information, see Split commitments.
     #[prost(string, optional, tag = "402611156")]
     pub split_source_commitment: ::core::option::Option<::prost::alloc::string::String>,
     /// \[Output Only\] Commitment start time in RFC3339 text format.
     #[prost(string, optional, tag = "83645817")]
     pub start_timestamp: ::core::option::Option<::prost::alloc::string::String>,
-    /// \[Output Only\] Status of the commitment with regards to eventual expiration (each commitment has an end date defined). One of the following values: NOT_YET_ACTIVE, ACTIVE, EXPIRED.
+    /// \[Output Only\] Status of the commitment with regards to eventual expiration (each commitment has an end date defined). Status can be one of the following values: NOT_YET_ACTIVE, ACTIVE, or EXPIRED.
     /// Check the Status enum for the list of possible values.
     #[prost(string, optional, tag = "181260274")]
     pub status: ::core::option::Option<::prost::alloc::string::String>,
     /// \[Output Only\] An optional, human-readable explanation of the status.
     #[prost(string, optional, tag = "297428154")]
     pub status_message: ::core::option::Option<::prost::alloc::string::String>,
-    /// The type of commitment, which affects the discount rate and the eligible resources. Type MEMORY_OPTIMIZED specifies a commitment that will only apply to memory optimized machines. Type ACCELERATOR_OPTIMIZED specifies a commitment that will only apply to accelerator optimized machines.
+    /// The type of commitment; specifies the machine series for which you want to commit to purchasing resources. The choice of machine series affects the discount rate and the eligible resource types. The type must be one of the following: ACCELERATOR_OPTIMIZED, ACCELERATOR_OPTIMIZED_A3, ACCELERATOR_OPTIMIZED_A3_MEGA, COMPUTE_OPTIMIZED, COMPUTE_OPTIMIZED_C2D, COMPUTE_OPTIMIZED_C3, COMPUTE_OPTIMIZED_C3D, COMPUTE_OPTIMIZED_H3, GENERAL_PURPOSE, GENERAL_PURPOSE_C4, GENERAL_PURPOSE_E2, GENERAL_PURPOSE_N2, GENERAL_PURPOSE_N2D, GENERAL_PURPOSE_N4, GENERAL_PURPOSE_T2D, GRAPHICS_OPTIMIZED, MEMORY_OPTIMIZED, MEMORY_OPTIMIZED_M3, MEMORY_OPTIMIZED_X4, STORAGE_OPTIMIZED_Z3. For example, type MEMORY_OPTIMIZED specifies a commitment that applies only to eligible resources of memory optimized M1 and M2 machine series. Type GENERAL_PURPOSE specifies a commitment that applies only to eligible resources of general purpose N1 machine series.
     /// Check the Type enum for the list of possible values.
     #[prost(string, optional, tag = "3575610")]
     pub r#type: ::core::option::Option<::prost::alloc::string::String>,
 }
 /// Nested message and enum types in `Commitment`.
 pub mod commitment {
-    /// The category of the commitment. Category MACHINE specifies commitments composed of machine resources such as VCPU or MEMORY, listed in resources. Category LICENSE specifies commitments composed of software licenses, listed in licenseResources. Note that only MACHINE commitments should have a Type specified.
+    /// The category of the commitment; specifies whether the commitment is for hardware or software resources. Category MACHINE specifies that you are committing to hardware machine resources such as VCPU or MEMORY, listed in resources. Category LICENSE specifies that you are committing to software licenses, listed in licenseResources. Note that if you specify MACHINE commitments, then you must also specify a type to indicate the machine series of the hardware resource that you are committing to.
     #[derive(
         Clone,
         Copy,
@@ -6280,7 +6629,7 @@ pub mod commitment {
             }
         }
     }
-    /// The plan for this commitment, which determines duration and discount rate. The currently supported plans are TWELVE_MONTH (1 year), and THIRTY_SIX_MONTH (3 years).
+    /// The minimum time duration that you commit to purchasing resources. The plan that you choose determines the preset term length of the commitment (which is 1 year or 3 years) and affects the discount rate that you receive for your resources. Committing to a longer time duration typically gives you a higher discount rate. The supported values for this field are TWELVE_MONTH (1 year), and THIRTY_SIX_MONTH (3 years).
     #[derive(
         Clone,
         Copy,
@@ -6324,7 +6673,7 @@ pub mod commitment {
             }
         }
     }
-    /// \[Output Only\] Status of the commitment with regards to eventual expiration (each commitment has an end date defined). One of the following values: NOT_YET_ACTIVE, ACTIVE, EXPIRED.
+    /// \[Output Only\] Status of the commitment with regards to eventual expiration (each commitment has an end date defined). Status can be one of the following values: NOT_YET_ACTIVE, ACTIVE, or EXPIRED.
     #[derive(
         Clone,
         Copy,
@@ -6375,7 +6724,7 @@ pub mod commitment {
             }
         }
     }
-    /// The type of commitment, which affects the discount rate and the eligible resources. Type MEMORY_OPTIMIZED specifies a commitment that will only apply to memory optimized machines. Type ACCELERATOR_OPTIMIZED specifies a commitment that will only apply to accelerator optimized machines.
+    /// The type of commitment; specifies the machine series for which you want to commit to purchasing resources. The choice of machine series affects the discount rate and the eligible resource types. The type must be one of the following: ACCELERATOR_OPTIMIZED, ACCELERATOR_OPTIMIZED_A3, ACCELERATOR_OPTIMIZED_A3_MEGA, COMPUTE_OPTIMIZED, COMPUTE_OPTIMIZED_C2D, COMPUTE_OPTIMIZED_C3, COMPUTE_OPTIMIZED_C3D, COMPUTE_OPTIMIZED_H3, GENERAL_PURPOSE, GENERAL_PURPOSE_C4, GENERAL_PURPOSE_E2, GENERAL_PURPOSE_N2, GENERAL_PURPOSE_N2D, GENERAL_PURPOSE_N4, GENERAL_PURPOSE_T2D, GRAPHICS_OPTIMIZED, MEMORY_OPTIMIZED, MEMORY_OPTIMIZED_M3, MEMORY_OPTIMIZED_X4, STORAGE_OPTIMIZED_Z3. For example, type MEMORY_OPTIMIZED specifies a commitment that applies only to eligible resources of memory optimized M1 and M2 machine series. Type GENERAL_PURPOSE specifies a commitment that applies only to eligible resources of general purpose N1 machine series.
     #[derive(
         Clone,
         Copy,
@@ -6394,6 +6743,7 @@ pub mod commitment {
         AcceleratorOptimized = 280848403,
         AcceleratorOptimizedA3 = 158574526,
         AcceleratorOptimizedA3Mega = 156517459,
+        AcceleratorOptimizedA3Ultra = 27812811,
         ComputeOptimized = 158349023,
         ComputeOptimizedC2d = 383246453,
         ComputeOptimizedC3 = 428004784,
@@ -6410,7 +6760,12 @@ pub mod commitment {
         GraphicsOptimized = 68500563,
         MemoryOptimized = 281753417,
         MemoryOptimizedM3 = 276301372,
+        MemoryOptimizedM4 = 276301373,
+        MemoryOptimizedX416tb = 183089120,
+        MemoryOptimizedX424tb = 183116989,
+        MemoryOptimizedX432tb = 183144858,
         StorageOptimizedZ3 = 316796085,
+        /// Note for internal users: When adding a new enum Type for v1, make sure to also add it in the comment for the `optional Type type` definition. This ensures that the public documentation displays the new enum Type.
         Unspecified = 437714322,
     }
     impl Type {
@@ -6424,6 +6779,7 @@ pub mod commitment {
                 Self::AcceleratorOptimized => "ACCELERATOR_OPTIMIZED",
                 Self::AcceleratorOptimizedA3 => "ACCELERATOR_OPTIMIZED_A3",
                 Self::AcceleratorOptimizedA3Mega => "ACCELERATOR_OPTIMIZED_A3_MEGA",
+                Self::AcceleratorOptimizedA3Ultra => "ACCELERATOR_OPTIMIZED_A3_ULTRA",
                 Self::ComputeOptimized => "COMPUTE_OPTIMIZED",
                 Self::ComputeOptimizedC2d => "COMPUTE_OPTIMIZED_C2D",
                 Self::ComputeOptimizedC3 => "COMPUTE_OPTIMIZED_C3",
@@ -6440,6 +6796,10 @@ pub mod commitment {
                 Self::GraphicsOptimized => "GRAPHICS_OPTIMIZED",
                 Self::MemoryOptimized => "MEMORY_OPTIMIZED",
                 Self::MemoryOptimizedM3 => "MEMORY_OPTIMIZED_M3",
+                Self::MemoryOptimizedM4 => "MEMORY_OPTIMIZED_M4",
+                Self::MemoryOptimizedX416tb => "MEMORY_OPTIMIZED_X4_16TB",
+                Self::MemoryOptimizedX424tb => "MEMORY_OPTIMIZED_X4_24TB",
+                Self::MemoryOptimizedX432tb => "MEMORY_OPTIMIZED_X4_32TB",
                 Self::StorageOptimizedZ3 => "STORAGE_OPTIMIZED_Z3",
                 Self::Unspecified => "TYPE_UNSPECIFIED",
             }
@@ -6451,6 +6811,9 @@ pub mod commitment {
                 "ACCELERATOR_OPTIMIZED" => Some(Self::AcceleratorOptimized),
                 "ACCELERATOR_OPTIMIZED_A3" => Some(Self::AcceleratorOptimizedA3),
                 "ACCELERATOR_OPTIMIZED_A3_MEGA" => Some(Self::AcceleratorOptimizedA3Mega),
+                "ACCELERATOR_OPTIMIZED_A3_ULTRA" => {
+                    Some(Self::AcceleratorOptimizedA3Ultra)
+                }
                 "COMPUTE_OPTIMIZED" => Some(Self::ComputeOptimized),
                 "COMPUTE_OPTIMIZED_C2D" => Some(Self::ComputeOptimizedC2d),
                 "COMPUTE_OPTIMIZED_C3" => Some(Self::ComputeOptimizedC3),
@@ -6467,6 +6830,10 @@ pub mod commitment {
                 "GRAPHICS_OPTIMIZED" => Some(Self::GraphicsOptimized),
                 "MEMORY_OPTIMIZED" => Some(Self::MemoryOptimized),
                 "MEMORY_OPTIMIZED_M3" => Some(Self::MemoryOptimizedM3),
+                "MEMORY_OPTIMIZED_M4" => Some(Self::MemoryOptimizedM4),
+                "MEMORY_OPTIMIZED_X4_16TB" => Some(Self::MemoryOptimizedX416tb),
+                "MEMORY_OPTIMIZED_X4_24TB" => Some(Self::MemoryOptimizedX424tb),
+                "MEMORY_OPTIMIZED_X4_32TB" => Some(Self::MemoryOptimizedX432tb),
                 "STORAGE_OPTIMIZED_Z3" => Some(Self::StorageOptimizedZ3),
                 "TYPE_UNSPECIFIED" => Some(Self::Unspecified),
                 _ => None,
@@ -6536,7 +6903,7 @@ pub struct CommitmentResourceStatus {
 ///
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CommitmentsScopedList {
-    /// \[Output Only\] A list of commitments contained in this scope.
+    /// \[Output Only\] The list of commitments contained in this scope.
     #[prost(message, repeated, tag = "450664446")]
     pub commitments: ::prost::alloc::vec::Vec<Commitment>,
     /// \[Output Only\] Informational warning which replaces the list of commitments when the list is empty.
@@ -7812,6 +8179,25 @@ pub struct DeleteResourcePolicyRequest {
     /// Name of the resource policy to delete.
     #[prost(string, tag = "159240835")]
     pub resource_policy: ::prost::alloc::string::String,
+}
+/// A request message for Routers.DeleteRoutePolicy. See the method description for details.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteRoutePolicyRouterRequest {
+    /// The Policy name for this request. Name must conform to RFC1035
+    #[prost(string, optional, tag = "91071794")]
+    pub policy: ::core::option::Option<::prost::alloc::string::String>,
+    /// Project ID for this request.
+    #[prost(string, tag = "227560217")]
+    pub project: ::prost::alloc::string::String,
+    /// Name of the region for this request.
+    #[prost(string, tag = "138946292")]
+    pub region: ::prost::alloc::string::String,
+    /// An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported ( 00000000-0000-0000-0000-000000000000).
+    #[prost(string, optional, tag = "37109963")]
+    pub request_id: ::core::option::Option<::prost::alloc::string::String>,
+    /// Name of the Router resource where Route Policy is defined.
+    #[prost(string, tag = "148608841")]
+    pub router: ::prost::alloc::string::String,
 }
 /// A request message for Routes.Delete. See the method description for details.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -9214,7 +9600,7 @@ pub struct ErrorInfo {
     /// The logical grouping to which the "reason" belongs. The error domain is typically the registered service name of the tool or product that generates the error. Example: "pubsub.googleapis.com". If the error is generated by some common infrastructure, the error domain must be a globally unique value that identifies the infrastructure. For Google API infrastructure, the error domain is "googleapis.com".
     #[prost(string, optional, tag = "284415172")]
     pub domain: ::core::option::Option<::prost::alloc::string::String>,
-    /// Additional structured details about this error. Keys must match /a-z+/ but should ideally be lowerCamelCase. Also they must be limited to 64 characters in length. When identifying the current value of an exceeded limit, the units should be contained in the key, not the value. For example, rather than {"instanceLimit": "100/request"}, should be returned as, {"instanceLimitPerRequest": "100"}, if the client exceeds the number of instances that can be created in a single (batch) request.
+    /// Additional structured details about this error. Keys must match a regular expression of `a-z+` but should ideally be lowerCamelCase. Also, they must be limited to 64 characters in length. When identifying the current value of an exceeded limit, the units should be contained in the key, not the value. For example, rather than `{"instanceLimit": "100/request"}`, should be returned as, `{"instanceLimitPerRequest": "100"}`, if the client exceeds the number of instances that can be created in a single (batch) request.
     #[prost(map = "string, string", tag = "8514340")]
     pub metadatas: ::std::collections::HashMap<
         ::prost::alloc::string::String,
@@ -9753,6 +10139,16 @@ pub struct FirewallPoliciesListAssociationsResponse {
     #[prost(string, optional, tag = "3292052")]
     pub kind: ::core::option::Option<::prost::alloc::string::String>,
 }
+///
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FirewallPoliciesScopedList {
+    /// A list of firewall policies contained in this scope.
+    #[prost(message, repeated, tag = "392512943")]
+    pub firewall_policies: ::prost::alloc::vec::Vec<FirewallPolicy>,
+    /// Informational warning which replaces the list of firewall policies when the list is empty.
+    #[prost(message, optional, tag = "50704284")]
+    pub warning: ::core::option::Option<Warning>,
+}
 /// Represents a Firewall Policy resource.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FirewallPolicy {
@@ -9780,6 +10176,9 @@ pub struct FirewallPolicy {
     /// Name of the resource. For Organization Firewall Policies it's a \[Output Only\] numeric ID allocated by Google Cloud which uniquely identifies the Organization Firewall Policy.
     #[prost(string, optional, tag = "3373707")]
     pub name: ::core::option::Option<::prost::alloc::string::String>,
+    /// A list of packet mirroring rules that belong to this policy.
+    #[prost(message, repeated, tag = "531644356")]
+    pub packet_mirroring_rules: ::prost::alloc::vec::Vec<FirewallPolicyRule>,
     /// \[Output Only\] The parent of the firewall policy. This field is not applicable to network firewall policies.
     #[prost(string, optional, tag = "78317738")]
     pub parent: ::core::option::Option<::prost::alloc::string::String>,
@@ -11612,6 +12011,16 @@ pub struct GetNetworkFirewallPolicyRequest {
     #[prost(string, tag = "227560217")]
     pub project: ::prost::alloc::string::String,
 }
+/// A request message for NetworkProfiles.Get. See the method description for details.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetNetworkProfileRequest {
+    /// Name of the network profile to return.
+    #[prost(string, tag = "173112472")]
+    pub network_profile: ::prost::alloc::string::String,
+    /// Project ID for this request.
+    #[prost(string, tag = "227560217")]
+    pub project: ::prost::alloc::string::String,
+}
 /// A request message for Networks.Get. See the method description for details.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetNetworkRequest {
@@ -11673,6 +12082,19 @@ pub struct GetPacketMirroringRequest {
     /// Name of the region for this request.
     #[prost(string, tag = "138946292")]
     pub region: ::prost::alloc::string::String,
+}
+/// A request message for NetworkFirewallPolicies.GetPacketMirroringRule. See the method description for details.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetPacketMirroringRuleNetworkFirewallPolicyRequest {
+    /// Name of the firewall policy to which the queried rule belongs.
+    #[prost(string, tag = "498173265")]
+    pub firewall_policy: ::prost::alloc::string::String,
+    /// The priority of the rule to get from the firewall policy.
+    #[prost(int32, optional, tag = "445151652")]
+    pub priority: ::core::option::Option<i32>,
+    /// Project ID for this request.
+    #[prost(string, tag = "227560217")]
+    pub project: ::prost::alloc::string::String,
 }
 /// A request message for Projects.Get. See the method description for details.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -12026,6 +12448,22 @@ pub struct GetResourcePolicyRequest {
     #[prost(string, tag = "159240835")]
     pub resource_policy: ::prost::alloc::string::String,
 }
+/// A request message for Routers.GetRoutePolicy. See the method description for details.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetRoutePolicyRouterRequest {
+    /// The Policy name for this request. Name must conform to RFC1035
+    #[prost(string, optional, tag = "91071794")]
+    pub policy: ::core::option::Option<::prost::alloc::string::String>,
+    /// Project ID for this request.
+    #[prost(string, tag = "227560217")]
+    pub project: ::prost::alloc::string::String,
+    /// Name of the region for this request.
+    #[prost(string, tag = "138946292")]
+    pub region: ::prost::alloc::string::String,
+    /// Name of the Router resource to query for the route policy. The name should conform to RFC1035.
+    #[prost(string, tag = "148608841")]
+    pub router: ::prost::alloc::string::String,
+}
 /// A request message for Routes.Get. See the method description for details.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetRouteRequest {
@@ -12165,7 +12603,7 @@ pub struct GetSerialPortOutputInstanceRequest {
     /// Project ID for this request.
     #[prost(string, tag = "227560217")]
     pub project: ::prost::alloc::string::String,
-    /// Specifies the starting byte position of the output to return. To start with the first byte of output to the specified port, omit this field or set it to `0`. If the output for that byte position is available, this field matches the `start` parameter sent with the request. If the amount of serial console output exceeds the size of the buffer (1 MB), the oldest output is discarded and is no longer available. If the requested start position refers to discarded output, the start position is adjusted to the oldest output still available, and the adjusted start position is returned as the `start` property value. You can also provide a negative start position, which translates to the most recent number of bytes written to the serial port. For example, -3 is interpreted as the most recent 3 bytes written to the serial console.
+    /// Specifies the starting byte position of the output to return. To start with the first byte of output to the specified port, omit this field or set it to `0`. If the output for that byte position is available, this field matches the `start` parameter sent with the request. If the amount of serial console output exceeds the size of the buffer (1 MB), the oldest output is discarded and is no longer available. If the requested start position refers to discarded output, the start position is adjusted to the oldest output still available, and the adjusted start position is returned as the `start` property value. You can also provide a negative start position, which translates to the most recent number of bytes written to the serial port. For example, -3 is interpreted as the most recent 3 bytes written to the serial console. Note that the negative start is bounded by the retained buffer size, and the returned serial console output will not exceed the max buffer size.
     #[prost(int64, optional, tag = "109757538")]
     pub start: ::core::option::Option<i64>,
     /// The name of the zone for this request.
@@ -13896,13 +14334,13 @@ pub struct HttpRouteRule {
     /// For routeRules within a given pathMatcher, priority determines the order in which a load balancer interprets routeRules. RouteRules are evaluated in order of priority, from the lowest to highest number. The priority of a rule decreases as its number increases (1, 2, 3, N+1). The first rule that matches the request is applied. You cannot configure two or more routeRules with the same priority. Priority for each rule must be set to a number from 0 to 2147483647 inclusive. Priority numbers can have gaps, which enable you to add or remove rules in the future without affecting the rest of the rules. For example, 1, 2, 3, 4, 5, 9, 12, 16 is a valid series of priority numbers to which you could add rules numbered from 6 to 8, 10 to 11, and 13 to 15 in the future without any impact on existing rules.
     #[prost(int32, optional, tag = "445151652")]
     pub priority: ::core::option::Option<i32>,
-    /// In response to a matching matchRule, the load balancer performs advanced routing actions, such as URL rewrites and header transformations, before forwarding the request to the selected backend. If routeAction specifies any weightedBackendServices, service must not be set. Conversely if service is set, routeAction cannot contain any weightedBackendServices. Only one of urlRedirect, service or routeAction.weightedBackendService must be set. URL maps for classic Application Load Balancers only support the urlRewrite action within a route rule's routeAction.
+    /// In response to a matching matchRule, the load balancer performs advanced routing actions, such as URL rewrites and header transformations, before forwarding the request to the selected backend. Only one of urlRedirect, service or routeAction.weightedBackendService can be set. URL maps for classic Application Load Balancers only support the urlRewrite action within a route rule's routeAction.
     #[prost(message, optional, tag = "424563948")]
     pub route_action: ::core::option::Option<HttpRouteAction>,
-    /// The full or partial URL of the backend service resource to which traffic is directed if this rule is matched. If routeAction is also specified, advanced routing actions, such as URL rewrites, take effect before sending the request to the backend. However, if service is specified, routeAction cannot contain any weightedBackendServices. Conversely, if routeAction specifies any weightedBackendServices, service must not be specified. Only one of urlRedirect, service or routeAction.weightedBackendService must be set.
+    /// The full or partial URL of the backend service resource to which traffic is directed if this rule is matched. If routeAction is also specified, advanced routing actions, such as URL rewrites, take effect before sending the request to the backend. Only one of urlRedirect, service or routeAction.weightedBackendService can be set.
     #[prost(string, optional, tag = "373540533")]
     pub service: ::core::option::Option<::prost::alloc::string::String>,
-    /// When this rule is matched, the request is redirected to a URL specified by urlRedirect. If urlRedirect is specified, service or routeAction must not be set. Not supported when the URL map is bound to a target gRPC proxy.
+    /// When this rule is matched, the request is redirected to a URL specified by urlRedirect. Only one of urlRedirect, service or routeAction.weightedBackendService can be set. Not supported when the URL map is bound to a target gRPC proxy.
     #[prost(message, optional, tag = "405147820")]
     pub url_redirect: ::core::option::Option<HttpRedirectAction>,
 }
@@ -15816,7 +16254,7 @@ pub struct InstanceGroup {
     /// The name of the instance group. The name must be 1-63 characters long, and comply with RFC1035.
     #[prost(string, optional, tag = "3373707")]
     pub name: ::core::option::Option<::prost::alloc::string::String>,
-    ///   Assigns a name to a port number. For example: {name: "http", port: 80} This allows the system to reference ports by the assigned name instead of a port number. Named ports can also contain multiple ports. For example: \[{name: "app1", port: 8080}, {name: "app1", port: 8081}, {name: "app2", port: 8082}\] Named ports apply to all instances in this instance group.
+    ///   Optional. Assigns a name to a port number. For example: {name: "http", port: 80} This allows the system to reference ports by the assigned name instead of a port number. Named ports can also contain multiple ports. For example: \[{name: "app1", port: 8080}, {name: "app1", port: 8081}, {name: "app2", port: 8082}\] Named ports apply to all instances in this instance group.
     #[prost(message, repeated, tag = "427598732")]
     pub named_ports: ::prost::alloc::vec::Vec<NamedPort>,
     /// \[Output Only\] The URL of the network to which all instances in the instance group belong. If your instance has multiple network interfaces, then the network and subnetwork fields only refer to the network and subnet used by your primary interface (nic0).
@@ -15956,6 +16394,9 @@ pub struct InstanceGroupManager {
     /// \[Output Only\] The URL of the region where the managed instance group resides (for regional resources).
     #[prost(string, optional, tag = "138946292")]
     pub region: ::core::option::Option<::prost::alloc::string::String>,
+    /// Resource policies for this managed instance group.
+    #[prost(message, optional, tag = "22220385")]
+    pub resource_policies: ::core::option::Option<InstanceGroupManagerResourcePolicies>,
     /// \[Output Only\] Reserved for future use.
     #[prost(bool, optional, tag = "480964257")]
     pub satisfies_pzi: ::core::option::Option<bool>,
@@ -15965,6 +16406,9 @@ pub struct InstanceGroupManager {
     /// \[Output Only\] The URL for this managed instance group. The server defines this URL.
     #[prost(string, optional, tag = "456214797")]
     pub self_link: ::core::option::Option<::prost::alloc::string::String>,
+    /// Standby policy for stopped and suspended instances.
+    #[prost(message, optional, tag = "499352324")]
+    pub standby_policy: ::core::option::Option<InstanceGroupManagerStandbyPolicy>,
     /// Stateful configuration for this Instanced Group Manager
     #[prost(message, optional, tag = "47538565")]
     pub stateful_policy: ::core::option::Option<StatefulPolicy>,
@@ -15977,6 +16421,12 @@ pub struct InstanceGroupManager {
     /// The target number of running instances for this managed instance group. You can reduce this number by using the instanceGroupManager deleteInstances or abandonInstances methods. Resizing the group also changes this number.
     #[prost(int32, optional, tag = "62880239")]
     pub target_size: ::core::option::Option<i32>,
+    /// The target number of stopped instances for this managed instance group. This number changes when you: - Stop instance using the stopInstances method or start instances using the startInstances method. - Manually change the targetStoppedSize using the update method.
+    #[prost(int32, optional, tag = "2419489")]
+    pub target_stopped_size: ::core::option::Option<i32>,
+    /// The target number of suspended instances for this managed instance group. This number changes when you: - Suspend instance using the suspendInstances method or resume instances using the resumeInstances method. - Manually change the targetSuspendedSize using the update method.
+    #[prost(int32, optional, tag = "308085843")]
+    pub target_suspended_size: ::core::option::Option<i32>,
     /// The update policy for this managed instance group.
     #[prost(message, optional, tag = "175809896")]
     pub update_policy: ::core::option::Option<InstanceGroupManagerUpdatePolicy>,
@@ -16417,6 +16867,70 @@ pub struct InstanceGroupManagerResizeRequestsListResponse {
     /// \[Output Only\] Informational warning message.
     #[prost(message, optional, tag = "50704284")]
     pub warning: ::core::option::Option<Warning>,
+}
+///
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct InstanceGroupManagerResourcePolicies {
+    /// The URL of the workload policy that is specified for this managed instance group. It can be a full or partial URL. For example, the following are all valid URLs to a workload policy: - <https://www.googleapis.com/compute/v1/projects/project/regions/region> /resourcePolicies/resourcePolicy - projects/project/regions/region/resourcePolicies/resourcePolicy - regions/region/resourcePolicies/resourcePolicy
+    #[prost(string, optional, tag = "114721530")]
+    pub workload_policy: ::core::option::Option<::prost::alloc::string::String>,
+}
+///
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct InstanceGroupManagerStandbyPolicy {
+    /// Specifies the number of seconds that the MIG should wait to suspend or stop a VM after that VM was created. The initial delay gives the initialization script the time to prepare your VM for a quick scale out. The value of initial delay must be between 0 and 3600 seconds. The default value is 0.
+    #[prost(int32, optional, tag = "263207002")]
+    pub initial_delay_sec: ::core::option::Option<i32>,
+    /// Defines how a MIG resumes or starts VMs from a standby pool when the group scales out. The default mode is `MANUAL`.
+    /// Check the Mode enum for the list of possible values.
+    #[prost(string, optional, tag = "3357091")]
+    pub mode: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// Nested message and enum types in `InstanceGroupManagerStandbyPolicy`.
+pub mod instance_group_manager_standby_policy {
+    /// Defines how a MIG resumes or starts VMs from a standby pool when the group scales out. The default mode is `MANUAL`.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Mode {
+        /// A value indicating that the enum field is not set.
+        UndefinedMode = 0,
+        /// MIG does not automatically resume or start VMs in the standby pool when the group scales out.
+        Manual = 119397318,
+        /// MIG automatically resumes or starts VMs in the standby pool when the group scales out, and replenishes the standby pool afterwards.
+        ScaleOutPool = 635394,
+    }
+    impl Mode {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedMode => "UNDEFINED_MODE",
+                Self::Manual => "MANUAL",
+                Self::ScaleOutPool => "SCALE_OUT_POOL",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_MODE" => Some(Self::UndefinedMode),
+                "MANUAL" => Some(Self::Manual),
+                "SCALE_OUT_POOL" => Some(Self::ScaleOutPool),
+                _ => None,
+            }
+        }
+    }
 }
 ///
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -16922,6 +17436,13 @@ pub struct InstanceGroupManagersRecreateInstancesRequest {
 }
 ///
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct InstanceGroupManagersResumeInstancesRequest {
+    /// The URLs of one or more instances to resume. This can be a full URL or a partial URL, such as zones/\[ZONE\]/instances/\[INSTANCE_NAME\].
+    #[prost(string, repeated, tag = "29097598")]
+    pub instances: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+///
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct InstanceGroupManagersScopedList {
     /// \[Output Only\] The list of managed instance groups that are contained in the specified project and zone.
     #[prost(message, repeated, tag = "214072592")]
@@ -16946,6 +17467,33 @@ pub struct InstanceGroupManagersSetTargetPoolsRequest {
     /// The list of target pool URLs that instances in this managed instance group belong to. The managed instance group applies these target pools to all of the instances in the group. Existing instances and new instances in the group all receive these target pool settings.
     #[prost(string, repeated, tag = "336072617")]
     pub target_pools: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+///
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct InstanceGroupManagersStartInstancesRequest {
+    /// The URLs of one or more instances to start. This can be a full URL or a partial URL, such as zones/\[ZONE\]/instances/\[INSTANCE_NAME\].
+    #[prost(string, repeated, tag = "29097598")]
+    pub instances: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+///
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct InstanceGroupManagersStopInstancesRequest {
+    /// If this flag is set to true, the Instance Group Manager will proceed to stop the instances, skipping initialization on them.
+    #[prost(bool, optional, tag = "134762710")]
+    pub force_stop: ::core::option::Option<bool>,
+    /// The URLs of one or more instances to stop. This can be a full URL or a partial URL, such as zones/\[ZONE\]/instances/\[INSTANCE_NAME\].
+    #[prost(string, repeated, tag = "29097598")]
+    pub instances: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+///
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct InstanceGroupManagersSuspendInstancesRequest {
+    /// If this flag is set to true, the Instance Group Manager will proceed to suspend the instances, skipping initialization on them.
+    #[prost(bool, optional, tag = "27637480")]
+    pub force_suspend: ::core::option::Option<bool>,
+    /// The URLs of one or more instances to suspend. This can be a full URL or a partial URL, such as zones/\[ZONE\]/instances/\[INSTANCE_NAME\].
+    #[prost(string, repeated, tag = "29097598")]
+    pub instances: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 /// InstanceGroupManagers.updatePerInstanceConfigs
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -17722,6 +18270,9 @@ pub struct InstancesGetEffectiveFirewallsResponseEffectiveFirewallPolicy {
     /// \[Output Only\] The name of the firewall policy.
     #[prost(string, optional, tag = "3373707")]
     pub name: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] The packet mirroring rules that apply to the instance.
+    #[prost(message, repeated, tag = "531644356")]
+    pub packet_mirroring_rules: ::prost::alloc::vec::Vec<FirewallPolicyRule>,
     /// \[Output only\] Priority of firewall policy association. Not applicable for type=HIERARCHY.
     #[prost(int32, optional, tag = "445151652")]
     pub priority: ::core::option::Option<i32>,
@@ -17798,6 +18349,131 @@ pub struct InstancesRemoveResourcePoliciesRequest {
     /// Resource policies to be removed from this instance.
     #[prost(string, repeated, tag = "22220385")]
     pub resource_policies: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+///
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct InstancesReportHostAsFaultyRequest {
+    /// The disruption schedule for the VM. Default to IMMEDIATE.
+    /// Check the DisruptionSchedule enum for the list of possible values.
+    #[prost(string, optional, tag = "95871619")]
+    pub disruption_schedule: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(message, repeated, tag = "168056210")]
+    pub fault_reasons: ::prost::alloc::vec::Vec<
+        InstancesReportHostAsFaultyRequestFaultReason,
+    >,
+}
+/// Nested message and enum types in `InstancesReportHostAsFaultyRequest`.
+pub mod instances_report_host_as_faulty_request {
+    /// The disruption schedule for the VM. Default to IMMEDIATE.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum DisruptionSchedule {
+        /// A value indicating that the enum field is not set.
+        UndefinedDisruptionSchedule = 0,
+        /// Not used. Required as per aip/126.
+        Unspecified = 332543835,
+        /// Delay disruption for caller control. Will be default soon.
+        Future = 474513859,
+        /// Default value. Disrupt the VM immediately.
+        Immediate = 152881041,
+    }
+    impl DisruptionSchedule {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedDisruptionSchedule => "UNDEFINED_DISRUPTION_SCHEDULE",
+                Self::Unspecified => "DISRUPTION_SCHEDULE_UNSPECIFIED",
+                Self::Future => "FUTURE",
+                Self::Immediate => "IMMEDIATE",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_DISRUPTION_SCHEDULE" => {
+                    Some(Self::UndefinedDisruptionSchedule)
+                }
+                "DISRUPTION_SCHEDULE_UNSPECIFIED" => Some(Self::Unspecified),
+                "FUTURE" => Some(Self::Future),
+                "IMMEDIATE" => Some(Self::Immediate),
+                _ => None,
+            }
+        }
+    }
+}
+///
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct InstancesReportHostAsFaultyRequestFaultReason {
+    ///
+    /// Check the Behavior enum for the list of possible values.
+    #[prost(string, optional, tag = "437170770")]
+    pub behavior: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(string, optional, tag = "422937596")]
+    pub description: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// Nested message and enum types in `InstancesReportHostAsFaultyRequestFaultReason`.
+pub mod instances_report_host_as_faulty_request_fault_reason {
+    ///
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Behavior {
+        /// A value indicating that the enum field is not set.
+        UndefinedBehavior = 0,
+        /// Public reportable behaviors
+        Unspecified = 85734570,
+        Performance = 135701520,
+        SilentDataCorruption = 111360678,
+        UnrecoverableGpuError = 363710747,
+    }
+    impl Behavior {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedBehavior => "UNDEFINED_BEHAVIOR",
+                Self::Unspecified => "BEHAVIOR_UNSPECIFIED",
+                Self::Performance => "PERFORMANCE",
+                Self::SilentDataCorruption => "SILENT_DATA_CORRUPTION",
+                Self::UnrecoverableGpuError => "UNRECOVERABLE_GPU_ERROR",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_BEHAVIOR" => Some(Self::UndefinedBehavior),
+                "BEHAVIOR_UNSPECIFIED" => Some(Self::Unspecified),
+                "PERFORMANCE" => Some(Self::Performance),
+                "SILENT_DATA_CORRUPTION" => Some(Self::SilentDataCorruption),
+                "UNRECOVERABLE_GPU_ERROR" => Some(Self::UnrecoverableGpuError),
+                _ => None,
+            }
+        }
+    }
 }
 ///
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -18182,7 +18858,7 @@ pub struct Interconnect {
         ::prost::alloc::string::String,
         ::prost::alloc::string::String,
     >,
-    /// Type of link requested, which can take one of the following values: - LINK_TYPE_ETHERNET_10G_LR: A 10G Ethernet with LR optics - LINK_TYPE_ETHERNET_100G_LR: A 100G Ethernet with LR optics. Note that this field indicates the speed of each of the links in the bundle, not the speed of the entire bundle.
+    /// Type of link requested, which can take one of the following values: - LINK_TYPE_ETHERNET_10G_LR: A 10G Ethernet with LR optics - LINK_TYPE_ETHERNET_100G_LR: A 100G Ethernet with LR optics. - LINK_TYPE_ETHERNET_400G_LR4: A 400G Ethernet with LR4 optics. Note that this field indicates the speed of each of the links in the bundle, not the speed of the entire bundle.
     /// Check the LinkType enum for the list of possible values.
     #[prost(string, optional, tag = "523207775")]
     pub link_type: ::core::option::Option<::prost::alloc::string::String>,
@@ -18318,7 +18994,7 @@ pub mod interconnect {
             }
         }
     }
-    /// Type of link requested, which can take one of the following values: - LINK_TYPE_ETHERNET_10G_LR: A 10G Ethernet with LR optics - LINK_TYPE_ETHERNET_100G_LR: A 100G Ethernet with LR optics. Note that this field indicates the speed of each of the links in the bundle, not the speed of the entire bundle.
+    /// Type of link requested, which can take one of the following values: - LINK_TYPE_ETHERNET_10G_LR: A 10G Ethernet with LR optics - LINK_TYPE_ETHERNET_100G_LR: A 100G Ethernet with LR optics. - LINK_TYPE_ETHERNET_400G_LR4: A 400G Ethernet with LR4 optics. Note that this field indicates the speed of each of the links in the bundle, not the speed of the entire bundle.
     #[derive(
         Clone,
         Copy,
@@ -18338,6 +19014,8 @@ pub mod interconnect {
         Ethernet100gLr = 337672551,
         /// 10G Ethernet, LR Optics. \[(rate_bps) = 10000000000\];
         Ethernet10gLr = 236739749,
+        /// 400G Ethernet, LR4 Optics.
+        Ethernet400gLr4 = 127023690,
     }
     impl LinkType {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -18349,6 +19027,7 @@ pub mod interconnect {
                 Self::UndefinedLinkType => "UNDEFINED_LINK_TYPE",
                 Self::Ethernet100gLr => "LINK_TYPE_ETHERNET_100G_LR",
                 Self::Ethernet10gLr => "LINK_TYPE_ETHERNET_10G_LR",
+                Self::Ethernet400gLr4 => "LINK_TYPE_ETHERNET_400G_LR4",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -18357,6 +19036,7 @@ pub mod interconnect {
                 "UNDEFINED_LINK_TYPE" => Some(Self::UndefinedLinkType),
                 "LINK_TYPE_ETHERNET_100G_LR" => Some(Self::Ethernet100gLr),
                 "LINK_TYPE_ETHERNET_10G_LR" => Some(Self::Ethernet10gLr),
+                "LINK_TYPE_ETHERNET_400G_LR4" => Some(Self::Ethernet400gLr4),
                 _ => None,
             }
         }
@@ -18491,14 +19171,14 @@ pub struct InterconnectAttachment {
     /// Determines whether this Attachment will carry packets. Not present for PARTNER_PROVIDER.
     #[prost(bool, optional, tag = "445675089")]
     pub admin_enabled: ::core::option::Option<bool>,
-    /// Provisioned bandwidth capacity for the interconnect attachment. For attachments of type DEDICATED, the user can set the bandwidth. For attachments of type PARTNER, the Google Partner that is operating the interconnect must set the bandwidth. Output only for PARTNER type, mutable for PARTNER_PROVIDER and DEDICATED, and can take one of the following values: - BPS_50M: 50 Mbit/s - BPS_100M: 100 Mbit/s - BPS_200M: 200 Mbit/s - BPS_300M: 300 Mbit/s - BPS_400M: 400 Mbit/s - BPS_500M: 500 Mbit/s - BPS_1G: 1 Gbit/s - BPS_2G: 2 Gbit/s - BPS_5G: 5 Gbit/s - BPS_10G: 10 Gbit/s - BPS_20G: 20 Gbit/s - BPS_50G: 50 Gbit/s
+    /// Provisioned bandwidth capacity for the interconnect attachment. For attachments of type DEDICATED, the user can set the bandwidth. For attachments of type PARTNER, the Google Partner that is operating the interconnect must set the bandwidth. Output only for PARTNER type, mutable for PARTNER_PROVIDER and DEDICATED, and can take one of the following values: - BPS_50M: 50 Mbit/s - BPS_100M: 100 Mbit/s - BPS_200M: 200 Mbit/s - BPS_300M: 300 Mbit/s - BPS_400M: 400 Mbit/s - BPS_500M: 500 Mbit/s - BPS_1G: 1 Gbit/s - BPS_2G: 2 Gbit/s - BPS_5G: 5 Gbit/s - BPS_10G: 10 Gbit/s - BPS_20G: 20 Gbit/s - BPS_50G: 50 Gbit/s - BPS_100G: 100 Gbit/s
     /// Check the Bandwidth enum for the list of possible values.
     #[prost(string, optional, tag = "181715121")]
     pub bandwidth: ::core::option::Option<::prost::alloc::string::String>,
     /// This field is not available.
     #[prost(string, repeated, tag = "70682522")]
     pub candidate_ipv6_subnets: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    /// Up to 16 candidate prefixes that can be used to restrict the allocation of cloudRouterIpAddress and customerRouterIpAddress for this attachment. All prefixes must be within link-local address space (169.254.0.0/16) and must be /29 or shorter (/28, /27, etc). Google will attempt to select an unused /29 from the supplied candidate prefix(es). The request will fail if all possible /29s are in use on Google's edge. If not supplied, Google will randomly select an unused /29 from all of link-local space.
+    /// Input only. Up to 16 candidate prefixes that can be used to restrict the allocation of cloudRouterIpAddress and customerRouterIpAddress for this attachment. All prefixes must be within link-local address space (169.254.0.0/16) and must be /29 or shorter (/28, /27, etc). Google will attempt to select an unused /29 from the supplied candidate prefix(es). The request will fail if all possible /29s are in use on Google's edge. If not supplied, Google will randomly select an unused /29 from all of link-local space.
     #[prost(string, repeated, tag = "237842938")]
     pub candidate_subnets: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
     /// \[Output Only\] IPv4 address + prefix length to be configured on Cloud Router Interface for this interconnect attachment.
@@ -18543,7 +19223,7 @@ pub struct InterconnectAttachment {
     /// An optional description of this resource.
     #[prost(string, optional, tag = "422937596")]
     pub description: ::core::option::Option<::prost::alloc::string::String>,
-    /// Desired availability domain for the attachment. Only available for type PARTNER, at creation time, and can take one of the following values: - AVAILABILITY_DOMAIN_ANY - AVAILABILITY_DOMAIN_1 - AVAILABILITY_DOMAIN_2 For improved reliability, customers should configure a pair of attachments, one per availability domain. The selected availability domain will be provided to the Partner via the pairing key, so that the provisioned circuit will lie in the specified domain. If not specified, the value will default to AVAILABILITY_DOMAIN_ANY.
+    /// Input only. Desired availability domain for the attachment. Only available for type PARTNER, at creation time, and can take one of the following values: - AVAILABILITY_DOMAIN_ANY - AVAILABILITY_DOMAIN_1 - AVAILABILITY_DOMAIN_2 For improved reliability, customers should configure a pair of attachments, one per availability domain. The selected availability domain will be provided to the Partner via the pairing key, so that the provisioned circuit will lie in the specified domain. If not specified, the value will default to AVAILABILITY_DOMAIN_ANY.
     /// Check the EdgeAvailabilityDomain enum for the list of possible values.
     #[prost(string, optional, tag = "71289510")]
     pub edge_availability_domain: ::core::option::Option<::prost::alloc::string::String>,
@@ -18624,7 +19304,7 @@ pub struct InterconnectAttachment {
     /// Check the State enum for the list of possible values.
     #[prost(string, optional, tag = "109757585")]
     pub state: ::core::option::Option<::prost::alloc::string::String>,
-    /// Length of the IPv4 subnet mask. Allowed values: - 29 (default) - 30 The default value is 29, except for Cross-Cloud Interconnect connections that use an InterconnectRemoteLocation with a constraints.subnetLengthRange.min equal to 30. For example, connections that use an Azure remote location fall into this category. In these cases, the default value is 30, and requesting 29 returns an error. Where both 29 and 30 are allowed, 29 is preferred, because it gives Google Cloud Support more debugging visibility.
+    /// Input only. Length of the IPv4 subnet mask. Allowed values: - 29 (default) - 30 The default value is 29, except for Cross-Cloud Interconnect connections that use an InterconnectRemoteLocation with a constraints.subnetLengthRange.min equal to 30. For example, connections that use an Azure remote location fall into this category. In these cases, the default value is 30, and requesting 29 returns an error. Where both 29 and 30 are allowed, 29 is preferred, because it gives Google Cloud Support more debugging visibility.
     #[prost(int32, optional, tag = "279831048")]
     pub subnet_length: ::core::option::Option<i32>,
     /// The type of interconnect attachment this is, which can take one of the following values: - DEDICATED: an attachment to a Dedicated Interconnect. - PARTNER: an attachment to a Partner Interconnect, created by the customer. - PARTNER_PROVIDER: an attachment to a Partner Interconnect, created by the partner.
@@ -18637,7 +19317,7 @@ pub struct InterconnectAttachment {
 }
 /// Nested message and enum types in `InterconnectAttachment`.
 pub mod interconnect_attachment {
-    /// Provisioned bandwidth capacity for the interconnect attachment. For attachments of type DEDICATED, the user can set the bandwidth. For attachments of type PARTNER, the Google Partner that is operating the interconnect must set the bandwidth. Output only for PARTNER type, mutable for PARTNER_PROVIDER and DEDICATED, and can take one of the following values: - BPS_50M: 50 Mbit/s - BPS_100M: 100 Mbit/s - BPS_200M: 200 Mbit/s - BPS_300M: 300 Mbit/s - BPS_400M: 400 Mbit/s - BPS_500M: 500 Mbit/s - BPS_1G: 1 Gbit/s - BPS_2G: 2 Gbit/s - BPS_5G: 5 Gbit/s - BPS_10G: 10 Gbit/s - BPS_20G: 20 Gbit/s - BPS_50G: 50 Gbit/s
+    /// Provisioned bandwidth capacity for the interconnect attachment. For attachments of type DEDICATED, the user can set the bandwidth. For attachments of type PARTNER, the Google Partner that is operating the interconnect must set the bandwidth. Output only for PARTNER type, mutable for PARTNER_PROVIDER and DEDICATED, and can take one of the following values: - BPS_50M: 50 Mbit/s - BPS_100M: 100 Mbit/s - BPS_200M: 200 Mbit/s - BPS_300M: 300 Mbit/s - BPS_400M: 400 Mbit/s - BPS_500M: 500 Mbit/s - BPS_1G: 1 Gbit/s - BPS_2G: 2 Gbit/s - BPS_5G: 5 Gbit/s - BPS_10G: 10 Gbit/s - BPS_20G: 20 Gbit/s - BPS_50G: 50 Gbit/s - BPS_100G: 100 Gbit/s
     #[derive(
         Clone,
         Copy,
@@ -18653,6 +19333,8 @@ pub mod interconnect_attachment {
     pub enum Bandwidth {
         /// A value indicating that the enum field is not set.
         UndefinedBandwidth = 0,
+        /// 100 Gbit/s
+        Bps100g = 49547952,
         /// 100 Mbit/s
         Bps100m = 49547958,
         /// 10 Gbit/s
@@ -18686,6 +19368,7 @@ pub mod interconnect_attachment {
         pub fn as_str_name(&self) -> &'static str {
             match self {
                 Self::UndefinedBandwidth => "UNDEFINED_BANDWIDTH",
+                Self::Bps100g => "BPS_100G",
                 Self::Bps100m => "BPS_100M",
                 Self::Bps10g => "BPS_10G",
                 Self::Bps1g => "BPS_1G",
@@ -18704,6 +19387,7 @@ pub mod interconnect_attachment {
         pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
             match value {
                 "UNDEFINED_BANDWIDTH" => Some(Self::UndefinedBandwidth),
+                "BPS_100G" => Some(Self::Bps100g),
                 "BPS_100M" => Some(Self::Bps100m),
                 "BPS_10G" => Some(Self::Bps10g),
                 "BPS_1G" => Some(Self::Bps1g),
@@ -18720,7 +19404,7 @@ pub mod interconnect_attachment {
             }
         }
     }
-    /// Desired availability domain for the attachment. Only available for type PARTNER, at creation time, and can take one of the following values: - AVAILABILITY_DOMAIN_ANY - AVAILABILITY_DOMAIN_1 - AVAILABILITY_DOMAIN_2 For improved reliability, customers should configure a pair of attachments, one per availability domain. The selected availability domain will be provided to the Partner via the pairing key, so that the provisioned circuit will lie in the specified domain. If not specified, the value will default to AVAILABILITY_DOMAIN_ANY.
+    /// Input only. Desired availability domain for the attachment. Only available for type PARTNER, at creation time, and can take one of the following values: - AVAILABILITY_DOMAIN_ANY - AVAILABILITY_DOMAIN_1 - AVAILABILITY_DOMAIN_2 For improved reliability, customers should configure a pair of attachments, one per availability domain. The selected availability domain will be provided to the Partner via the pairing key, so that the provisioned circuit will lie in the specified domain. If not specified, the value will default to AVAILABILITY_DOMAIN_ANY.
     #[derive(
         Clone,
         Copy,
@@ -19549,7 +20233,7 @@ pub struct InterconnectLocation {
     /// \[Output Only\] Availability zone for this InterconnectLocation. Within a metropolitan area (metro), maintenance will not be simultaneously scheduled in more than one availability zone. Example: "zone1" or "zone2".
     #[prost(string, optional, tag = "158459920")]
     pub availability_zone: ::core::option::Option<::prost::alloc::string::String>,
-    /// \[Output only\] List of features available at this InterconnectLocation, which can take one of the following values: - MACSEC
+    /// \[Output only\] List of features available at this InterconnectLocation, which can take one of the following values: - IF_MACSEC
     /// Check the AvailableFeatures enum for the list of possible values.
     #[prost(string, repeated, tag = "496344307")]
     pub available_features: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
@@ -19665,6 +20349,8 @@ pub mod interconnect_location {
         LinkTypeEthernet100gLr = 337672551,
         /// 10G Ethernet, LR Optics. \[(rate_bps) = 10000000000\];
         LinkTypeEthernet10gLr = 236739749,
+        /// 400G Ethernet, LR4 Optics.
+        LinkTypeEthernet400gLr4 = 127023690,
     }
     impl AvailableLinkTypes {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -19676,6 +20362,7 @@ pub mod interconnect_location {
                 Self::UndefinedAvailableLinkTypes => "UNDEFINED_AVAILABLE_LINK_TYPES",
                 Self::LinkTypeEthernet100gLr => "LINK_TYPE_ETHERNET_100G_LR",
                 Self::LinkTypeEthernet10gLr => "LINK_TYPE_ETHERNET_10G_LR",
+                Self::LinkTypeEthernet400gLr4 => "LINK_TYPE_ETHERNET_400G_LR4",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -19686,6 +20373,7 @@ pub mod interconnect_location {
                 }
                 "LINK_TYPE_ETHERNET_100G_LR" => Some(Self::LinkTypeEthernet100gLr),
                 "LINK_TYPE_ETHERNET_10G_LR" => Some(Self::LinkTypeEthernet10gLr),
+                "LINK_TYPE_ETHERNET_400G_LR4" => Some(Self::LinkTypeEthernet400gLr4),
                 _ => None,
             }
         }
@@ -20549,6 +21237,7 @@ pub struct License {
     /// Name of the resource. The name must be 1-63 characters long and comply with RFC1035.
     #[prost(string, optional, tag = "3373707")]
     pub name: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Input Only\] Deprecated.
     #[prost(message, optional, tag = "214292769")]
     pub resource_requirements: ::core::option::Option<LicenseResourceRequirements>,
     /// \[Output Only\] Server-defined URL for the resource.
@@ -20660,23 +21349,23 @@ pub struct LicenseCodeLicenseAlias {
 /// Commitment for a particular license resource.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct LicenseResourceCommitment {
-    /// The number of licenses purchased.
+    /// The number of licenses you plan to purchase.
     #[prost(int64, optional, tag = "196759640")]
     pub amount: ::core::option::Option<i64>,
-    /// Specifies the core range of the instance for which this license applies.
+    /// The number of cores per license.
     #[prost(string, optional, tag = "32482324")]
     pub cores_per_license: ::core::option::Option<::prost::alloc::string::String>,
-    /// Any applicable license URI.
+    /// The applicable license URI.
     #[prost(string, optional, tag = "166757441")]
     pub license: ::core::option::Option<::prost::alloc::string::String>,
 }
 ///
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct LicenseResourceRequirements {
-    /// Minimum number of guest cpus required to use the Instance. Enforced at Instance creation and Instance start.
+    /// \[Input Only\] Deprecated. This field no longer reflects the minimum number of guest cpus required to use the Instance.
     #[prost(int32, optional, tag = "477964836")]
     pub min_guest_cpu_count: ::core::option::Option<i32>,
-    /// Minimum memory required to use the Instance. Enforced at Instance creation and Instance start.
+    /// \[Input Only\] Deprecated. This field no longer reflects the minimum memory required to use the Instance.
     #[prost(int32, optional, tag = "504785894")]
     pub min_memory_mb: ::core::option::Option<i32>,
 }
@@ -20871,6 +21560,142 @@ pub struct ListBackendServicesRequest {
     /// Opt-in for partial success behavior which provides partial results in case of failure. The default value is false. For example, when partial success behavior is enabled, aggregatedList for a single zone scope either returns all resources in the zone or no resources, with an error code.
     #[prost(bool, optional, tag = "517198390")]
     pub return_partial_success: ::core::option::Option<bool>,
+}
+/// A request message for Routers.ListBgpRoutes. See the method description for details.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListBgpRoutesRoutersRequest {
+    /// (Required) limit results to this address family (either IPv4 or IPv6)
+    /// Check the AddressFamily enum for the list of possible values.
+    #[prost(string, optional, tag = "173744655")]
+    pub address_family: ::core::option::Option<::prost::alloc::string::String>,
+    /// Limit results to destinations that are subnets of this CIDR range
+    #[prost(string, optional, tag = "263872483")]
+    pub destination_prefix: ::core::option::Option<::prost::alloc::string::String>,
+    /// A filter expression that filters resources listed in the response. Most Compute resources support two types of filter expressions: expressions that support regular expressions and expressions that follow API improvement proposal AIP-160. These two types of filter expressions cannot be mixed in one request. If you want to use AIP-160, your expression must specify the field name, an operator, and the value that you want to use for filtering. The value must be a string, a number, or a boolean. The operator must be either `=`, `!=`, `>`, `<`, `<=`, `>=` or `:`. For example, if you are filtering Compute Engine instances, you can exclude instances named `example-instance` by specifying `name != example-instance`. The `:*` comparison can be used to test whether a key has been defined. For example, to find all objects with `owner` label use: ``` labels.owner:* ``` You can also filter nested fields. For example, you could specify `scheduling.automaticRestart = false` to include instances only if they are not scheduled for automatic restarts. You can use filtering on nested fields to filter based on resource labels. To filter on multiple expressions, provide each separate expression within parentheses. For example: ``` (scheduling.automaticRestart = true) (cpuPlatform = "Intel Skylake") ``` By default, each expression is an `AND` expression. However, you can include `AND` and `OR` expressions explicitly. For example: ``` (cpuPlatform = "Intel Skylake") OR (cpuPlatform = "Intel Broadwell") AND (scheduling.automaticRestart = true) ``` If you want to use a regular expression, use the `eq` (equal) or `ne` (not equal) operator against a single un-parenthesized expression with or without quotes or against multiple parenthesized expressions. Examples: `fieldname eq unquoted literal` `fieldname eq 'single quoted literal'` `fieldname eq "double quoted literal"` `(fieldname1 eq literal) (fieldname2 ne "literal")` The literal value is interpreted as a regular expression using Google RE2 library syntax. The literal value must match the entire field. For example, to filter for instances that do not end with name "instance", you would use `name ne .*instance`. You cannot combine constraints on multiple fields using regular expressions.
+    #[prost(string, optional, tag = "336120696")]
+    pub filter: ::core::option::Option<::prost::alloc::string::String>,
+    /// The maximum number of results per page that should be returned. If the number of available results is larger than `maxResults`, Compute Engine returns a `nextPageToken` that can be used to get the next page of results in subsequent list requests. Acceptable values are `0` to `500`, inclusive. (Default: `500`)
+    #[prost(uint32, optional, tag = "54715419")]
+    pub max_results: ::core::option::Option<u32>,
+    /// Sorts list results by a certain order. By default, results are returned in alphanumerical order based on the resource name. You can also sort results in descending order based on the creation timestamp using `orderBy="creationTimestamp desc"`. This sorts results based on the `creationTimestamp` field in reverse chronological order (newest result first). Use this to sort resources like operations so that the newest operation is returned first. Currently, only sorting by `name` or `creationTimestamp desc` is supported.
+    #[prost(string, optional, tag = "160562920")]
+    pub order_by: ::core::option::Option<::prost::alloc::string::String>,
+    /// Specifies a page token to use. Set `pageToken` to the `nextPageToken` returned by a previous list request to get the next page of results.
+    #[prost(string, optional, tag = "19994697")]
+    pub page_token: ::core::option::Option<::prost::alloc::string::String>,
+    /// (Required) limit results to the BGP peer with the given name. Name should conform to RFC1035.
+    #[prost(string, optional, tag = "3436898")]
+    pub peer: ::core::option::Option<::prost::alloc::string::String>,
+    /// When true, the method returns post-policy routes. Otherwise, it returns pre-policy routes.
+    #[prost(bool, optional, tag = "379464304")]
+    pub policy_applied: ::core::option::Option<bool>,
+    /// Project ID for this request.
+    #[prost(string, tag = "227560217")]
+    pub project: ::prost::alloc::string::String,
+    /// Name of the region for this request.
+    #[prost(string, tag = "138946292")]
+    pub region: ::prost::alloc::string::String,
+    /// Opt-in for partial success behavior which provides partial results in case of failure. The default value is false. For example, when partial success behavior is enabled, aggregatedList for a single zone scope either returns all resources in the zone or no resources, with an error code.
+    #[prost(bool, optional, tag = "517198390")]
+    pub return_partial_success: ::core::option::Option<bool>,
+    /// (Required) limit results to this type of route (either LEARNED or ADVERTISED)
+    /// Check the RouteType enum for the list of possible values.
+    #[prost(string, optional, tag = "375888752")]
+    pub route_type: ::core::option::Option<::prost::alloc::string::String>,
+    /// Name or id of the resource for this request. Name should conform to RFC1035.
+    #[prost(string, tag = "148608841")]
+    pub router: ::prost::alloc::string::String,
+}
+/// Nested message and enum types in `ListBgpRoutesRoutersRequest`.
+pub mod list_bgp_routes_routers_request {
+    /// (Required) limit results to this address family (either IPv4 or IPv6)
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AddressFamily {
+        /// A value indicating that the enum field is not set.
+        UndefinedAddressFamily = 0,
+        Ipv4 = 2254341,
+        Ipv6 = 2254343,
+        UnspecifiedIpVersion = 72938440,
+    }
+    impl AddressFamily {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedAddressFamily => "UNDEFINED_ADDRESS_FAMILY",
+                Self::Ipv4 => "IPV4",
+                Self::Ipv6 => "IPV6",
+                Self::UnspecifiedIpVersion => "UNSPECIFIED_IP_VERSION",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_ADDRESS_FAMILY" => Some(Self::UndefinedAddressFamily),
+                "IPV4" => Some(Self::Ipv4),
+                "IPV6" => Some(Self::Ipv6),
+                "UNSPECIFIED_IP_VERSION" => Some(Self::UnspecifiedIpVersion),
+                _ => None,
+            }
+        }
+    }
+    /// (Required) limit results to this type of route (either LEARNED or ADVERTISED)
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum RouteType {
+        /// A value indicating that the enum field is not set.
+        UndefinedRouteType = 0,
+        Advertised = 20302109,
+        Learned = 231892419,
+        UnspecifiedRouteType = 248064440,
+    }
+    impl RouteType {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedRouteType => "UNDEFINED_ROUTE_TYPE",
+                Self::Advertised => "ADVERTISED",
+                Self::Learned => "LEARNED",
+                Self::UnspecifiedRouteType => "UNSPECIFIED_ROUTE_TYPE",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_ROUTE_TYPE" => Some(Self::UndefinedRouteType),
+                "ADVERTISED" => Some(Self::Advertised),
+                "LEARNED" => Some(Self::Learned),
+                "UNSPECIFIED_ROUTE_TYPE" => Some(Self::UnspecifiedRouteType),
+                _ => None,
+            }
+        }
+    }
 }
 /// A request message for DiskTypes.List. See the method description for details.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -21844,6 +22669,28 @@ pub struct ListNetworkEndpointsRegionNetworkEndpointGroupsRequest {
 /// A request message for NetworkFirewallPolicies.List. See the method description for details.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListNetworkFirewallPoliciesRequest {
+    /// A filter expression that filters resources listed in the response. Most Compute resources support two types of filter expressions: expressions that support regular expressions and expressions that follow API improvement proposal AIP-160. These two types of filter expressions cannot be mixed in one request. If you want to use AIP-160, your expression must specify the field name, an operator, and the value that you want to use for filtering. The value must be a string, a number, or a boolean. The operator must be either `=`, `!=`, `>`, `<`, `<=`, `>=` or `:`. For example, if you are filtering Compute Engine instances, you can exclude instances named `example-instance` by specifying `name != example-instance`. The `:*` comparison can be used to test whether a key has been defined. For example, to find all objects with `owner` label use: ``` labels.owner:* ``` You can also filter nested fields. For example, you could specify `scheduling.automaticRestart = false` to include instances only if they are not scheduled for automatic restarts. You can use filtering on nested fields to filter based on resource labels. To filter on multiple expressions, provide each separate expression within parentheses. For example: ``` (scheduling.automaticRestart = true) (cpuPlatform = "Intel Skylake") ``` By default, each expression is an `AND` expression. However, you can include `AND` and `OR` expressions explicitly. For example: ``` (cpuPlatform = "Intel Skylake") OR (cpuPlatform = "Intel Broadwell") AND (scheduling.automaticRestart = true) ``` If you want to use a regular expression, use the `eq` (equal) or `ne` (not equal) operator against a single un-parenthesized expression with or without quotes or against multiple parenthesized expressions. Examples: `fieldname eq unquoted literal` `fieldname eq 'single quoted literal'` `fieldname eq "double quoted literal"` `(fieldname1 eq literal) (fieldname2 ne "literal")` The literal value is interpreted as a regular expression using Google RE2 library syntax. The literal value must match the entire field. For example, to filter for instances that do not end with name "instance", you would use `name ne .*instance`. You cannot combine constraints on multiple fields using regular expressions.
+    #[prost(string, optional, tag = "336120696")]
+    pub filter: ::core::option::Option<::prost::alloc::string::String>,
+    /// The maximum number of results per page that should be returned. If the number of available results is larger than `maxResults`, Compute Engine returns a `nextPageToken` that can be used to get the next page of results in subsequent list requests. Acceptable values are `0` to `500`, inclusive. (Default: `500`)
+    #[prost(uint32, optional, tag = "54715419")]
+    pub max_results: ::core::option::Option<u32>,
+    /// Sorts list results by a certain order. By default, results are returned in alphanumerical order based on the resource name. You can also sort results in descending order based on the creation timestamp using `orderBy="creationTimestamp desc"`. This sorts results based on the `creationTimestamp` field in reverse chronological order (newest result first). Use this to sort resources like operations so that the newest operation is returned first. Currently, only sorting by `name` or `creationTimestamp desc` is supported.
+    #[prost(string, optional, tag = "160562920")]
+    pub order_by: ::core::option::Option<::prost::alloc::string::String>,
+    /// Specifies a page token to use. Set `pageToken` to the `nextPageToken` returned by a previous list request to get the next page of results.
+    #[prost(string, optional, tag = "19994697")]
+    pub page_token: ::core::option::Option<::prost::alloc::string::String>,
+    /// Project ID for this request.
+    #[prost(string, tag = "227560217")]
+    pub project: ::prost::alloc::string::String,
+    /// Opt-in for partial success behavior which provides partial results in case of failure. The default value is false. For example, when partial success behavior is enabled, aggregatedList for a single zone scope either returns all resources in the zone or no resources, with an error code.
+    #[prost(bool, optional, tag = "517198390")]
+    pub return_partial_success: ::core::option::Option<bool>,
+}
+/// A request message for NetworkProfiles.List. See the method description for details.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListNetworkProfilesRequest {
     /// A filter expression that filters resources listed in the response. Most Compute resources support two types of filter expressions: expressions that support regular expressions and expressions that follow API improvement proposal AIP-160. These two types of filter expressions cannot be mixed in one request. If you want to use AIP-160, your expression must specify the field name, an operator, and the value that you want to use for filtering. The value must be a string, a number, or a boolean. The operator must be either `=`, `!=`, `>`, `<`, `<=`, `>=` or `:`. For example, if you are filtering Compute Engine instances, you can exclude instances named `example-instance` by specifying `name != example-instance`. The `:*` comparison can be used to test whether a key has been defined. For example, to find all objects with `owner` label use: ``` labels.owner:* ``` You can also filter nested fields. For example, you could specify `scheduling.automaticRestart = false` to include instances only if they are not scheduled for automatic restarts. You can use filtering on nested fields to filter based on resource labels. To filter on multiple expressions, provide each separate expression within parentheses. For example: ``` (scheduling.automaticRestart = true) (cpuPlatform = "Intel Skylake") ``` By default, each expression is an `AND` expression. However, you can include `AND` and `OR` expressions explicitly. For example: ``` (cpuPlatform = "Intel Skylake") OR (cpuPlatform = "Intel Broadwell") AND (scheduling.automaticRestart = true) ``` If you want to use a regular expression, use the `eq` (equal) or `ne` (not equal) operator against a single un-parenthesized expression with or without quotes or against multiple parenthesized expressions. Examples: `fieldname eq unquoted literal` `fieldname eq 'single quoted literal'` `fieldname eq "double quoted literal"` `(fieldname1 eq literal) (fieldname2 ne "literal")` The literal value is interpreted as a regular expression using Google RE2 library syntax. The literal value must match the entire field. For example, to filter for instances that do not end with name "instance", you would use `name ne .*instance`. You cannot combine constraints on multiple fields using regular expressions.
     #[prost(string, optional, tag = "336120696")]
     pub filter: ::core::option::Option<::prost::alloc::string::String>,
@@ -22893,6 +23740,34 @@ pub struct ListResourcePoliciesRequest {
     /// Opt-in for partial success behavior which provides partial results in case of failure. The default value is false. For example, when partial success behavior is enabled, aggregatedList for a single zone scope either returns all resources in the zone or no resources, with an error code.
     #[prost(bool, optional, tag = "517198390")]
     pub return_partial_success: ::core::option::Option<bool>,
+}
+/// A request message for Routers.ListRoutePolicies. See the method description for details.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListRoutePoliciesRoutersRequest {
+    /// A filter expression that filters resources listed in the response. Most Compute resources support two types of filter expressions: expressions that support regular expressions and expressions that follow API improvement proposal AIP-160. These two types of filter expressions cannot be mixed in one request. If you want to use AIP-160, your expression must specify the field name, an operator, and the value that you want to use for filtering. The value must be a string, a number, or a boolean. The operator must be either `=`, `!=`, `>`, `<`, `<=`, `>=` or `:`. For example, if you are filtering Compute Engine instances, you can exclude instances named `example-instance` by specifying `name != example-instance`. The `:*` comparison can be used to test whether a key has been defined. For example, to find all objects with `owner` label use: ``` labels.owner:* ``` You can also filter nested fields. For example, you could specify `scheduling.automaticRestart = false` to include instances only if they are not scheduled for automatic restarts. You can use filtering on nested fields to filter based on resource labels. To filter on multiple expressions, provide each separate expression within parentheses. For example: ``` (scheduling.automaticRestart = true) (cpuPlatform = "Intel Skylake") ``` By default, each expression is an `AND` expression. However, you can include `AND` and `OR` expressions explicitly. For example: ``` (cpuPlatform = "Intel Skylake") OR (cpuPlatform = "Intel Broadwell") AND (scheduling.automaticRestart = true) ``` If you want to use a regular expression, use the `eq` (equal) or `ne` (not equal) operator against a single un-parenthesized expression with or without quotes or against multiple parenthesized expressions. Examples: `fieldname eq unquoted literal` `fieldname eq 'single quoted literal'` `fieldname eq "double quoted literal"` `(fieldname1 eq literal) (fieldname2 ne "literal")` The literal value is interpreted as a regular expression using Google RE2 library syntax. The literal value must match the entire field. For example, to filter for instances that do not end with name "instance", you would use `name ne .*instance`. You cannot combine constraints on multiple fields using regular expressions.
+    #[prost(string, optional, tag = "336120696")]
+    pub filter: ::core::option::Option<::prost::alloc::string::String>,
+    /// The maximum number of results per page that should be returned. If the number of available results is larger than `maxResults`, Compute Engine returns a `nextPageToken` that can be used to get the next page of results in subsequent list requests. Acceptable values are `0` to `500`, inclusive. (Default: `500`)
+    #[prost(uint32, optional, tag = "54715419")]
+    pub max_results: ::core::option::Option<u32>,
+    /// Sorts list results by a certain order. By default, results are returned in alphanumerical order based on the resource name. You can also sort results in descending order based on the creation timestamp using `orderBy="creationTimestamp desc"`. This sorts results based on the `creationTimestamp` field in reverse chronological order (newest result first). Use this to sort resources like operations so that the newest operation is returned first. Currently, only sorting by `name` or `creationTimestamp desc` is supported.
+    #[prost(string, optional, tag = "160562920")]
+    pub order_by: ::core::option::Option<::prost::alloc::string::String>,
+    /// Specifies a page token to use. Set `pageToken` to the `nextPageToken` returned by a previous list request to get the next page of results.
+    #[prost(string, optional, tag = "19994697")]
+    pub page_token: ::core::option::Option<::prost::alloc::string::String>,
+    /// Project ID for this request.
+    #[prost(string, tag = "227560217")]
+    pub project: ::prost::alloc::string::String,
+    /// Name of the region for this request.
+    #[prost(string, tag = "138946292")]
+    pub region: ::prost::alloc::string::String,
+    /// Opt-in for partial success behavior which provides partial results in case of failure. The default value is false. For example, when partial success behavior is enabled, aggregatedList for a single zone scope either returns all resources in the zone or no resources, with an error code.
+    #[prost(bool, optional, tag = "517198390")]
+    pub return_partial_success: ::core::option::Option<bool>,
+    /// Name or id of the resource for this request. Name should conform to RFC1035.
+    #[prost(string, tag = "148608841")]
+    pub router: ::prost::alloc::string::String,
 }
 /// A request message for Routers.List. See the method description for details.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -24262,7 +25137,14 @@ pub mod managed_instance_instance_health {
 pub struct ManagedInstanceLastAttempt {
     /// \[Output Only\] Encountered errors during the last attempt to create or delete the instance.
     #[prost(message, optional, tag = "315977579")]
-    pub errors: ::core::option::Option<Errors>,
+    pub errors: ::core::option::Option<ManagedInstanceLastAttemptErrors>,
+}
+/// \[Output Only\] Encountered errors during the last attempt to create or delete the instance.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ManagedInstanceLastAttemptErrors {
+    /// \[Output Only\] The array of errors encountered while processing this operation.
+    #[prost(message, repeated, tag = "315977579")]
+    pub errors: ::prost::alloc::vec::Vec<Errors>,
 }
 ///
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -24617,6 +25499,9 @@ pub struct Network {
     pub network_firewall_policy_enforcement_order: ::core::option::Option<
         ::prost::alloc::string::String,
     >,
+    /// A full or partial URL of the network profile to apply to this network. This field can be set only at resource creation time. For example, the following are valid URLs: - <https://www.googleapis.com/compute/{api_version}/projects/{project_id}/global/networkProfiles/{network_profile_name}> - projects/{project_id}/global/networkProfiles/{network_profile_name}
+    #[prost(string, optional, tag = "173112472")]
+    pub network_profile: ::core::option::Option<::prost::alloc::string::String>,
     /// \[Output Only\] A list of network peerings for the resource.
     #[prost(message, repeated, tag = "69883187")]
     pub peerings: ::prost::alloc::vec::Vec<NetworkPeering>,
@@ -25005,19 +25890,19 @@ pub struct NetworkEdgeSecurityServicesScopedList {
 /// The network endpoint.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct NetworkEndpoint {
-    /// Metadata defined as annotations on the network endpoint.
+    /// Optional metadata defined as annotations on the network endpoint.
     #[prost(map = "string, string", tag = "112032548")]
     pub annotations: ::std::collections::HashMap<
         ::prost::alloc::string::String,
         ::prost::alloc::string::String,
     >,
-    /// Represents the port number to which PSC consumer sends packets. Only valid for network endpoint groups created with GCE_VM_IP_PORTMAP endpoint type.
+    /// Represents the port number to which PSC consumer sends packets. Optional. Only valid for network endpoint groups created with GCE_VM_IP_PORTMAP endpoint type.
     #[prost(int32, optional, tag = "123765766")]
     pub client_destination_port: ::core::option::Option<i32>,
     /// Optional fully qualified domain name of network endpoint. This can only be specified when NetworkEndpointGroup.network_endpoint_type is NON_GCP_FQDN_PORT.
     #[prost(string, optional, tag = "3150485")]
     pub fqdn: ::core::option::Option<::prost::alloc::string::String>,
-    /// The name or a URL of VM instance of this network endpoint. This field is required for network endpoints of type GCE_VM_IP and GCE_VM_IP_PORT. The instance must be in the same zone of network endpoint group (for zonal NEGs) or in the zone within the region of the NEG (for regional NEGs). If the ipAddress is specified, it must belongs to the VM instance. The name must be 1-63 characters long, and comply with RFC1035 or be a valid URL pointing to an existing instance.
+    /// The name or a URL of VM instance of this network endpoint. Optional, the field presence depends on the network endpoint type. The field is required for network endpoints of type GCE_VM_IP and GCE_VM_IP_PORT. The instance must be in the same zone of network endpoint group (for zonal NEGs) or in the zone within the region of the NEG (for regional NEGs). If the ipAddress is specified, it must belongs to the VM instance. The name must be 1-63 characters long, and comply with RFC1035 or be a valid URL pointing to an existing instance.
     #[prost(string, optional, tag = "18257045")]
     pub instance: ::core::option::Option<::prost::alloc::string::String>,
     /// Optional IPv4 address of network endpoint. The IP address must belong to a VM in Compute Engine (either the primary IP or as part of an aliased IP range). If the IP address is not specified, then the primary IP address for the VM instance in the network that the network endpoint group belongs to will be used. This field is redundant and need not be set for network endpoints of type GCE_VM_IP. If set, it must be set to the primary internal IP address of the attached VM instance that matches the subnetwork of the NEG. The primary internal IP address from any NIC of a multi-NIC VM instance can be added to a NEG as long as it matches the NEG subnetwork.
@@ -25033,25 +25918,25 @@ pub struct NetworkEndpoint {
 /// Represents a collection of network endpoints. A network endpoint group (NEG) defines how a set of endpoints should be reached, whether they are reachable, and where they are located. For more information about using NEGs for different use cases, see Network endpoint groups overview.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct NetworkEndpointGroup {
-    /// Metadata defined as annotations on the network endpoint group.
+    /// Optional. Metadata defined as annotations on the network endpoint group.
     #[prost(map = "string, string", tag = "112032548")]
     pub annotations: ::std::collections::HashMap<
         ::prost::alloc::string::String,
         ::prost::alloc::string::String,
     >,
-    /// Only valid when networkEndpointType is SERVERLESS. Only one of cloudRun, appEngine or cloudFunction may be set.
+    /// Optional. Only valid when networkEndpointType is SERVERLESS. Only one of cloudRun, appEngine or cloudFunction may be set.
     #[prost(message, optional, tag = "340788768")]
     pub app_engine: ::core::option::Option<NetworkEndpointGroupAppEngine>,
-    /// Only valid when networkEndpointType is SERVERLESS. Only one of cloudRun, appEngine or cloudFunction may be set.
+    /// Optional. Only valid when networkEndpointType is SERVERLESS. Only one of cloudRun, appEngine or cloudFunction may be set.
     #[prost(message, optional, tag = "519893666")]
     pub cloud_function: ::core::option::Option<NetworkEndpointGroupCloudFunction>,
-    /// Only valid when networkEndpointType is SERVERLESS. Only one of cloudRun, appEngine or cloudFunction may be set.
+    /// Optional. Only valid when networkEndpointType is SERVERLESS. Only one of cloudRun, appEngine or cloudFunction may be set.
     #[prost(message, optional, tag = "111060353")]
     pub cloud_run: ::core::option::Option<NetworkEndpointGroupCloudRun>,
     /// \[Output Only\] Creation timestamp in RFC3339 text format.
     #[prost(string, optional, tag = "30525366")]
     pub creation_timestamp: ::core::option::Option<::prost::alloc::string::String>,
-    /// The default port used if the port number is not specified in the network endpoint. If the network endpoint type is either GCE_VM_IP, SERVERLESS or PRIVATE_SERVICE_CONNECT, this field must not be specified.
+    /// The default port used if the port number is not specified in the network endpoint. Optional. If the network endpoint type is either GCE_VM_IP, SERVERLESS or PRIVATE_SERVICE_CONNECT, this field must not be specified.
     #[prost(int32, optional, tag = "423377855")]
     pub default_port: ::core::option::Option<i32>,
     /// An optional description of this resource. Provide this property when you create the resource.
@@ -25073,9 +25958,10 @@ pub struct NetworkEndpointGroup {
     /// Check the NetworkEndpointType enum for the list of possible values.
     #[prost(string, optional, tag = "118301523")]
     pub network_endpoint_type: ::core::option::Option<::prost::alloc::string::String>,
+    /// Optional. Only valid when networkEndpointType is PRIVATE_SERVICE_CONNECT.
     #[prost(message, optional, tag = "71937481")]
     pub psc_data: ::core::option::Option<NetworkEndpointGroupPscData>,
-    /// The target service url used to set up private service connection to a Google API or a PSC Producer Service Attachment. An example value is: asia-northeast3-cloudkms.googleapis.com
+    /// The target service url used to set up private service connection to a Google API or a PSC Producer Service Attachment. An example value is: asia-northeast3-cloudkms.googleapis.com. Optional. Only valid when networkEndpointType is PRIVATE_SERVICE_CONNECT.
     #[prost(string, optional, tag = "269132134")]
     pub psc_target_service: ::core::option::Option<::prost::alloc::string::String>,
     /// \[Output Only\] The URL of the region where the network endpoint group is located.
@@ -25432,12 +26318,40 @@ pub struct NetworkEndpointGroupsScopedList {
 ///
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct NetworkEndpointWithHealthStatus {
-    /// \[Output only\] The health status of network endpoint;
+    /// \[Output only\] The health status of network endpoint. Optional. Displayed only if the network endpoint has centralized health checking configured.
     #[prost(message, repeated, tag = "258689431")]
     pub healths: ::prost::alloc::vec::Vec<HealthStatusForNetworkEndpoint>,
-    /// \[Output only\] The network endpoint;
+    /// \[Output only\] The network endpoint.
     #[prost(message, optional, tag = "56789126")]
     pub network_endpoint: ::core::option::Option<NetworkEndpoint>,
+}
+///
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct NetworkFirewallPolicyAggregatedList {
+    /// \[Output Only\] Unique identifier for the resource; defined by the server.
+    #[prost(string, optional, tag = "3355")]
+    pub id: ::core::option::Option<::prost::alloc::string::String>,
+    /// A list of FirewallPoliciesScopedList resources.
+    #[prost(map = "string, message", tag = "100526016")]
+    pub items: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        FirewallPoliciesScopedList,
+    >,
+    /// \[Output Only\] Type of resource. Always compute#networkFirewallPoliciesAggregatedList for lists of network firewall policies.
+    #[prost(string, optional, tag = "3292052")]
+    pub kind: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] This token allows you to get the next page of results for list requests. If the number of results is larger than maxResults, use the nextPageToken as a value for the query parameter pageToken in the next list request. Subsequent list requests will have their own nextPageToken to continue paging through the results.
+    #[prost(string, optional, tag = "79797525")]
+    pub next_page_token: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] Server-defined URL for this resource.
+    #[prost(string, optional, tag = "456214797")]
+    pub self_link: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] Unreachable resources.
+    #[prost(string, repeated, tag = "243372063")]
+    pub unreachables: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// \[Output Only\] Informational warning message.
+    #[prost(message, optional, tag = "50704284")]
+    pub warning: ::core::option::Option<Warning>,
 }
 /// A network interface resource attached to an instance.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -25562,6 +26476,10 @@ pub mod network_interface {
         Gvnic = 68209305,
         /// IDPF
         Idpf = 2242641,
+        /// IRDMA
+        Irdma = 69927695,
+        /// MRDMA
+        Mrdma = 73621779,
         /// No type specified.
         UnspecifiedNicType = 67411801,
         /// VIRTIO
@@ -25577,6 +26495,8 @@ pub mod network_interface {
                 Self::UndefinedNicType => "UNDEFINED_NIC_TYPE",
                 Self::Gvnic => "GVNIC",
                 Self::Idpf => "IDPF",
+                Self::Irdma => "IRDMA",
+                Self::Mrdma => "MRDMA",
                 Self::UnspecifiedNicType => "UNSPECIFIED_NIC_TYPE",
                 Self::VirtioNet => "VIRTIO_NET",
             }
@@ -25587,6 +26507,8 @@ pub mod network_interface {
                 "UNDEFINED_NIC_TYPE" => Some(Self::UndefinedNicType),
                 "GVNIC" => Some(Self::Gvnic),
                 "IDPF" => Some(Self::Idpf),
+                "IRDMA" => Some(Self::Irdma),
+                "MRDMA" => Some(Self::Mrdma),
                 "UNSPECIFIED_NIC_TYPE" => Some(Self::UnspecifiedNicType),
                 "VIRTIO_NET" => Some(Self::VirtioNet),
                 _ => None,
@@ -25855,9 +26777,1231 @@ pub mod network_performance_config {
         }
     }
 }
+/// NetworkProfile represents a Google managed network profile resource.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct NetworkProfile {
+    /// \[Output Only\] Creation timestamp in RFC3339 text format.
+    #[prost(string, optional, tag = "30525366")]
+    pub creation_timestamp: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] An optional description of this resource.
+    #[prost(string, optional, tag = "422937596")]
+    pub description: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] Features supported by the network.
+    #[prost(message, optional, tag = "246211645")]
+    pub features: ::core::option::Option<NetworkProfileNetworkFeatures>,
+    /// \[Output Only\] The unique identifier for the resource. This identifier is defined by the server.
+    #[prost(uint64, optional, tag = "3355")]
+    pub id: ::core::option::Option<u64>,
+    /// \[Output Only\] Type of the resource. Always compute#networkProfile for network profiles.
+    #[prost(string, optional, tag = "3292052")]
+    pub kind: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] Location to which the network is restricted.
+    #[prost(message, optional, tag = "290430901")]
+    pub location: ::core::option::Option<NetworkProfileLocation>,
+    /// \[Output Only\] Name of the resource.
+    #[prost(string, optional, tag = "3373707")]
+    pub name: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] Server-defined URL for the resource.
+    #[prost(string, optional, tag = "456214797")]
+    pub self_link: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] Server-defined URL for this resource with the resource id.
+    #[prost(string, optional, tag = "44520962")]
+    pub self_link_with_id: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(string, optional, tag = "3744684")]
+    pub zone: ::core::option::Option<::prost::alloc::string::String>,
+}
+///
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct NetworkProfileLocation {
+    #[prost(string, optional, tag = "3373707")]
+    pub name: ::core::option::Option<::prost::alloc::string::String>,
+    ///
+    /// Check the Scope enum for the list of possible values.
+    #[prost(string, optional, tag = "109264468")]
+    pub scope: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// Nested message and enum types in `NetworkProfileLocation`.
+pub mod network_profile_location {
+    ///
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Scope {
+        /// A value indicating that the enum field is not set.
+        UndefinedScope = 0,
+        Region = 266017524,
+        Zone = 2759596,
+    }
+    impl Scope {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedScope => "UNDEFINED_SCOPE",
+                Self::Region => "REGION",
+                Self::Zone => "ZONE",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_SCOPE" => Some(Self::UndefinedScope),
+                "REGION" => Some(Self::Region),
+                "ZONE" => Some(Self::Zone),
+                _ => None,
+            }
+        }
+    }
+}
+///
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct NetworkProfileNetworkFeatures {
+    /// Specifies what address purposes are supported. If empty, all address purposes are supported.
+    /// Check the AddressPurposes enum for the list of possible values.
+    #[prost(string, repeated, tag = "433024768")]
+    pub address_purposes: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Specifies whether alias IP ranges (and secondary address ranges) are allowed.
+    /// Check the AllowAliasIpRanges enum for the list of possible values.
+    #[prost(string, optional, tag = "457984201")]
+    pub allow_alias_ip_ranges: ::core::option::Option<::prost::alloc::string::String>,
+    /// Specifies whether auto mode subnet creation is allowed.
+    /// Check the AllowAutoModeSubnet enum for the list of possible values.
+    #[prost(string, optional, tag = "152191263")]
+    pub allow_auto_mode_subnet: ::core::option::Option<::prost::alloc::string::String>,
+    /// Specifies whether firewalls for Class D address ranges are supported.
+    /// Check the AllowClassDFirewalls enum for the list of possible values.
+    #[prost(string, optional, tag = "131608987")]
+    pub allow_class_d_firewalls: ::core::option::Option<::prost::alloc::string::String>,
+    /// Specifies whether cloud NAT creation is allowed.
+    /// Check the AllowCloudNat enum for the list of possible values.
+    #[prost(string, optional, tag = "254831265")]
+    pub allow_cloud_nat: ::core::option::Option<::prost::alloc::string::String>,
+    /// Specifies whether cloud router creation is allowed.
+    /// Check the AllowCloudRouter enum for the list of possible values.
+    #[prost(string, optional, tag = "451110345")]
+    pub allow_cloud_router: ::core::option::Option<::prost::alloc::string::String>,
+    /// Specifies whether VMs are allowed to have external IP access on network interfaces connected to this VPC.
+    /// Check the AllowExternalIpAccess enum for the list of possible values.
+    #[prost(string, optional, tag = "131538110")]
+    pub allow_external_ip_access: ::core::option::Option<::prost::alloc::string::String>,
+    /// Specifies whether Cloud Interconnect creation is allowed.
+    /// Check the AllowInterconnect enum for the list of possible values.
+    #[prost(string, optional, tag = "280512964")]
+    pub allow_interconnect: ::core::option::Option<::prost::alloc::string::String>,
+    /// Specifies whether cloud load balancing is allowed.
+    /// Check the AllowLoadBalancing enum for the list of possible values.
+    #[prost(string, optional, tag = "223366198")]
+    pub allow_load_balancing: ::core::option::Option<::prost::alloc::string::String>,
+    /// Specifies whether multi-nic in the same network is allowed.
+    /// Check the AllowMultiNicInSameNetwork enum for the list of possible values.
+    #[prost(string, optional, tag = "88251004")]
+    pub allow_multi_nic_in_same_network: ::core::option::Option<
+        ::prost::alloc::string::String,
+    >,
+    /// Specifies whether Packet Mirroring 1.0 is supported.
+    /// Check the AllowPacketMirroring enum for the list of possible values.
+    #[prost(string, optional, tag = "512227074")]
+    pub allow_packet_mirroring: ::core::option::Option<::prost::alloc::string::String>,
+    /// Specifies whether private Google access is allowed.
+    /// Check the AllowPrivateGoogleAccess enum for the list of possible values.
+    #[prost(string, optional, tag = "374702072")]
+    pub allow_private_google_access: ::core::option::Option<
+        ::prost::alloc::string::String,
+    >,
+    /// Specifies whether PSC creation is allowed.
+    /// Check the AllowPsc enum for the list of possible values.
+    #[prost(string, optional, tag = "372357322")]
+    pub allow_psc: ::core::option::Option<::prost::alloc::string::String>,
+    /// Specifies whether unicast within the same network is allowed.
+    /// Check the AllowSameNetworkUnicast enum for the list of possible values.
+    #[prost(string, optional, tag = "167531643")]
+    pub allow_same_network_unicast: ::core::option::Option<
+        ::prost::alloc::string::String,
+    >,
+    /// Specifies whether static route creation is allowed.
+    /// Check the AllowStaticRoutes enum for the list of possible values.
+    #[prost(string, optional, tag = "185257925")]
+    pub allow_static_routes: ::core::option::Option<::prost::alloc::string::String>,
+    /// Specifies whether sub interfaces are allowed.
+    /// Check the AllowSubInterfaces enum for the list of possible values.
+    #[prost(string, optional, tag = "247208303")]
+    pub allow_sub_interfaces: ::core::option::Option<::prost::alloc::string::String>,
+    /// Specifies whether VPC peering is allowed.
+    /// Check the AllowVpcPeering enum for the list of possible values.
+    #[prost(string, optional, tag = "115402228")]
+    pub allow_vpc_peering: ::core::option::Option<::prost::alloc::string::String>,
+    /// Specifies whether VPN creation is allowed.
+    /// Check the AllowVpn enum for the list of possible values.
+    #[prost(string, optional, tag = "372363006")]
+    pub allow_vpn: ::core::option::Option<::prost::alloc::string::String>,
+    /// If set, limits the interface types that the network supports. If empty, all interface types are supported.
+    /// Check the InterfaceTypes enum for the list of possible values.
+    #[prost(string, repeated, tag = "157981171")]
+    pub interface_types: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Specifies which subnetwork purposes are supported.
+    /// Check the SubnetPurposes enum for the list of possible values.
+    #[prost(string, repeated, tag = "301338039")]
+    pub subnet_purposes: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Specifies which subnetwork stack types are supported.
+    /// Check the SubnetStackTypes enum for the list of possible values.
+    #[prost(string, repeated, tag = "521008672")]
+    pub subnet_stack_types: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Specifies which type of unicast is supported.
+    /// Check the Unicast enum for the list of possible values.
+    #[prost(string, optional, tag = "249841711")]
+    pub unicast: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// Nested message and enum types in `NetworkProfileNetworkFeatures`.
+pub mod network_profile_network_features {
+    ///
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AddressPurposes {
+        /// A value indicating that the enum field is not set.
+        UndefinedAddressPurposes = 0,
+        /// DNS resolver address in the subnetwork.
+        DnsResolver = 476114556,
+        /// VM internal/alias IP, Internal LB service IP, etc.
+        GceEndpoint = 230515243,
+        /// A regional internal IP address range reserved for the VLAN attachment that is used in HA VPN over Cloud Interconnect. This regional internal IP address range must not overlap with any IP address range of subnet/route in the VPC network and its peering networks. After the VLAN attachment is created with the reserved IP address range, when creating a new VPN gateway, its interface IP address is allocated from the associated VLAN attachment’s IP address range.
+        IpsecInterconnect = 340437251,
+        /// External IP automatically reserved for Cloud NAT.
+        NatAuto = 163666477,
+        /// A private network IP address that can be used to configure Private Service Connect. This purpose can be specified only for GLOBAL addresses of Type INTERNAL
+        PrivateServiceConnect = 48134724,
+        /// A regional internal IP address range reserved for Serverless.
+        Serverless = 270492508,
+        /// A private network IP address that can be shared by multiple Internal Load Balancer forwarding rules.
+        SharedLoadbalancerVip = 294447572,
+        /// IP range for peer networks.
+        VpcPeering = 400800170,
+    }
+    impl AddressPurposes {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedAddressPurposes => "UNDEFINED_ADDRESS_PURPOSES",
+                Self::DnsResolver => "DNS_RESOLVER",
+                Self::GceEndpoint => "GCE_ENDPOINT",
+                Self::IpsecInterconnect => "IPSEC_INTERCONNECT",
+                Self::NatAuto => "NAT_AUTO",
+                Self::PrivateServiceConnect => "PRIVATE_SERVICE_CONNECT",
+                Self::Serverless => "SERVERLESS",
+                Self::SharedLoadbalancerVip => "SHARED_LOADBALANCER_VIP",
+                Self::VpcPeering => "VPC_PEERING",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_ADDRESS_PURPOSES" => Some(Self::UndefinedAddressPurposes),
+                "DNS_RESOLVER" => Some(Self::DnsResolver),
+                "GCE_ENDPOINT" => Some(Self::GceEndpoint),
+                "IPSEC_INTERCONNECT" => Some(Self::IpsecInterconnect),
+                "NAT_AUTO" => Some(Self::NatAuto),
+                "PRIVATE_SERVICE_CONNECT" => Some(Self::PrivateServiceConnect),
+                "SERVERLESS" => Some(Self::Serverless),
+                "SHARED_LOADBALANCER_VIP" => Some(Self::SharedLoadbalancerVip),
+                "VPC_PEERING" => Some(Self::VpcPeering),
+                _ => None,
+            }
+        }
+    }
+    /// Specifies whether alias IP ranges (and secondary address ranges) are allowed.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AllowAliasIpRanges {
+        /// A value indicating that the enum field is not set.
+        UndefinedAllowAliasIpRanges = 0,
+        AliasIpRangesAllowed = 464867048,
+        AliasIpRangesBlocked = 281030444,
+    }
+    impl AllowAliasIpRanges {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedAllowAliasIpRanges => "UNDEFINED_ALLOW_ALIAS_IP_RANGES",
+                Self::AliasIpRangesAllowed => "ALIAS_IP_RANGES_ALLOWED",
+                Self::AliasIpRangesBlocked => "ALIAS_IP_RANGES_BLOCKED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_ALLOW_ALIAS_IP_RANGES" => {
+                    Some(Self::UndefinedAllowAliasIpRanges)
+                }
+                "ALIAS_IP_RANGES_ALLOWED" => Some(Self::AliasIpRangesAllowed),
+                "ALIAS_IP_RANGES_BLOCKED" => Some(Self::AliasIpRangesBlocked),
+                _ => None,
+            }
+        }
+    }
+    /// Specifies whether auto mode subnet creation is allowed.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AllowAutoModeSubnet {
+        /// A value indicating that the enum field is not set.
+        UndefinedAllowAutoModeSubnet = 0,
+        AutoModeSubnetAllowed = 391042610,
+        AutoModeSubnetBlocked = 207206006,
+    }
+    impl AllowAutoModeSubnet {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedAllowAutoModeSubnet => "UNDEFINED_ALLOW_AUTO_MODE_SUBNET",
+                Self::AutoModeSubnetAllowed => "AUTO_MODE_SUBNET_ALLOWED",
+                Self::AutoModeSubnetBlocked => "AUTO_MODE_SUBNET_BLOCKED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_ALLOW_AUTO_MODE_SUBNET" => {
+                    Some(Self::UndefinedAllowAutoModeSubnet)
+                }
+                "AUTO_MODE_SUBNET_ALLOWED" => Some(Self::AutoModeSubnetAllowed),
+                "AUTO_MODE_SUBNET_BLOCKED" => Some(Self::AutoModeSubnetBlocked),
+                _ => None,
+            }
+        }
+    }
+    /// Specifies whether firewalls for Class D address ranges are supported.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AllowClassDFirewalls {
+        /// A value indicating that the enum field is not set.
+        UndefinedAllowClassDFirewalls = 0,
+        ClassDFirewallsAllowed = 348219386,
+        ClassDFirewallsBlocked = 164382782,
+    }
+    impl AllowClassDFirewalls {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedAllowClassDFirewalls => {
+                    "UNDEFINED_ALLOW_CLASS_D_FIREWALLS"
+                }
+                Self::ClassDFirewallsAllowed => "CLASS_D_FIREWALLS_ALLOWED",
+                Self::ClassDFirewallsBlocked => "CLASS_D_FIREWALLS_BLOCKED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_ALLOW_CLASS_D_FIREWALLS" => {
+                    Some(Self::UndefinedAllowClassDFirewalls)
+                }
+                "CLASS_D_FIREWALLS_ALLOWED" => Some(Self::ClassDFirewallsAllowed),
+                "CLASS_D_FIREWALLS_BLOCKED" => Some(Self::ClassDFirewallsBlocked),
+                _ => None,
+            }
+        }
+    }
+    /// Specifies whether cloud NAT creation is allowed.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AllowCloudNat {
+        /// A value indicating that the enum field is not set.
+        UndefinedAllowCloudNat = 0,
+        CloudNatAllowed = 245931296,
+        CloudNatBlocked = 62094692,
+    }
+    impl AllowCloudNat {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedAllowCloudNat => "UNDEFINED_ALLOW_CLOUD_NAT",
+                Self::CloudNatAllowed => "CLOUD_NAT_ALLOWED",
+                Self::CloudNatBlocked => "CLOUD_NAT_BLOCKED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_ALLOW_CLOUD_NAT" => Some(Self::UndefinedAllowCloudNat),
+                "CLOUD_NAT_ALLOWED" => Some(Self::CloudNatAllowed),
+                "CLOUD_NAT_BLOCKED" => Some(Self::CloudNatBlocked),
+                _ => None,
+            }
+        }
+    }
+    /// Specifies whether cloud router creation is allowed.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AllowCloudRouter {
+        /// A value indicating that the enum field is not set.
+        UndefinedAllowCloudRouter = 0,
+        CloudRouterAllowed = 365388284,
+        CloudRouterBlocked = 181551680,
+    }
+    impl AllowCloudRouter {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedAllowCloudRouter => "UNDEFINED_ALLOW_CLOUD_ROUTER",
+                Self::CloudRouterAllowed => "CLOUD_ROUTER_ALLOWED",
+                Self::CloudRouterBlocked => "CLOUD_ROUTER_BLOCKED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_ALLOW_CLOUD_ROUTER" => Some(Self::UndefinedAllowCloudRouter),
+                "CLOUD_ROUTER_ALLOWED" => Some(Self::CloudRouterAllowed),
+                "CLOUD_ROUTER_BLOCKED" => Some(Self::CloudRouterBlocked),
+                _ => None,
+            }
+        }
+    }
+    /// Specifies whether VMs are allowed to have external IP access on network interfaces connected to this VPC.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AllowExternalIpAccess {
+        /// A value indicating that the enum field is not set.
+        UndefinedAllowExternalIpAccess = 0,
+        ExternalIpAccessAllowed = 109530193,
+        ExternalIpAccessBlocked = 462564501,
+    }
+    impl AllowExternalIpAccess {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedAllowExternalIpAccess => {
+                    "UNDEFINED_ALLOW_EXTERNAL_IP_ACCESS"
+                }
+                Self::ExternalIpAccessAllowed => "EXTERNAL_IP_ACCESS_ALLOWED",
+                Self::ExternalIpAccessBlocked => "EXTERNAL_IP_ACCESS_BLOCKED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_ALLOW_EXTERNAL_IP_ACCESS" => {
+                    Some(Self::UndefinedAllowExternalIpAccess)
+                }
+                "EXTERNAL_IP_ACCESS_ALLOWED" => Some(Self::ExternalIpAccessAllowed),
+                "EXTERNAL_IP_ACCESS_BLOCKED" => Some(Self::ExternalIpAccessBlocked),
+                _ => None,
+            }
+        }
+    }
+    /// Specifies whether Cloud Interconnect creation is allowed.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AllowInterconnect {
+        /// A value indicating that the enum field is not set.
+        UndefinedAllowInterconnect = 0,
+        InterconnectAllowed = 162845399,
+        InterconnectBlocked = 515879707,
+    }
+    impl AllowInterconnect {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedAllowInterconnect => "UNDEFINED_ALLOW_INTERCONNECT",
+                Self::InterconnectAllowed => "INTERCONNECT_ALLOWED",
+                Self::InterconnectBlocked => "INTERCONNECT_BLOCKED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_ALLOW_INTERCONNECT" => Some(Self::UndefinedAllowInterconnect),
+                "INTERCONNECT_ALLOWED" => Some(Self::InterconnectAllowed),
+                "INTERCONNECT_BLOCKED" => Some(Self::InterconnectBlocked),
+                _ => None,
+            }
+        }
+    }
+    /// Specifies whether cloud load balancing is allowed.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AllowLoadBalancing {
+        /// A value indicating that the enum field is not set.
+        UndefinedAllowLoadBalancing = 0,
+        LoadBalancingAllowed = 28407977,
+        LoadBalancingBlocked = 381442285,
+    }
+    impl AllowLoadBalancing {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedAllowLoadBalancing => "UNDEFINED_ALLOW_LOAD_BALANCING",
+                Self::LoadBalancingAllowed => "LOAD_BALANCING_ALLOWED",
+                Self::LoadBalancingBlocked => "LOAD_BALANCING_BLOCKED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_ALLOW_LOAD_BALANCING" => {
+                    Some(Self::UndefinedAllowLoadBalancing)
+                }
+                "LOAD_BALANCING_ALLOWED" => Some(Self::LoadBalancingAllowed),
+                "LOAD_BALANCING_BLOCKED" => Some(Self::LoadBalancingBlocked),
+                _ => None,
+            }
+        }
+    }
+    /// Specifies whether multi-nic in the same network is allowed.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AllowMultiNicInSameNetwork {
+        /// A value indicating that the enum field is not set.
+        UndefinedAllowMultiNicInSameNetwork = 0,
+        MultiNicInSameNetworkAllowed = 457555419,
+        MultiNicInSameNetworkBlocked = 273718815,
+    }
+    impl AllowMultiNicInSameNetwork {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedAllowMultiNicInSameNetwork => {
+                    "UNDEFINED_ALLOW_MULTI_NIC_IN_SAME_NETWORK"
+                }
+                Self::MultiNicInSameNetworkAllowed => "MULTI_NIC_IN_SAME_NETWORK_ALLOWED",
+                Self::MultiNicInSameNetworkBlocked => "MULTI_NIC_IN_SAME_NETWORK_BLOCKED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_ALLOW_MULTI_NIC_IN_SAME_NETWORK" => {
+                    Some(Self::UndefinedAllowMultiNicInSameNetwork)
+                }
+                "MULTI_NIC_IN_SAME_NETWORK_ALLOWED" => {
+                    Some(Self::MultiNicInSameNetworkAllowed)
+                }
+                "MULTI_NIC_IN_SAME_NETWORK_BLOCKED" => {
+                    Some(Self::MultiNicInSameNetworkBlocked)
+                }
+                _ => None,
+            }
+        }
+    }
+    /// Specifies whether Packet Mirroring 1.0 is supported.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AllowPacketMirroring {
+        /// A value indicating that the enum field is not set.
+        UndefinedAllowPacketMirroring = 0,
+        PacketMirroringAllowed = 92416245,
+        PacketMirroringBlocked = 445450553,
+    }
+    impl AllowPacketMirroring {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedAllowPacketMirroring => "UNDEFINED_ALLOW_PACKET_MIRRORING",
+                Self::PacketMirroringAllowed => "PACKET_MIRRORING_ALLOWED",
+                Self::PacketMirroringBlocked => "PACKET_MIRRORING_BLOCKED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_ALLOW_PACKET_MIRRORING" => {
+                    Some(Self::UndefinedAllowPacketMirroring)
+                }
+                "PACKET_MIRRORING_ALLOWED" => Some(Self::PacketMirroringAllowed),
+                "PACKET_MIRRORING_BLOCKED" => Some(Self::PacketMirroringBlocked),
+                _ => None,
+            }
+        }
+    }
+    /// Specifies whether private Google access is allowed.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AllowPrivateGoogleAccess {
+        /// A value indicating that the enum field is not set.
+        UndefinedAllowPrivateGoogleAccess = 0,
+        PrivateGoogleAccessAllowed = 220787351,
+        PrivateGoogleAccessBlocked = 36950747,
+    }
+    impl AllowPrivateGoogleAccess {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedAllowPrivateGoogleAccess => {
+                    "UNDEFINED_ALLOW_PRIVATE_GOOGLE_ACCESS"
+                }
+                Self::PrivateGoogleAccessAllowed => "PRIVATE_GOOGLE_ACCESS_ALLOWED",
+                Self::PrivateGoogleAccessBlocked => "PRIVATE_GOOGLE_ACCESS_BLOCKED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_ALLOW_PRIVATE_GOOGLE_ACCESS" => {
+                    Some(Self::UndefinedAllowPrivateGoogleAccess)
+                }
+                "PRIVATE_GOOGLE_ACCESS_ALLOWED" => Some(Self::PrivateGoogleAccessAllowed),
+                "PRIVATE_GOOGLE_ACCESS_BLOCKED" => Some(Self::PrivateGoogleAccessBlocked),
+                _ => None,
+            }
+        }
+    }
+    /// Specifies whether PSC creation is allowed.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AllowPsc {
+        /// A value indicating that the enum field is not set.
+        UndefinedAllowPsc = 0,
+        PscAllowed = 171559657,
+        PscBlocked = 524593965,
+    }
+    impl AllowPsc {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedAllowPsc => "UNDEFINED_ALLOW_PSC",
+                Self::PscAllowed => "PSC_ALLOWED",
+                Self::PscBlocked => "PSC_BLOCKED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_ALLOW_PSC" => Some(Self::UndefinedAllowPsc),
+                "PSC_ALLOWED" => Some(Self::PscAllowed),
+                "PSC_BLOCKED" => Some(Self::PscBlocked),
+                _ => None,
+            }
+        }
+    }
+    /// Specifies whether unicast within the same network is allowed.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AllowSameNetworkUnicast {
+        /// A value indicating that the enum field is not set.
+        UndefinedAllowSameNetworkUnicast = 0,
+        SameNetworkUnicastAllowed = 159732814,
+        SameNetworkUnicastBlocked = 512767122,
+    }
+    impl AllowSameNetworkUnicast {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedAllowSameNetworkUnicast => {
+                    "UNDEFINED_ALLOW_SAME_NETWORK_UNICAST"
+                }
+                Self::SameNetworkUnicastAllowed => "SAME_NETWORK_UNICAST_ALLOWED",
+                Self::SameNetworkUnicastBlocked => "SAME_NETWORK_UNICAST_BLOCKED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_ALLOW_SAME_NETWORK_UNICAST" => {
+                    Some(Self::UndefinedAllowSameNetworkUnicast)
+                }
+                "SAME_NETWORK_UNICAST_ALLOWED" => Some(Self::SameNetworkUnicastAllowed),
+                "SAME_NETWORK_UNICAST_BLOCKED" => Some(Self::SameNetworkUnicastBlocked),
+                _ => None,
+            }
+        }
+    }
+    /// Specifies whether static route creation is allowed.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AllowStaticRoutes {
+        /// A value indicating that the enum field is not set.
+        UndefinedAllowStaticRoutes = 0,
+        StaticRoutesAllowed = 409048964,
+        StaticRoutesBlocked = 225212360,
+    }
+    impl AllowStaticRoutes {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedAllowStaticRoutes => "UNDEFINED_ALLOW_STATIC_ROUTES",
+                Self::StaticRoutesAllowed => "STATIC_ROUTES_ALLOWED",
+                Self::StaticRoutesBlocked => "STATIC_ROUTES_BLOCKED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_ALLOW_STATIC_ROUTES" => Some(Self::UndefinedAllowStaticRoutes),
+                "STATIC_ROUTES_ALLOWED" => Some(Self::StaticRoutesAllowed),
+                "STATIC_ROUTES_BLOCKED" => Some(Self::StaticRoutesBlocked),
+                _ => None,
+            }
+        }
+    }
+    /// Specifies whether sub interfaces are allowed.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AllowSubInterfaces {
+        /// A value indicating that the enum field is not set.
+        UndefinedAllowSubInterfaces = 0,
+        SubinterfacesAllowed = 158685891,
+        SubinterfacesBlocked = 511720199,
+    }
+    impl AllowSubInterfaces {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedAllowSubInterfaces => "UNDEFINED_ALLOW_SUB_INTERFACES",
+                Self::SubinterfacesAllowed => "SUBINTERFACES_ALLOWED",
+                Self::SubinterfacesBlocked => "SUBINTERFACES_BLOCKED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_ALLOW_SUB_INTERFACES" => {
+                    Some(Self::UndefinedAllowSubInterfaces)
+                }
+                "SUBINTERFACES_ALLOWED" => Some(Self::SubinterfacesAllowed),
+                "SUBINTERFACES_BLOCKED" => Some(Self::SubinterfacesBlocked),
+                _ => None,
+            }
+        }
+    }
+    /// Specifies whether VPC peering is allowed.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AllowVpcPeering {
+        /// A value indicating that the enum field is not set.
+        UndefinedAllowVpcPeering = 0,
+        VpcPeeringAllowed = 261465075,
+        VpcPeeringBlocked = 77628471,
+    }
+    impl AllowVpcPeering {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedAllowVpcPeering => "UNDEFINED_ALLOW_VPC_PEERING",
+                Self::VpcPeeringAllowed => "VPC_PEERING_ALLOWED",
+                Self::VpcPeeringBlocked => "VPC_PEERING_BLOCKED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_ALLOW_VPC_PEERING" => Some(Self::UndefinedAllowVpcPeering),
+                "VPC_PEERING_ALLOWED" => Some(Self::VpcPeeringAllowed),
+                "VPC_PEERING_BLOCKED" => Some(Self::VpcPeeringBlocked),
+                _ => None,
+            }
+        }
+    }
+    /// Specifies whether VPN creation is allowed.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AllowVpn {
+        /// A value indicating that the enum field is not set.
+        UndefinedAllowVpn = 0,
+        VpnAllowed = 162163997,
+        VpnBlocked = 515198305,
+    }
+    impl AllowVpn {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedAllowVpn => "UNDEFINED_ALLOW_VPN",
+                Self::VpnAllowed => "VPN_ALLOWED",
+                Self::VpnBlocked => "VPN_BLOCKED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_ALLOW_VPN" => Some(Self::UndefinedAllowVpn),
+                "VPN_ALLOWED" => Some(Self::VpnAllowed),
+                "VPN_BLOCKED" => Some(Self::VpnBlocked),
+                _ => None,
+            }
+        }
+    }
+    ///
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum InterfaceTypes {
+        /// A value indicating that the enum field is not set.
+        UndefinedInterfaceTypes = 0,
+        /// GVNIC
+        Gvnic = 68209305,
+        /// IDPF
+        Idpf = 2242641,
+        /// IRDMA
+        Irdma = 69927695,
+        /// MRDMA
+        Mrdma = 73621779,
+        /// No type specified.
+        UnspecifiedNicType = 67411801,
+        /// VIRTIO
+        VirtioNet = 452123481,
+    }
+    impl InterfaceTypes {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedInterfaceTypes => "UNDEFINED_INTERFACE_TYPES",
+                Self::Gvnic => "GVNIC",
+                Self::Idpf => "IDPF",
+                Self::Irdma => "IRDMA",
+                Self::Mrdma => "MRDMA",
+                Self::UnspecifiedNicType => "UNSPECIFIED_NIC_TYPE",
+                Self::VirtioNet => "VIRTIO_NET",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_INTERFACE_TYPES" => Some(Self::UndefinedInterfaceTypes),
+                "GVNIC" => Some(Self::Gvnic),
+                "IDPF" => Some(Self::Idpf),
+                "IRDMA" => Some(Self::Irdma),
+                "MRDMA" => Some(Self::Mrdma),
+                "UNSPECIFIED_NIC_TYPE" => Some(Self::UnspecifiedNicType),
+                "VIRTIO_NET" => Some(Self::VirtioNet),
+                _ => None,
+            }
+        }
+    }
+    ///
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum SubnetPurposes {
+        /// A value indicating that the enum field is not set.
+        UndefinedSubnetPurposes = 0,
+        SubnetPurposeCustomHardware = 283160275,
+        SubnetPurposePrivate = 404371008,
+    }
+    impl SubnetPurposes {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedSubnetPurposes => "UNDEFINED_SUBNET_PURPOSES",
+                Self::SubnetPurposeCustomHardware => "SUBNET_PURPOSE_CUSTOM_HARDWARE",
+                Self::SubnetPurposePrivate => "SUBNET_PURPOSE_PRIVATE",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_SUBNET_PURPOSES" => Some(Self::UndefinedSubnetPurposes),
+                "SUBNET_PURPOSE_CUSTOM_HARDWARE" => {
+                    Some(Self::SubnetPurposeCustomHardware)
+                }
+                "SUBNET_PURPOSE_PRIVATE" => Some(Self::SubnetPurposePrivate),
+                _ => None,
+            }
+        }
+    }
+    ///
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum SubnetStackTypes {
+        /// A value indicating that the enum field is not set.
+        UndefinedSubnetStackTypes = 0,
+        SubnetStackTypeIpv4Ipv6 = 41454485,
+        SubnetStackTypeIpv4Only = 41631034,
+        SubnetStackTypeIpv6Only = 98889336,
+    }
+    impl SubnetStackTypes {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedSubnetStackTypes => "UNDEFINED_SUBNET_STACK_TYPES",
+                Self::SubnetStackTypeIpv4Ipv6 => "SUBNET_STACK_TYPE_IPV4_IPV6",
+                Self::SubnetStackTypeIpv4Only => "SUBNET_STACK_TYPE_IPV4_ONLY",
+                Self::SubnetStackTypeIpv6Only => "SUBNET_STACK_TYPE_IPV6_ONLY",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_SUBNET_STACK_TYPES" => Some(Self::UndefinedSubnetStackTypes),
+                "SUBNET_STACK_TYPE_IPV4_IPV6" => Some(Self::SubnetStackTypeIpv4Ipv6),
+                "SUBNET_STACK_TYPE_IPV4_ONLY" => Some(Self::SubnetStackTypeIpv4Only),
+                "SUBNET_STACK_TYPE_IPV6_ONLY" => Some(Self::SubnetStackTypeIpv6Only),
+                _ => None,
+            }
+        }
+    }
+    /// Specifies which type of unicast is supported.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Unicast {
+        /// A value indicating that the enum field is not set.
+        UndefinedUnicast = 0,
+        Sdn = 379954157,
+        Ull = 379956325,
+    }
+    impl Unicast {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedUnicast => "UNDEFINED_UNICAST",
+                Self::Sdn => "UNICAST_SDN",
+                Self::Ull => "UNICAST_ULL",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_UNICAST" => Some(Self::UndefinedUnicast),
+                "UNICAST_SDN" => Some(Self::Sdn),
+                "UNICAST_ULL" => Some(Self::Ull),
+                _ => None,
+            }
+        }
+    }
+}
+/// Contains a list of network profiles.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct NetworkProfilesListResponse {
+    #[prost(string, optional, tag = "3123477")]
+    pub etag: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] Unique identifier for the resource; defined by the server.
+    #[prost(string, optional, tag = "3355")]
+    pub id: ::core::option::Option<::prost::alloc::string::String>,
+    /// A list of NetworkProfile resources.
+    #[prost(message, repeated, tag = "100526016")]
+    pub items: ::prost::alloc::vec::Vec<NetworkProfile>,
+    /// \[Output Only\] Type of resource. Always compute#networkProfileList for network profiles.
+    #[prost(string, optional, tag = "3292052")]
+    pub kind: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] This token allows you to get the next page of results for list requests. If the number of results is larger than maxResults, use the nextPageToken as a value for the query parameter pageToken in the next list request. Subsequent list requests will have their own nextPageToken to continue paging through the results.
+    #[prost(string, optional, tag = "79797525")]
+    pub next_page_token: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] Server-defined URL for this resource.
+    #[prost(string, optional, tag = "456214797")]
+    pub self_link: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] Unreachable resources. end_interface: MixerListResponseWithEtagBuilder
+    #[prost(string, repeated, tag = "243372063")]
+    pub unreachables: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// \[Output Only\] Informational warning message.
+    #[prost(message, optional, tag = "50704284")]
+    pub warning: ::core::option::Option<Warning>,
+}
 /// A routing configuration attached to a network resource. The message includes the list of routers associated with the network, and a flag indicating the type of routing behavior to enforce network-wide.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct NetworkRoutingConfig {
+    /// Enable comparison of Multi-Exit Discriminators (MED) across routes with different neighbor ASNs when using the STANDARD BGP best path selection algorithm.
+    #[prost(bool, optional, tag = "213102902")]
+    pub bgp_always_compare_med: ::core::option::Option<bool>,
+    /// The BGP best path selection algorithm to be employed within this network for dynamic routes learned by Cloud Routers. Can be LEGACY (default) or STANDARD.
+    /// Check the BgpBestPathSelectionMode enum for the list of possible values.
+    #[prost(string, optional, tag = "317816297")]
+    pub bgp_best_path_selection_mode: ::core::option::Option<
+        ::prost::alloc::string::String,
+    >,
+    /// Allows to define a preferred approach for handling inter-region cost in the selection process when using the STANDARD BGP best path selection algorithm. Can be DEFAULT or ADD_COST_TO_MED.
+    /// Check the BgpInterRegionCost enum for the list of possible values.
+    #[prost(string, optional, tag = "462142689")]
+    pub bgp_inter_region_cost: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] Effective value of the bgp_always_compare_med field.
+    #[prost(bool, optional, tag = "214661838")]
+    pub effective_bgp_always_compare_med: ::core::option::Option<bool>,
+    /// \[Output Only\] Effective value of the bgp_inter_region_cost field.
+    /// Check the EffectiveBgpInterRegionCost enum for the list of possible values.
+    #[prost(string, optional, tag = "185098313")]
+    pub effective_bgp_inter_region_cost: ::core::option::Option<
+        ::prost::alloc::string::String,
+    >,
     /// The network-wide routing mode to use. If set to REGIONAL, this network's Cloud Routers will only advertise routes with subnets of this network in the same region as the router. If set to GLOBAL, this network's Cloud Routers will advertise routes with all subnets of this network, across regions.
     /// Check the RoutingMode enum for the list of possible values.
     #[prost(string, optional, tag = "475143548")]
@@ -25865,6 +28009,139 @@ pub struct NetworkRoutingConfig {
 }
 /// Nested message and enum types in `NetworkRoutingConfig`.
 pub mod network_routing_config {
+    /// The BGP best path selection algorithm to be employed within this network for dynamic routes learned by Cloud Routers. Can be LEGACY (default) or STANDARD.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum BgpBestPathSelectionMode {
+        /// A value indicating that the enum field is not set.
+        UndefinedBgpBestPathSelectionMode = 0,
+        Legacy = 94234569,
+        Standard = 484642493,
+    }
+    impl BgpBestPathSelectionMode {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedBgpBestPathSelectionMode => {
+                    "UNDEFINED_BGP_BEST_PATH_SELECTION_MODE"
+                }
+                Self::Legacy => "LEGACY",
+                Self::Standard => "STANDARD",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_BGP_BEST_PATH_SELECTION_MODE" => {
+                    Some(Self::UndefinedBgpBestPathSelectionMode)
+                }
+                "LEGACY" => Some(Self::Legacy),
+                "STANDARD" => Some(Self::Standard),
+                _ => None,
+            }
+        }
+    }
+    /// Allows to define a preferred approach for handling inter-region cost in the selection process when using the STANDARD BGP best path selection algorithm. Can be DEFAULT or ADD_COST_TO_MED.
+    /// Additional supported values which may be not listed in the enum directly due to technical reasons:
+    /// ADD_COST_TO_MED
+    /// DEFAULT
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum BgpInterRegionCost {
+        /// A value indicating that the enum field is not set.
+        UndefinedBgpInterRegionCost = 0,
+        AddCostToMed = 490583004,
+        Default = 115302945,
+    }
+    impl BgpInterRegionCost {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedBgpInterRegionCost => "UNDEFINED_BGP_INTER_REGION_COST",
+                Self::AddCostToMed => "ADD_COST_TO_MED",
+                Self::Default => "DEFAULT",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_BGP_INTER_REGION_COST" => {
+                    Some(Self::UndefinedBgpInterRegionCost)
+                }
+                "ADD_COST_TO_MED" => Some(Self::AddCostToMed),
+                "DEFAULT" => Some(Self::Default),
+                _ => None,
+            }
+        }
+    }
+    /// \[Output Only\] Effective value of the bgp_inter_region_cost field.
+    /// Additional supported values which may be not listed in the enum directly due to technical reasons:
+    /// ADD_COST_TO_MED
+    /// DEFAULT
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum EffectiveBgpInterRegionCost {
+        /// A value indicating that the enum field is not set.
+        UndefinedEffectiveBgpInterRegionCost = 0,
+    }
+    impl EffectiveBgpInterRegionCost {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedEffectiveBgpInterRegionCost => {
+                    "UNDEFINED_EFFECTIVE_BGP_INTER_REGION_COST"
+                }
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_EFFECTIVE_BGP_INTER_REGION_COST" => {
+                    Some(Self::UndefinedEffectiveBgpInterRegionCost)
+                }
+                _ => None,
+            }
+        }
+    }
     /// The network-wide routing mode to use. If set to REGIONAL, this network's Cloud Routers will only advertise routes with subnets of this network in the same region as the router. If set to GLOBAL, this network's Cloud Routers will advertise routes with all subnets of this network, across regions.
     #[derive(
         Clone,
@@ -25944,6 +28221,9 @@ pub struct NetworksGetEffectiveFirewallsResponseEffectiveFirewallPolicy {
     /// \[Output Only\] The name of the firewall policy.
     #[prost(string, optional, tag = "3373707")]
     pub name: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] The packet mirroring rules that apply to the network.
+    #[prost(message, repeated, tag = "531644356")]
+    pub packet_mirroring_rules: ::prost::alloc::vec::Vec<FirewallPolicyRule>,
     /// \[Output only\] Priority of firewall policy association. Not applicable for type=HIERARCHY.
     #[prost(int32, optional, tag = "445151652")]
     pub priority: ::core::option::Option<i32>,
@@ -26814,6 +29094,9 @@ pub struct NodeType {
     /// \[Output Only\] Local SSD available to the node type, defined in GB.
     #[prost(int32, optional, tag = "329237578")]
     pub local_ssd_gb: ::core::option::Option<i32>,
+    /// \[Output Only\] Maximum number of VMs that can be created for this node type.
+    #[prost(int32, optional, tag = "307579713")]
+    pub max_vms: ::core::option::Option<i32>,
     /// \[Output Only\] The amount of physical memory available to the node type, defined in MB.
     #[prost(int32, optional, tag = "116001171")]
     pub memory_mb: ::core::option::Option<i32>,
@@ -27930,6 +30213,25 @@ pub struct PatchPacketMirroringRequest {
     #[prost(string, optional, tag = "37109963")]
     pub request_id: ::core::option::Option<::prost::alloc::string::String>,
 }
+/// A request message for NetworkFirewallPolicies.PatchPacketMirroringRule. See the method description for details.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PatchPacketMirroringRuleNetworkFirewallPolicyRequest {
+    /// Name of the firewall policy to update.
+    #[prost(string, tag = "498173265")]
+    pub firewall_policy: ::prost::alloc::string::String,
+    /// The body resource for this request
+    #[prost(message, optional, tag = "250523523")]
+    pub firewall_policy_rule_resource: ::core::option::Option<FirewallPolicyRule>,
+    /// The priority of the rule to patch.
+    #[prost(int32, optional, tag = "445151652")]
+    pub priority: ::core::option::Option<i32>,
+    /// Project ID for this request.
+    #[prost(string, tag = "227560217")]
+    pub project: ::prost::alloc::string::String,
+    /// An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported ( 00000000-0000-0000-0000-000000000000).
+    #[prost(string, optional, tag = "37109963")]
+    pub request_id: ::core::option::Option<::prost::alloc::string::String>,
+}
 /// A request message for InstanceGroupManagers.PatchPerInstanceConfigs. See the method description for details.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PatchPerInstanceConfigsInstanceGroupManagerRequest {
@@ -28224,6 +30526,25 @@ pub struct PatchResourcePolicyRequest {
     #[prost(string, optional, tag = "500079778")]
     pub update_mask: ::core::option::Option<::prost::alloc::string::String>,
 }
+/// A request message for Routers.PatchRoutePolicy. See the method description for details.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PatchRoutePolicyRouterRequest {
+    /// Project ID for this request.
+    #[prost(string, tag = "227560217")]
+    pub project: ::prost::alloc::string::String,
+    /// Name of the region for this request.
+    #[prost(string, tag = "138946292")]
+    pub region: ::prost::alloc::string::String,
+    /// An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported ( 00000000-0000-0000-0000-000000000000).
+    #[prost(string, optional, tag = "37109963")]
+    pub request_id: ::core::option::Option<::prost::alloc::string::String>,
+    /// The body resource for this request
+    #[prost(message, optional, tag = "116219525")]
+    pub route_policy_resource: ::core::option::Option<RoutePolicy>,
+    /// Name of the Router resource where Route Policy is defined.
+    #[prost(string, tag = "148608841")]
+    pub router: ::prost::alloc::string::String,
+}
 /// A request message for Routers.Patch. See the method description for details.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PatchRouterRequest {
@@ -28511,13 +30832,13 @@ pub struct PathMatcher {
     pub default_custom_error_response_policy: ::core::option::Option<
         CustomErrorResponsePolicy,
     >,
-    /// defaultRouteAction takes effect when none of the pathRules or routeRules match. The load balancer performs advanced routing actions, such as URL rewrites and header transformations, before forwarding the request to the selected backend. If defaultRouteAction specifies any weightedBackendServices, defaultService must not be set. Conversely if defaultService is set, defaultRouteAction cannot contain any weightedBackendServices. If defaultRouteAction is specified, don't set defaultUrlRedirect. If defaultRouteAction.weightedBackendServices is specified, don't set defaultService. URL maps for classic Application Load Balancers only support the urlRewrite action within a path matcher's defaultRouteAction.
+    /// defaultRouteAction takes effect when none of the pathRules or routeRules match. The load balancer performs advanced routing actions, such as URL rewrites and header transformations, before forwarding the request to the selected backend. Only one of defaultUrlRedirect, defaultService or defaultRouteAction.weightedBackendService can be set. URL maps for classic Application Load Balancers only support the urlRewrite action within a path matcher's defaultRouteAction.
     #[prost(message, optional, tag = "378919466")]
     pub default_route_action: ::core::option::Option<HttpRouteAction>,
-    /// The full or partial URL to the BackendService resource. This URL is used if none of the pathRules or routeRules defined by this PathMatcher are matched. For example, the following are all valid URLs to a BackendService resource: - <https://www.googleapis.com/compute/v1/projects/project> /global/backendServices/backendService - compute/v1/projects/project/global/backendServices/backendService - global/backendServices/backendService If defaultRouteAction is also specified, advanced routing actions, such as URL rewrites, take effect before sending the request to the backend. However, if defaultService is specified, defaultRouteAction cannot contain any weightedBackendServices. Conversely, if defaultRouteAction specifies any weightedBackendServices, defaultService must not be specified. If defaultService is specified, then set either defaultUrlRedirect or defaultRouteAction.weightedBackendService. Don't set both. Authorization requires one or more of the following Google IAM permissions on the specified resource default_service: - compute.backendBuckets.use - compute.backendServices.use
+    /// The full or partial URL to the BackendService resource. This URL is used if none of the pathRules or routeRules defined by this PathMatcher are matched. For example, the following are all valid URLs to a BackendService resource: - <https://www.googleapis.com/compute/v1/projects/project> /global/backendServices/backendService - compute/v1/projects/project/global/backendServices/backendService - global/backendServices/backendService If defaultRouteAction is also specified, advanced routing actions, such as URL rewrites, take effect before sending the request to the backend. Only one of defaultUrlRedirect, defaultService or defaultRouteAction.weightedBackendService can be set. Authorization requires one or more of the following Google IAM permissions on the specified resource default_service: - compute.backendBuckets.use - compute.backendServices.use
     #[prost(string, optional, tag = "370242231")]
     pub default_service: ::core::option::Option<::prost::alloc::string::String>,
-    /// When none of the specified pathRules or routeRules match, the request is redirected to a URL specified by defaultUrlRedirect. If defaultUrlRedirect is specified, then set either defaultService or defaultRouteAction. Don't set both. Not supported when the URL map is bound to a target gRPC proxy.
+    /// When none of the specified pathRules or routeRules match, the request is redirected to a URL specified by defaultUrlRedirect. Only one of defaultUrlRedirect, defaultService or defaultRouteAction.weightedBackendService can be set. Not supported when the URL map is bound to a target gRPC proxy.
     #[prost(message, optional, tag = "359503338")]
     pub default_url_redirect: ::core::option::Option<HttpRedirectAction>,
     /// An optional description of this resource. Provide this property when you create the resource.
@@ -28545,13 +30866,13 @@ pub struct PathRule {
     /// The list of path patterns to match. Each must start with / and the only place a * is allowed is at the end following a /. The string fed to the path matcher does not include any text after the first ? or #, and those chars are not allowed here.
     #[prost(string, repeated, tag = "106438894")]
     pub paths: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    /// In response to a matching path, the load balancer performs advanced routing actions, such as URL rewrites and header transformations, before forwarding the request to the selected backend. If routeAction specifies any weightedBackendServices, service must not be set. Conversely if service is set, routeAction cannot contain any weightedBackendServices. Only one of routeAction or urlRedirect must be set. URL maps for classic Application Load Balancers only support the urlRewrite action within a path rule's routeAction.
+    /// In response to a matching path, the load balancer performs advanced routing actions, such as URL rewrites and header transformations, before forwarding the request to the selected backend. Only one of urlRedirect, service or routeAction.weightedBackendService can be set. URL maps for classic Application Load Balancers only support the urlRewrite action within a path rule's routeAction.
     #[prost(message, optional, tag = "424563948")]
     pub route_action: ::core::option::Option<HttpRouteAction>,
-    /// The full or partial URL of the backend service resource to which traffic is directed if this rule is matched. If routeAction is also specified, advanced routing actions, such as URL rewrites, take effect before sending the request to the backend. However, if service is specified, routeAction cannot contain any weightedBackendServices. Conversely, if routeAction specifies any weightedBackendServices, service must not be specified. Only one of urlRedirect, service or routeAction.weightedBackendService must be set.
+    /// The full or partial URL of the backend service resource to which traffic is directed if this rule is matched. If routeAction is also specified, advanced routing actions, such as URL rewrites, take effect before sending the request to the backend. Only one of urlRedirect, service or routeAction.weightedBackendService can be set.
     #[prost(string, optional, tag = "373540533")]
     pub service: ::core::option::Option<::prost::alloc::string::String>,
-    /// When a path pattern is matched, the request is redirected to a URL specified by urlRedirect. If urlRedirect is specified, service or routeAction must not be set. Not supported when the URL map is bound to a target gRPC proxy.
+    /// When a path pattern is matched, the request is redirected to a URL specified by urlRedirect. Only one of urlRedirect, service or routeAction.weightedBackendService can be set. Not supported when the URL map is bound to a target gRPC proxy.
     #[prost(message, optional, tag = "405147820")]
     pub url_redirect: ::core::option::Option<HttpRedirectAction>,
 }
@@ -28561,7 +30882,7 @@ pub struct PerInstanceConfig {
     /// Fingerprint of this per-instance config. This field can be used in optimistic locking. It is ignored when inserting a per-instance config. An up-to-date fingerprint must be provided in order to update an existing per-instance configuration or the field needs to be unset.
     #[prost(string, optional, tag = "234678500")]
     pub fingerprint: ::core::option::Option<::prost::alloc::string::String>,
-    /// The name of a per-instance configuration and its corresponding instance. Serves as a merge key during UpdatePerInstanceConfigs operations, that is, if a per-instance configuration with the same name exists then it will be updated, otherwise a new one will be created for the VM instance with the same name. An attempt to create a per-instance configconfiguration for a VM instance that either doesn't exist or is not part of the group will result in an error.
+    /// The name of a per-instance configuration and its corresponding instance. Serves as a merge key during UpdatePerInstanceConfigs operations, that is, if a per-instance configuration with the same name exists then it will be updated, otherwise a new one will be created for the VM instance with the same name. An attempt to create a per-instance configuration for a VM instance that either doesn't exist or is not part of the group will result in an error.
     #[prost(string, optional, tag = "3373707")]
     pub name: ::core::option::Option<::prost::alloc::string::String>,
     /// The intended preserved state for the given instance. Does not contain preserved state generated from a stateful policy.
@@ -28934,7 +31255,7 @@ pub struct Project {
     /// An optional textual description of the resource.
     #[prost(string, optional, tag = "422937596")]
     pub description: ::core::option::Option<::prost::alloc::string::String>,
-    /// Restricted features enabled for use on this project.
+    /// An optional list of restricted features enabled for use on this project.
     #[prost(string, repeated, tag = "469017467")]
     pub enabled_features: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
     /// \[Output Only\] The unique identifier for the resource. This identifier is defined by the server. This is *not* the project ID, and is just a unique ID used by Compute Engine to identify resources.
@@ -28952,7 +31273,7 @@ pub struct Project {
     /// \[Output Only\] Server-defined URL for the resource.
     #[prost(string, optional, tag = "456214797")]
     pub self_link: ::core::option::Option<::prost::alloc::string::String>,
-    /// The naming prefix for daily usage reports and the Google Cloud Storage bucket where they are stored.
+    /// An optional naming prefix for daily usage reports and the Google Cloud Storage bucket where they are stored.
     #[prost(message, optional, tag = "347543874")]
     pub usage_export_location: ::core::option::Option<UsageExportLocation>,
     /// \[Output Only\] Default internal DNS setting used by VMs running in this project.
@@ -29701,6 +32022,8 @@ pub mod public_delegated_prefix {
         Delegation = 264149288,
         /// The public delegated prefix is used for creating forwarding rules only. Such prefixes cannot set publicDelegatedSubPrefixes.
         ExternalIpv6ForwardingRuleCreation = 398684356,
+        /// The public delegated prefix is used for creating dual-mode subnetworks only. Such prefixes cannot set publicDelegatedSubPrefixes.
+        ExternalIpv6SubnetworkCreation = 61198284,
     }
     impl Mode {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -29714,6 +32037,9 @@ pub mod public_delegated_prefix {
                 Self::ExternalIpv6ForwardingRuleCreation => {
                     "EXTERNAL_IPV6_FORWARDING_RULE_CREATION"
                 }
+                Self::ExternalIpv6SubnetworkCreation => {
+                    "EXTERNAL_IPV6_SUBNETWORK_CREATION"
+                }
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -29723,6 +32049,9 @@ pub mod public_delegated_prefix {
                 "DELEGATION" => Some(Self::Delegation),
                 "EXTERNAL_IPV6_FORWARDING_RULE_CREATION" => {
                     Some(Self::ExternalIpv6ForwardingRuleCreation)
+                }
+                "EXTERNAL_IPV6_SUBNETWORK_CREATION" => {
+                    Some(Self::ExternalIpv6SubnetworkCreation)
                 }
                 _ => None,
             }
@@ -29893,6 +32222,8 @@ pub mod public_delegated_prefix_public_delegated_sub_prefix {
         Delegation = 264149288,
         /// The public delegated prefix is used for creating forwarding rules only. Such prefixes cannot set publicDelegatedSubPrefixes.
         ExternalIpv6ForwardingRuleCreation = 398684356,
+        /// The public delegated prefix is used for creating dual-mode subnetworks only. Such prefixes cannot set publicDelegatedSubPrefixes.
+        ExternalIpv6SubnetworkCreation = 61198284,
     }
     impl Mode {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -29906,6 +32237,9 @@ pub mod public_delegated_prefix_public_delegated_sub_prefix {
                 Self::ExternalIpv6ForwardingRuleCreation => {
                     "EXTERNAL_IPV6_FORWARDING_RULE_CREATION"
                 }
+                Self::ExternalIpv6SubnetworkCreation => {
+                    "EXTERNAL_IPV6_SUBNETWORK_CREATION"
+                }
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -29915,6 +32249,9 @@ pub mod public_delegated_prefix_public_delegated_sub_prefix {
                 "DELEGATION" => Some(Self::Delegation),
                 "EXTERNAL_IPV6_FORWARDING_RULE_CREATION" => {
                     Some(Self::ExternalIpv6ForwardingRuleCreation)
+                }
+                "EXTERNAL_IPV6_SUBNETWORK_CREATION" => {
+                    Some(Self::ExternalIpv6SubnetworkCreation)
                 }
                 _ => None,
             }
@@ -30787,6 +33124,8 @@ pub mod quota_status_warning {
         NoResultsOnPage = 30036744,
         /// Success is reported, but some results may be missing due to errors
         PartialSuccess = 39966469,
+        /// Quota information is not available to client requests (e.g: regions.list).
+        QuotaInfoUnavailable = 304294182,
         /// The user attempted to use a resource that requires a TOS they have not accepted.
         RequiredTosAgreement = 3745539,
         /// Warning that a resource is in use.
@@ -30835,6 +33174,7 @@ pub mod quota_status_warning {
                 Self::NotCriticalError => "NOT_CRITICAL_ERROR",
                 Self::NoResultsOnPage => "NO_RESULTS_ON_PAGE",
                 Self::PartialSuccess => "PARTIAL_SUCCESS",
+                Self::QuotaInfoUnavailable => "QUOTA_INFO_UNAVAILABLE",
                 Self::RequiredTosAgreement => "REQUIRED_TOS_AGREEMENT",
                 Self::ResourceInUseByOtherResourceWarning => {
                     "RESOURCE_IN_USE_BY_OTHER_RESOURCE_WARNING"
@@ -30881,6 +33221,7 @@ pub mod quota_status_warning {
                 "NOT_CRITICAL_ERROR" => Some(Self::NotCriticalError),
                 "NO_RESULTS_ON_PAGE" => Some(Self::NoResultsOnPage),
                 "PARTIAL_SUCCESS" => Some(Self::PartialSuccess),
+                "QUOTA_INFO_UNAVAILABLE" => Some(Self::QuotaInfoUnavailable),
                 "REQUIRED_TOS_AGREEMENT" => Some(Self::RequiredTosAgreement),
                 "RESOURCE_IN_USE_BY_OTHER_RESOURCE_WARNING" => {
                     Some(Self::ResourceInUseByOtherResourceWarning)
@@ -31415,6 +33756,13 @@ pub struct RegionInstanceGroupManagersRecreateRequest {
 }
 ///
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RegionInstanceGroupManagersResumeInstancesRequest {
+    /// The URLs of one or more instances to resume. This can be a full URL or a partial URL, such as zones/\[ZONE\]/instances/\[INSTANCE_NAME\].
+    #[prost(string, repeated, tag = "29097598")]
+    pub instances: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+///
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RegionInstanceGroupManagersSetTargetPoolsRequest {
     /// Fingerprint of the target pools information, which is a hash of the contents. This field is used for optimistic locking when you update the target pool entries. This field is optional.
     #[prost(string, optional, tag = "234678500")]
@@ -31429,6 +33777,33 @@ pub struct RegionInstanceGroupManagersSetTemplateRequest {
     /// URL of the InstanceTemplate resource from which all new instances will be created.
     #[prost(string, optional, tag = "309248228")]
     pub instance_template: ::core::option::Option<::prost::alloc::string::String>,
+}
+///
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RegionInstanceGroupManagersStartInstancesRequest {
+    /// The URLs of one or more instances to start. This can be a full URL or a partial URL, such as zones/\[ZONE\]/instances/\[INSTANCE_NAME\].
+    #[prost(string, repeated, tag = "29097598")]
+    pub instances: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+///
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RegionInstanceGroupManagersStopInstancesRequest {
+    /// If this flag is set to true, the Instance Group Manager will proceed to stop the instances, skipping initialization on them.
+    #[prost(bool, optional, tag = "134762710")]
+    pub force_stop: ::core::option::Option<bool>,
+    /// The URLs of one or more instances to stop. This can be a full URL or a partial URL, such as zones/\[ZONE\]/instances/\[INSTANCE_NAME\].
+    #[prost(string, repeated, tag = "29097598")]
+    pub instances: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+///
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RegionInstanceGroupManagersSuspendInstancesRequest {
+    /// If this flag is set to true, the Instance Group Manager will proceed to suspend the instances, skipping initialization on them.
+    #[prost(bool, optional, tag = "27637480")]
+    pub force_suspend: ::core::option::Option<bool>,
+    /// The URLs of one or more instances to suspend. This can be a full URL or a partial URL, such as zones/\[ZONE\]/instances/\[INSTANCE_NAME\].
+    #[prost(string, repeated, tag = "29097598")]
+    pub instances: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 ///
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -31576,6 +33951,12 @@ pub struct RegionNetworkFirewallPoliciesGetEffectiveFirewallsResponseEffectiveFi
     /// \[Output Only\] The name of the firewall policy.
     #[prost(string, optional, tag = "3373707")]
     pub name: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output only\] The packet mirroring rules that apply to the network.
+    #[prost(message, repeated, tag = "531644356")]
+    pub packet_mirroring_rules: ::prost::alloc::vec::Vec<FirewallPolicyRule>,
+    /// \[Output only\] Priority of firewall policy association. Not applicable for type=HIERARCHY.
+    #[prost(int32, optional, tag = "445151652")]
+    pub priority: ::core::option::Option<i32>,
     /// \[Output only\] The rules that apply to the network.
     #[prost(message, repeated, tag = "108873975")]
     pub rules: ::prost::alloc::vec::Vec<FirewallPolicyRule>,
@@ -31605,6 +33986,8 @@ pub mod region_network_firewall_policies_get_effective_firewalls_response_effect
         Hierarchy = 69902869,
         Network = 413984270,
         NetworkRegional = 190804272,
+        SystemGlobal = 60099507,
+        SystemRegional = 161777199,
         Unspecified = 526786327,
     }
     impl Type {
@@ -31618,6 +34001,8 @@ pub mod region_network_firewall_policies_get_effective_firewalls_response_effect
                 Self::Hierarchy => "HIERARCHY",
                 Self::Network => "NETWORK",
                 Self::NetworkRegional => "NETWORK_REGIONAL",
+                Self::SystemGlobal => "SYSTEM_GLOBAL",
+                Self::SystemRegional => "SYSTEM_REGIONAL",
                 Self::Unspecified => "UNSPECIFIED",
             }
         }
@@ -31628,6 +34013,8 @@ pub mod region_network_firewall_policies_get_effective_firewalls_response_effect
                 "HIERARCHY" => Some(Self::Hierarchy),
                 "NETWORK" => Some(Self::Network),
                 "NETWORK_REGIONAL" => Some(Self::NetworkRegional),
+                "SYSTEM_GLOBAL" => Some(Self::SystemGlobal),
+                "SYSTEM_REGIONAL" => Some(Self::SystemRegional),
                 "UNSPECIFIED" => Some(Self::Unspecified),
                 _ => None,
             }
@@ -31784,6 +34171,22 @@ pub struct RemoveInstancesInstanceGroupRequest {
     /// The name of the zone where the instance group is located.
     #[prost(string, tag = "3744684")]
     pub zone: ::prost::alloc::string::String,
+}
+/// A request message for NetworkFirewallPolicies.RemovePacketMirroringRule. See the method description for details.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RemovePacketMirroringRuleNetworkFirewallPolicyRequest {
+    /// Name of the firewall policy to update.
+    #[prost(string, tag = "498173265")]
+    pub firewall_policy: ::prost::alloc::string::String,
+    /// The priority of the rule to remove from the firewall policy.
+    #[prost(int32, optional, tag = "445151652")]
+    pub priority: ::core::option::Option<i32>,
+    /// Project ID for this request.
+    #[prost(string, tag = "227560217")]
+    pub project: ::prost::alloc::string::String,
+    /// An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported ( 00000000-0000-0000-0000-000000000000).
+    #[prost(string, optional, tag = "37109963")]
+    pub request_id: ::core::option::Option<::prost::alloc::string::String>,
 }
 /// A request message for Networks.RemovePeering. See the method description for details.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -31943,6 +34346,27 @@ pub struct RemoveRuleSecurityPolicyRequest {
     #[prost(string, tag = "171082513")]
     pub security_policy: ::prost::alloc::string::String,
 }
+/// A request message for Instances.ReportHostAsFaulty. See the method description for details.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReportHostAsFaultyInstanceRequest {
+    /// Name of the instance scoping this request.
+    #[prost(string, tag = "18257045")]
+    pub instance: ::prost::alloc::string::String,
+    /// The body resource for this request
+    #[prost(message, optional, tag = "494094886")]
+    pub instances_report_host_as_faulty_request_resource: ::core::option::Option<
+        InstancesReportHostAsFaultyRequest,
+    >,
+    /// Project ID for this request.
+    #[prost(string, tag = "227560217")]
+    pub project: ::prost::alloc::string::String,
+    /// An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported ( 00000000-0000-0000-0000-000000000000).
+    #[prost(string, optional, tag = "37109963")]
+    pub request_id: ::core::option::Option<::prost::alloc::string::String>,
+    /// The name of the zone for this request.
+    #[prost(string, tag = "3744684")]
+    pub zone: ::prost::alloc::string::String,
+}
 /// A policy that specifies how requests intended for the route's backends are shadowed to a separate mirrored backend service. The load balancer doesn't wait for responses from the shadow service. Before sending traffic to the shadow service, the host or authority header is suffixed with -shadow.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RequestMirrorPolicy {
@@ -31974,6 +34398,11 @@ pub struct Reservation {
     /// The name of the resource, provided by the client when initially creating the resource. The resource name must be 1-63 characters long, and comply with RFC1035. Specifically, the name must be 1-63 characters long and match the regular expression `[a-z](\[-a-z0-9\]*[a-z0-9])?` which means the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.
     #[prost(string, optional, tag = "3373707")]
     pub name: ::core::option::Option<::prost::alloc::string::String>,
+    /// Specify the reservation sharing policy. If unspecified, the reservation will not be shared with Google Cloud managed services.
+    #[prost(message, optional, tag = "205970120")]
+    pub reservation_sharing_policy: ::core::option::Option<
+        AllocationReservationSharingPolicy,
+    >,
     /// Resource policies to be added to this reservation. The key is defined by user, and the value is resource policy url. This is to define placement policy with reservation.
     #[prost(map = "string, string", tag = "22220385")]
     pub resource_policies: ::std::collections::HashMap<
@@ -32316,23 +34745,23 @@ pub struct ResizeReservationRequest {
     #[prost(string, tag = "3744684")]
     pub zone: ::prost::alloc::string::String,
 }
-/// Commitment for a particular resource (a Commitment is composed of one or more of these).
+/// Commitment for a particular hardware resource (a commitment is composed of one or more of these).
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ResourceCommitment {
-    /// Name of the accelerator type resource. Applicable only when the type is ACCELERATOR.
+    /// Name of the accelerator type or GPU resource. Specify this field only when the type of hardware resource is ACCELERATOR.
     #[prost(string, optional, tag = "138031246")]
     pub accelerator_type: ::core::option::Option<::prost::alloc::string::String>,
-    /// The amount of the resource purchased (in a type-dependent unit, such as bytes). For vCPUs, this can just be an integer. For memory, this must be provided in MB. Memory must be a multiple of 256 MB, with up to 6.5GB of memory per every vCPU.
+    /// The quantity of the hardware resource that you want to commit to purchasing (in a type-dependent unit). - For vCPUs, you must specify an integer value. - For memory, you specify the amount of MB that you want. The value you specify must be a multiple of 256 MB, with up to 6.5 GB of memory per every vCPU. - For GPUs, you must specify an integer value. - For Local SSD disks, you must specify the amount in GB. The size of a single Local SSD disk is 375 GB.
     #[prost(int64, optional, tag = "196759640")]
     pub amount: ::core::option::Option<i64>,
-    /// Type of resource for which this commitment applies. Possible values are VCPU, MEMORY, LOCAL_SSD, and ACCELERATOR.
+    /// The type of hardware resource that you want to specify. You can specify any of the following values: - VCPU - MEMORY - LOCAL_SSD - ACCELERATOR Specify as a separate entry in the list for each individual resource type.
     /// Check the Type enum for the list of possible values.
     #[prost(string, optional, tag = "3575610")]
     pub r#type: ::core::option::Option<::prost::alloc::string::String>,
 }
 /// Nested message and enum types in `ResourceCommitment`.
 pub mod resource_commitment {
-    /// Type of resource for which this commitment applies. Possible values are VCPU, MEMORY, LOCAL_SSD, and ACCELERATOR.
+    /// The type of hardware resource that you want to specify. You can specify any of the following values: - VCPU - MEMORY - LOCAL_SSD - ACCELERATOR Specify as a separate entry in the list for each individual resource type.
     #[derive(
         Clone,
         Copy,
@@ -32893,13 +35322,34 @@ pub mod resource_policy_weekly_cycle_day_of_week {
 /// Contains output only fields. Use this sub-message for actual values set on Instance attributes as compared to the value requested by the user (intent) in their instance CRUD calls.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ResourceStatus {
-    /// \[Output Only\] An opaque ID of the host on which the VM is running.
+    /// \[Output Only\] The precise location of your instance within the zone's data center, including the block, sub-block, and host. The field is formatted as follows: blockId/subBlockId/hostId.
     #[prost(string, optional, tag = "464370704")]
     pub physical_host: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] A series of fields containing the global name of the Compute Engine cluster, as well as the ID of the block, sub-block, and host on which the running instance is located.
+    #[prost(message, optional, tag = "390842814")]
+    pub physical_host_topology: ::core::option::Option<
+        ResourceStatusPhysicalHostTopology,
+    >,
     #[prost(message, optional, tag = "386688404")]
     pub scheduling: ::core::option::Option<ResourceStatusScheduling>,
     #[prost(message, optional, tag = "227348592")]
     pub upcoming_maintenance: ::core::option::Option<UpcomingMaintenance>,
+}
+/// Represents the physical host topology of the host on which the VM is running.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ResourceStatusPhysicalHostTopology {
+    /// \[Output Only\] The ID of the block in which the running instance is located. Instances within the same block experience low network latency.
+    #[prost(string, optional, tag = "93832333")]
+    pub block: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] The global name of the Compute Engine cluster where the running instance is located.
+    #[prost(string, optional, tag = "335221242")]
+    pub cluster: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] The ID of the host on which the running instance is located. Instances on the same host experience the lowest possible network latency.
+    #[prost(string, optional, tag = "3208616")]
+    pub host: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] The ID of the sub-block in which the running instance is located. Instances in the same sub-block experience lower network latency than instances in the same block.
+    #[prost(string, optional, tag = "70446669")]
+    pub subblock: ::core::option::Option<::prost::alloc::string::String>,
 }
 ///
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
@@ -32923,6 +35373,48 @@ pub struct ResumeInstanceRequest {
     /// The name of the zone for this request.
     #[prost(string, tag = "3744684")]
     pub zone: ::prost::alloc::string::String,
+}
+/// A request message for InstanceGroupManagers.ResumeInstances. See the method description for details.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ResumeInstancesInstanceGroupManagerRequest {
+    /// The name of the managed instance group.
+    #[prost(string, tag = "249363395")]
+    pub instance_group_manager: ::prost::alloc::string::String,
+    /// The body resource for this request
+    #[prost(message, optional, tag = "129015618")]
+    pub instance_group_managers_resume_instances_request_resource: ::core::option::Option<
+        InstanceGroupManagersResumeInstancesRequest,
+    >,
+    /// Project ID for this request.
+    #[prost(string, tag = "227560217")]
+    pub project: ::prost::alloc::string::String,
+    /// An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported ( 00000000-0000-0000-0000-000000000000).
+    #[prost(string, optional, tag = "37109963")]
+    pub request_id: ::core::option::Option<::prost::alloc::string::String>,
+    /// The name of the zone where the managed instance group is located.
+    #[prost(string, tag = "3744684")]
+    pub zone: ::prost::alloc::string::String,
+}
+/// A request message for RegionInstanceGroupManagers.ResumeInstances. See the method description for details.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ResumeInstancesRegionInstanceGroupManagerRequest {
+    /// Name of the managed instance group.
+    #[prost(string, tag = "249363395")]
+    pub instance_group_manager: ::prost::alloc::string::String,
+    /// Project ID for this request.
+    #[prost(string, tag = "227560217")]
+    pub project: ::prost::alloc::string::String,
+    /// Name of the region scoping this request.
+    #[prost(string, tag = "138946292")]
+    pub region: ::prost::alloc::string::String,
+    /// The body resource for this request
+    #[prost(message, optional, tag = "463471031")]
+    pub region_instance_group_managers_resume_instances_request_resource: ::core::option::Option<
+        RegionInstanceGroupManagersResumeInstancesRequest,
+    >,
+    /// An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported ( 00000000-0000-0000-0000-000000000000).
+    #[prost(string, optional, tag = "37109963")]
+    pub request_id: ::core::option::Option<::prost::alloc::string::String>,
 }
 /// Represents a Route resource. A route defines a path from VM instances in the VPC network to a specific destination. This destination can be inside or outside the VPC network. For more information, read the Routes overview.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -32963,12 +35455,22 @@ pub struct Route {
     /// The URL to an instance that should handle matching packets. You can specify this as a full or partial URL. For example: <https://www.googleapis.com/compute/v1/projects/project/zones/zone/instances/>
     #[prost(string, optional, tag = "393508247")]
     pub next_hop_instance: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output only\] Internal fixed region-to-region cost that Google Cloud calculates based on factors such as network performance, distance, and available bandwidth between regions.
+    #[prost(uint32, optional, tag = "24442003")]
+    pub next_hop_inter_region_cost: ::core::option::Option<u32>,
     /// The network IP address of an instance that should handle matching packets. Both IPv6 address and IPv4 addresses are supported. Must specify an IPv4 address in dot-decimal notation (e.g. 192.0.2.99) or an IPv6 address in RFC 4291 format (e.g. 2001:db8::2d9:51:0:0 or 2001:db8:0:0:2d9:51:0:0). IPv6 addresses will be displayed using RFC 5952 compressed format (e.g. 2001:db8::2d9:51:0:0). Should never be an IPv4-mapped IPv6 address.
     #[prost(string, optional, tag = "110319529")]
     pub next_hop_ip: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] Multi-Exit Discriminator, a BGP route metric that indicates the desirability of a particular route in a network.
+    #[prost(uint32, optional, tag = "198683530")]
+    pub next_hop_med: ::core::option::Option<u32>,
     /// The URL of the local network if it should handle matching packets.
     #[prost(string, optional, tag = "262295788")]
     pub next_hop_network: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] Indicates the origin of the route. Can be IGP (Interior Gateway Protocol), EGP (Exterior Gateway Protocol), or INCOMPLETE.
+    /// Check the NextHopOrigin enum for the list of possible values.
+    #[prost(string, optional, tag = "48752808")]
+    pub next_hop_origin: ::core::option::Option<::prost::alloc::string::String>,
     /// \[Output Only\] The network peering name that should handle matching packets, which should conform to RFC1035.
     #[prost(string, optional, tag = "412682750")]
     pub next_hop_peering: ::core::option::Option<::prost::alloc::string::String>,
@@ -32998,6 +35500,50 @@ pub struct Route {
 }
 /// Nested message and enum types in `Route`.
 pub mod route {
+    /// \[Output Only\] Indicates the origin of the route. Can be IGP (Interior Gateway Protocol), EGP (Exterior Gateway Protocol), or INCOMPLETE.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum NextHopOrigin {
+        /// A value indicating that the enum field is not set.
+        UndefinedNextHopOrigin = 0,
+        Egp = 68590,
+        Igp = 72434,
+        Incomplete = 11941214,
+    }
+    impl NextHopOrigin {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedNextHopOrigin => "UNDEFINED_NEXT_HOP_ORIGIN",
+                Self::Egp => "EGP",
+                Self::Igp => "IGP",
+                Self::Incomplete => "INCOMPLETE",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_NEXT_HOP_ORIGIN" => Some(Self::UndefinedNextHopOrigin),
+                "EGP" => Some(Self::Egp),
+                "IGP" => Some(Self::Igp),
+                "INCOMPLETE" => Some(Self::Incomplete),
+                _ => None,
+            }
+        }
+    }
     /// \[Output only\] The status of the route.
     #[derive(
         Clone,
@@ -33179,6 +35725,85 @@ pub struct RouteList {
     /// \[Output Only\] Informational warning message.
     #[prost(message, optional, tag = "50704284")]
     pub warning: ::core::option::Option<Warning>,
+}
+///
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RoutePolicy {
+    /// An optional description of route policy.
+    #[prost(string, optional, tag = "422937596")]
+    pub description: ::core::option::Option<::prost::alloc::string::String>,
+    /// A fingerprint for the Route Policy being applied to this Router, which is essentially a hash of the Route Policy used for optimistic locking. The fingerprint is initially generated by Compute Engine and changes after every request to modify or update Route Policy. You must always provide an up-to-date fingerprint hash in order to update or change labels. To see the latest fingerprint, make a getRoutePolicy() request to retrieve a Route Policy.
+    #[prost(string, optional, tag = "234678500")]
+    pub fingerprint: ::core::option::Option<::prost::alloc::string::String>,
+    /// Route Policy name, which must be a resource ID segment and unique within all the router's Route Policies. Name should conform to RFC1035.
+    #[prost(string, optional, tag = "3373707")]
+    pub name: ::core::option::Option<::prost::alloc::string::String>,
+    /// List of terms (the order in the list is not important, they are evaluated in order of priority). Order of policies is not retained and might change when getting policy later.
+    #[prost(message, repeated, tag = "110250375")]
+    pub terms: ::prost::alloc::vec::Vec<RoutePolicyPolicyTerm>,
+    ///
+    /// Check the Type enum for the list of possible values.
+    #[prost(string, optional, tag = "3575610")]
+    pub r#type: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// Nested message and enum types in `RoutePolicy`.
+pub mod route_policy {
+    ///
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Type {
+        /// A value indicating that the enum field is not set.
+        UndefinedType = 0,
+        /// The Route Policy is an Export Policy.
+        RoutePolicyTypeExport = 293086882,
+        /// The Route Policy is an Import Policy.
+        RoutePolicyTypeImport = 397444755,
+    }
+    impl Type {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedType => "UNDEFINED_TYPE",
+                Self::RoutePolicyTypeExport => "ROUTE_POLICY_TYPE_EXPORT",
+                Self::RoutePolicyTypeImport => "ROUTE_POLICY_TYPE_IMPORT",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_TYPE" => Some(Self::UndefinedType),
+                "ROUTE_POLICY_TYPE_EXPORT" => Some(Self::RoutePolicyTypeExport),
+                "ROUTE_POLICY_TYPE_IMPORT" => Some(Self::RoutePolicyTypeImport),
+                _ => None,
+            }
+        }
+    }
+}
+///
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RoutePolicyPolicyTerm {
+    /// CEL expressions to evaluate to modify a route when this term matches.
+    #[prost(message, repeated, tag = "448809213")]
+    pub actions: ::prost::alloc::vec::Vec<Expr>,
+    /// CEL expression evaluated against a route to determine if this term applies. When not set, the term applies to all routes.
+    #[prost(message, optional, tag = "103668165")]
+    pub r#match: ::core::option::Option<Expr>,
+    /// The evaluation priority for this term, which must be between 0 (inclusive) and 2^31 (exclusive), and unique within the list.
+    #[prost(int32, optional, tag = "445151652")]
+    pub priority: ::core::option::Option<i32>,
 }
 /// Represents a Cloud Router resource. For more information about Cloud Router, read the Cloud Router overview.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -33409,10 +36034,10 @@ pub struct RouterBgpPeer {
     /// Enable IPv6 traffic over BGP Peer. It is enabled by default if the peerIpAddress is version 6.
     #[prost(bool, optional, tag = "181467939")]
     pub enable_ipv6: ::core::option::Option<bool>,
-    /// List of export policies applied to this peer, in the order they must be evaluated. The name must correspond to an existing policy that has ROUTE_POLICY_TYPE_EXPORT type. Note that Route Policies are currently available in preview. Please use Beta API to use Route Policies.
+    /// List of export policies applied to this peer, in the order they must be evaluated. The name must correspond to an existing policy that has ROUTE_POLICY_TYPE_EXPORT type.
     #[prost(string, repeated, tag = "134084987")]
     pub export_policies: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    /// List of import policies applied to this peer, in the order they must be evaluated. The name must correspond to an existing policy that has ROUTE_POLICY_TYPE_IMPORT type. Note that Route Policies are currently available in preview. Please use Beta API to use Route Policies.
+    /// List of import policies applied to this peer, in the order they must be evaluated. The name must correspond to an existing policy that has ROUTE_POLICY_TYPE_IMPORT type.
     #[prost(string, repeated, tag = "451147946")]
     pub import_policies: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
     /// Name of the interface the BGP peer is associated with.
@@ -33708,7 +36333,7 @@ pub struct RouterBgpPeerCustomLearnedIpRange {
 ///
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RouterInterface {
-    /// IP address and range of the interface. - For Internet Protocol version 4 (IPv4), the IP range must be in the RFC3927 link-local IP address space. The value must be a CIDR-formatted string, for example, 169.254.0.1/30. Note: Do not truncate the IP address, as it represents the IP address of the interface. - For Internet Protocol version 6 (IPv6), the value must be a unique local address (ULA) range from fdff:1::/64 with a mask length of 126 or less. This value should be a CIDR-formatted string, for example, fc00:0:1:1::1/112. Within the router's VPC, this IPv6 prefix will be reserved exclusively for this connection and cannot be used for any other purpose.
+    /// IP address and range of the interface. - For Internet Protocol version 4 (IPv4), the IP range must be in the RFC3927 link-local IP address space. The value must be a CIDR-formatted string, for example, 169.254.0.1/30. Note: Do not truncate the IP address, as it represents the IP address of the interface. - For Internet Protocol version 6 (IPv6), the value must be a unique local address (ULA) range from fdff:1::/64 with a mask length of 126 or less. This value should be a CIDR-formatted string, for example, fdff:1::1/112. Within the router's VPC, this IPv6 prefix will be reserved exclusively for this connection and cannot be used for any other purpose.
     #[prost(string, optional, tag = "145092645")]
     pub ip_range: ::core::option::Option<::prost::alloc::string::String>,
     /// IP version of this interface.
@@ -34602,6 +37227,66 @@ pub struct RouterStatusResponse {
 }
 ///
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RoutersGetRoutePolicyResponse {
+    #[prost(message, optional, tag = "195806222")]
+    pub resource: ::core::option::Option<RoutePolicy>,
+}
+///
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RoutersListBgpRoutes {
+    #[prost(string, optional, tag = "3123477")]
+    pub etag: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] The unique identifier for the resource. This identifier is defined by the server.
+    #[prost(string, optional, tag = "3355")]
+    pub id: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] Type of resource. Always compute#routersListBgpRoutes for lists of bgp routes.
+    #[prost(string, optional, tag = "3292052")]
+    pub kind: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] This token allows you to get the next page of results for list requests. If the number of results is larger than maxResults, use the nextPageToken as a value for the query parameter pageToken in the next list request. Subsequent list requests will have their own nextPageToken to continue paging through the results.
+    #[prost(string, optional, tag = "79797525")]
+    pub next_page_token: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] A list of bgp routes.
+    #[prost(message, repeated, tag = "139315229")]
+    pub result: ::prost::alloc::vec::Vec<BgpRoute>,
+    /// \[Output Only\] Server-defined URL for this resource.
+    #[prost(string, optional, tag = "456214797")]
+    pub self_link: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] Unreachable resources.
+    #[prost(string, repeated, tag = "243372063")]
+    pub unreachables: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// \[Output Only\] Informational warning message.
+    #[prost(message, optional, tag = "50704284")]
+    pub warning: ::core::option::Option<Warning>,
+}
+///
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RoutersListRoutePolicies {
+    #[prost(string, optional, tag = "3123477")]
+    pub etag: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] The unique identifier for the resource. This identifier is defined by the server.
+    #[prost(string, optional, tag = "3355")]
+    pub id: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] Type of resource. Always compute#routersListRoutePolicies for lists of route policies.
+    #[prost(string, optional, tag = "3292052")]
+    pub kind: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] This token allows you to get the next page of results for list requests. If the number of results is larger than maxResults, use the nextPageToken as a value for the query parameter pageToken in the next list request. Subsequent list requests will have their own nextPageToken to continue paging through the results.
+    #[prost(string, optional, tag = "79797525")]
+    pub next_page_token: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] A list of route policies.
+    #[prost(message, repeated, tag = "139315229")]
+    pub result: ::prost::alloc::vec::Vec<RoutePolicy>,
+    /// \[Output Only\] Server-defined URL for this resource.
+    #[prost(string, optional, tag = "456214797")]
+    pub self_link: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] Unreachable resources.
+    #[prost(string, repeated, tag = "243372063")]
+    pub unreachables: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// \[Output Only\] Informational warning message.
+    #[prost(message, optional, tag = "50704284")]
+    pub warning: ::core::option::Option<Warning>,
+}
+///
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RoutersPreviewResponse {
     /// Preview of given router.
     #[prost(message, optional, tag = "195806222")]
@@ -35150,6 +37835,9 @@ pub struct Scheduling {
     /// Specifies the availability domain to place the instance in. The value must be a number between 1 and the number of availability domains specified in the spread placement policy attached to the instance.
     #[prost(int32, optional, tag = "252514344")]
     pub availability_domain: ::core::option::Option<i32>,
+    /// Specify the time in seconds for host error detection, the value must be within the range of \[90, 330\] with the increment of 30, if unset, the default behavior of host error recovery will be used.
+    #[prost(int32, optional, tag = "408317459")]
+    pub host_error_timeout_seconds: ::core::option::Option<i32>,
     /// Specifies the termination action for the instance.
     /// Check the InstanceTerminationAction enum for the list of possible values.
     #[prost(string, optional, tag = "107380667")]
@@ -35300,6 +37988,8 @@ pub mod scheduling {
     pub enum ProvisioningModel {
         /// A value indicating that the enum field is not set.
         UndefinedProvisioningModel = 0,
+        /// Bound to the lifecycle of the reservation in which it is provisioned.
+        ReservationBound = 293538571,
         /// Heavily discounted, no guaranteed runtime.
         Spot = 2552066,
         /// Standard provisioning with user controlled runtime, no discounts.
@@ -35313,6 +38003,7 @@ pub mod scheduling {
         pub fn as_str_name(&self) -> &'static str {
             match self {
                 Self::UndefinedProvisioningModel => "UNDEFINED_PROVISIONING_MODEL",
+                Self::ReservationBound => "RESERVATION_BOUND",
                 Self::Spot => "SPOT",
                 Self::Standard => "STANDARD",
             }
@@ -35321,6 +38012,7 @@ pub mod scheduling {
         pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
             match value {
                 "UNDEFINED_PROVISIONING_MODEL" => Some(Self::UndefinedProvisioningModel),
+                "RESERVATION_BOUND" => Some(Self::ReservationBound),
                 "SPOT" => Some(Self::Spot),
                 "STANDARD" => Some(Self::Standard),
                 _ => None,
@@ -35877,6 +38569,7 @@ pub mod security_policy_ddos_protection_config {
         /// A value indicating that the enum field is not set.
         UndefinedDdosProtection = 0,
         Advanced = 63789090,
+        AdvancedPreview = 40905867,
         Standard = 484642493,
     }
     impl DdosProtection {
@@ -35888,6 +38581,7 @@ pub mod security_policy_ddos_protection_config {
             match self {
                 Self::UndefinedDdosProtection => "UNDEFINED_DDOS_PROTECTION",
                 Self::Advanced => "ADVANCED",
+                Self::AdvancedPreview => "ADVANCED_PREVIEW",
                 Self::Standard => "STANDARD",
             }
         }
@@ -35896,6 +38590,7 @@ pub mod security_policy_ddos_protection_config {
             match value {
                 "UNDEFINED_DDOS_PROTECTION" => Some(Self::UndefinedDdosProtection),
                 "ADVANCED" => Some(Self::Advanced),
+                "ADVANCED_PREVIEW" => Some(Self::AdvancedPreview),
                 "STANDARD" => Some(Self::Standard),
                 _ => None,
             }
@@ -36241,7 +38936,7 @@ pub struct SecurityPolicyRuleRateLimitOptions {
     /// Action to take for requests that are under the configured rate limit threshold. Valid option is "allow" only.
     #[prost(string, optional, tag = "517612367")]
     pub conform_action: ::core::option::Option<::prost::alloc::string::String>,
-    /// Determines the key to enforce the rate_limit_threshold on. Possible values are: - ALL: A single rate limit threshold is applied to all the requests matching this rule. This is the default value if "enforceOnKey" is not configured. - IP: The source IP address of the request is the key. Each IP has this limit enforced separately. - HTTP_HEADER: The value of the HTTP header whose name is configured under "enforceOnKeyName". The key value is truncated to the first 128 bytes of the header value. If no such header is present in the request, the key type defaults to ALL. - XFF_IP: The first IP address (i.e. the originating client IP address) specified in the list of IPs under X-Forwarded-For HTTP header. If no such header is present or the value is not a valid IP, the key defaults to the source IP address of the request i.e. key type IP. - HTTP_COOKIE: The value of the HTTP cookie whose name is configured under "enforceOnKeyName". The key value is truncated to the first 128 bytes of the cookie value. If no such cookie is present in the request, the key type defaults to ALL. - HTTP_PATH: The URL path of the HTTP request. The key value is truncated to the first 128 bytes. - SNI: Server name indication in the TLS session of the HTTPS request. The key value is truncated to the first 128 bytes. The key type defaults to ALL on a HTTP session. - REGION_CODE: The country/region from which the request originates. - TLS_JA3_FINGERPRINT: JA3 TLS/SSL fingerprint if the client connects using HTTPS, HTTP/2 or HTTP/3. If not available, the key type defaults to ALL. - USER_IP: The IP address of the originating client, which is resolved based on "userIpRequestHeaders" configured with the security policy. If there is no "userIpRequestHeaders" configuration or an IP address cannot be resolved from it, the key type defaults to IP.
+    /// Determines the key to enforce the rate_limit_threshold on. Possible values are: - ALL: A single rate limit threshold is applied to all the requests matching this rule. This is the default value if "enforceOnKey" is not configured. - IP: The source IP address of the request is the key. Each IP has this limit enforced separately. - HTTP_HEADER: The value of the HTTP header whose name is configured under "enforceOnKeyName". The key value is truncated to the first 128 bytes of the header value. If no such header is present in the request, the key type defaults to ALL. - XFF_IP: The first IP address (i.e. the originating client IP address) specified in the list of IPs under X-Forwarded-For HTTP header. If no such header is present or the value is not a valid IP, the key defaults to the source IP address of the request i.e. key type IP. - HTTP_COOKIE: The value of the HTTP cookie whose name is configured under "enforceOnKeyName". The key value is truncated to the first 128 bytes of the cookie value. If no such cookie is present in the request, the key type defaults to ALL. - HTTP_PATH: The URL path of the HTTP request. The key value is truncated to the first 128 bytes. - SNI: Server name indication in the TLS session of the HTTPS request. The key value is truncated to the first 128 bytes. The key type defaults to ALL on a HTTP session. - REGION_CODE: The country/region from which the request originates. - TLS_JA3_FINGERPRINT: JA3 TLS/SSL fingerprint if the client connects using HTTPS, HTTP/2 or HTTP/3. If not available, the key type defaults to ALL. - USER_IP: The IP address of the originating client, which is resolved based on "userIpRequestHeaders" configured with the security policy. If there is no "userIpRequestHeaders" configuration or an IP address cannot be resolved from it, the key type defaults to IP. - TLS_JA4_FINGERPRINT: JA4 TLS/SSL fingerprint if the client connects using HTTPS, HTTP/2 or HTTP/3. If not available, the key type defaults to ALL.
     /// Check the EnforceOnKey enum for the list of possible values.
     #[prost(string, optional, tag = "416648956")]
     pub enforce_on_key: ::core::option::Option<::prost::alloc::string::String>,
@@ -36269,7 +38964,7 @@ pub struct SecurityPolicyRuleRateLimitOptions {
 }
 /// Nested message and enum types in `SecurityPolicyRuleRateLimitOptions`.
 pub mod security_policy_rule_rate_limit_options {
-    /// Determines the key to enforce the rate_limit_threshold on. Possible values are: - ALL: A single rate limit threshold is applied to all the requests matching this rule. This is the default value if "enforceOnKey" is not configured. - IP: The source IP address of the request is the key. Each IP has this limit enforced separately. - HTTP_HEADER: The value of the HTTP header whose name is configured under "enforceOnKeyName". The key value is truncated to the first 128 bytes of the header value. If no such header is present in the request, the key type defaults to ALL. - XFF_IP: The first IP address (i.e. the originating client IP address) specified in the list of IPs under X-Forwarded-For HTTP header. If no such header is present or the value is not a valid IP, the key defaults to the source IP address of the request i.e. key type IP. - HTTP_COOKIE: The value of the HTTP cookie whose name is configured under "enforceOnKeyName". The key value is truncated to the first 128 bytes of the cookie value. If no such cookie is present in the request, the key type defaults to ALL. - HTTP_PATH: The URL path of the HTTP request. The key value is truncated to the first 128 bytes. - SNI: Server name indication in the TLS session of the HTTPS request. The key value is truncated to the first 128 bytes. The key type defaults to ALL on a HTTP session. - REGION_CODE: The country/region from which the request originates. - TLS_JA3_FINGERPRINT: JA3 TLS/SSL fingerprint if the client connects using HTTPS, HTTP/2 or HTTP/3. If not available, the key type defaults to ALL. - USER_IP: The IP address of the originating client, which is resolved based on "userIpRequestHeaders" configured with the security policy. If there is no "userIpRequestHeaders" configuration or an IP address cannot be resolved from it, the key type defaults to IP.
+    /// Determines the key to enforce the rate_limit_threshold on. Possible values are: - ALL: A single rate limit threshold is applied to all the requests matching this rule. This is the default value if "enforceOnKey" is not configured. - IP: The source IP address of the request is the key. Each IP has this limit enforced separately. - HTTP_HEADER: The value of the HTTP header whose name is configured under "enforceOnKeyName". The key value is truncated to the first 128 bytes of the header value. If no such header is present in the request, the key type defaults to ALL. - XFF_IP: The first IP address (i.e. the originating client IP address) specified in the list of IPs under X-Forwarded-For HTTP header. If no such header is present or the value is not a valid IP, the key defaults to the source IP address of the request i.e. key type IP. - HTTP_COOKIE: The value of the HTTP cookie whose name is configured under "enforceOnKeyName". The key value is truncated to the first 128 bytes of the cookie value. If no such cookie is present in the request, the key type defaults to ALL. - HTTP_PATH: The URL path of the HTTP request. The key value is truncated to the first 128 bytes. - SNI: Server name indication in the TLS session of the HTTPS request. The key value is truncated to the first 128 bytes. The key type defaults to ALL on a HTTP session. - REGION_CODE: The country/region from which the request originates. - TLS_JA3_FINGERPRINT: JA3 TLS/SSL fingerprint if the client connects using HTTPS, HTTP/2 or HTTP/3. If not available, the key type defaults to ALL. - USER_IP: The IP address of the originating client, which is resolved based on "userIpRequestHeaders" configured with the security policy. If there is no "userIpRequestHeaders" configuration or an IP address cannot be resolved from it, the key type defaults to IP. - TLS_JA4_FINGERPRINT: JA4 TLS/SSL fingerprint if the client connects using HTTPS, HTTP/2 or HTTP/3. If not available, the key type defaults to ALL.
     #[derive(
         Clone,
         Copy,
@@ -36293,6 +38988,7 @@ pub mod security_policy_rule_rate_limit_options {
         RegionCode = 79559768,
         Sni = 82254,
         TlsJa3Fingerprint = 327127933,
+        TlsJa4Fingerprint = 33724926,
         UserIp = 34009627,
         XffIp = 438707118,
     }
@@ -36312,6 +39008,7 @@ pub mod security_policy_rule_rate_limit_options {
                 Self::RegionCode => "REGION_CODE",
                 Self::Sni => "SNI",
                 Self::TlsJa3Fingerprint => "TLS_JA3_FINGERPRINT",
+                Self::TlsJa4Fingerprint => "TLS_JA4_FINGERPRINT",
                 Self::UserIp => "USER_IP",
                 Self::XffIp => "XFF_IP",
             }
@@ -36328,6 +39025,7 @@ pub mod security_policy_rule_rate_limit_options {
                 "REGION_CODE" => Some(Self::RegionCode),
                 "SNI" => Some(Self::Sni),
                 "TLS_JA3_FINGERPRINT" => Some(Self::TlsJa3Fingerprint),
+                "TLS_JA4_FINGERPRINT" => Some(Self::TlsJa4Fingerprint),
                 "USER_IP" => Some(Self::UserIp),
                 "XFF_IP" => Some(Self::XffIp),
                 _ => None,
@@ -36341,14 +39039,14 @@ pub struct SecurityPolicyRuleRateLimitOptionsEnforceOnKeyConfig {
     /// Rate limit key name applicable only for the following key types: HTTP_HEADER -- Name of the HTTP header whose value is taken as the key value. HTTP_COOKIE -- Name of the HTTP cookie whose value is taken as the key value.
     #[prost(string, optional, tag = "132555246")]
     pub enforce_on_key_name: ::core::option::Option<::prost::alloc::string::String>,
-    /// Determines the key to enforce the rate_limit_threshold on. Possible values are: - ALL: A single rate limit threshold is applied to all the requests matching this rule. This is the default value if "enforceOnKeyConfigs" is not configured. - IP: The source IP address of the request is the key. Each IP has this limit enforced separately. - HTTP_HEADER: The value of the HTTP header whose name is configured under "enforceOnKeyName". The key value is truncated to the first 128 bytes of the header value. If no such header is present in the request, the key type defaults to ALL. - XFF_IP: The first IP address (i.e. the originating client IP address) specified in the list of IPs under X-Forwarded-For HTTP header. If no such header is present or the value is not a valid IP, the key defaults to the source IP address of the request i.e. key type IP. - HTTP_COOKIE: The value of the HTTP cookie whose name is configured under "enforceOnKeyName". The key value is truncated to the first 128 bytes of the cookie value. If no such cookie is present in the request, the key type defaults to ALL. - HTTP_PATH: The URL path of the HTTP request. The key value is truncated to the first 128 bytes. - SNI: Server name indication in the TLS session of the HTTPS request. The key value is truncated to the first 128 bytes. The key type defaults to ALL on a HTTP session. - REGION_CODE: The country/region from which the request originates. - TLS_JA3_FINGERPRINT: JA3 TLS/SSL fingerprint if the client connects using HTTPS, HTTP/2 or HTTP/3. If not available, the key type defaults to ALL. - USER_IP: The IP address of the originating client, which is resolved based on "userIpRequestHeaders" configured with the security policy. If there is no "userIpRequestHeaders" configuration or an IP address cannot be resolved from it, the key type defaults to IP.
+    /// Determines the key to enforce the rate_limit_threshold on. Possible values are: - ALL: A single rate limit threshold is applied to all the requests matching this rule. This is the default value if "enforceOnKeyConfigs" is not configured. - IP: The source IP address of the request is the key. Each IP has this limit enforced separately. - HTTP_HEADER: The value of the HTTP header whose name is configured under "enforceOnKeyName". The key value is truncated to the first 128 bytes of the header value. If no such header is present in the request, the key type defaults to ALL. - XFF_IP: The first IP address (i.e. the originating client IP address) specified in the list of IPs under X-Forwarded-For HTTP header. If no such header is present or the value is not a valid IP, the key defaults to the source IP address of the request i.e. key type IP. - HTTP_COOKIE: The value of the HTTP cookie whose name is configured under "enforceOnKeyName". The key value is truncated to the first 128 bytes of the cookie value. If no such cookie is present in the request, the key type defaults to ALL. - HTTP_PATH: The URL path of the HTTP request. The key value is truncated to the first 128 bytes. - SNI: Server name indication in the TLS session of the HTTPS request. The key value is truncated to the first 128 bytes. The key type defaults to ALL on a HTTP session. - REGION_CODE: The country/region from which the request originates. - TLS_JA3_FINGERPRINT: JA3 TLS/SSL fingerprint if the client connects using HTTPS, HTTP/2 or HTTP/3. If not available, the key type defaults to ALL. - USER_IP: The IP address of the originating client, which is resolved based on "userIpRequestHeaders" configured with the security policy. If there is no "userIpRequestHeaders" configuration or an IP address cannot be resolved from it, the key type defaults to IP. - TLS_JA4_FINGERPRINT: JA4 TLS/SSL fingerprint if the client connects using HTTPS, HTTP/2 or HTTP/3. If not available, the key type defaults to ALL.
     /// Check the EnforceOnKeyType enum for the list of possible values.
     #[prost(string, optional, tag = "132757149")]
     pub enforce_on_key_type: ::core::option::Option<::prost::alloc::string::String>,
 }
 /// Nested message and enum types in `SecurityPolicyRuleRateLimitOptionsEnforceOnKeyConfig`.
 pub mod security_policy_rule_rate_limit_options_enforce_on_key_config {
-    /// Determines the key to enforce the rate_limit_threshold on. Possible values are: - ALL: A single rate limit threshold is applied to all the requests matching this rule. This is the default value if "enforceOnKeyConfigs" is not configured. - IP: The source IP address of the request is the key. Each IP has this limit enforced separately. - HTTP_HEADER: The value of the HTTP header whose name is configured under "enforceOnKeyName". The key value is truncated to the first 128 bytes of the header value. If no such header is present in the request, the key type defaults to ALL. - XFF_IP: The first IP address (i.e. the originating client IP address) specified in the list of IPs under X-Forwarded-For HTTP header. If no such header is present or the value is not a valid IP, the key defaults to the source IP address of the request i.e. key type IP. - HTTP_COOKIE: The value of the HTTP cookie whose name is configured under "enforceOnKeyName". The key value is truncated to the first 128 bytes of the cookie value. If no such cookie is present in the request, the key type defaults to ALL. - HTTP_PATH: The URL path of the HTTP request. The key value is truncated to the first 128 bytes. - SNI: Server name indication in the TLS session of the HTTPS request. The key value is truncated to the first 128 bytes. The key type defaults to ALL on a HTTP session. - REGION_CODE: The country/region from which the request originates. - TLS_JA3_FINGERPRINT: JA3 TLS/SSL fingerprint if the client connects using HTTPS, HTTP/2 or HTTP/3. If not available, the key type defaults to ALL. - USER_IP: The IP address of the originating client, which is resolved based on "userIpRequestHeaders" configured with the security policy. If there is no "userIpRequestHeaders" configuration or an IP address cannot be resolved from it, the key type defaults to IP.
+    /// Determines the key to enforce the rate_limit_threshold on. Possible values are: - ALL: A single rate limit threshold is applied to all the requests matching this rule. This is the default value if "enforceOnKeyConfigs" is not configured. - IP: The source IP address of the request is the key. Each IP has this limit enforced separately. - HTTP_HEADER: The value of the HTTP header whose name is configured under "enforceOnKeyName". The key value is truncated to the first 128 bytes of the header value. If no such header is present in the request, the key type defaults to ALL. - XFF_IP: The first IP address (i.e. the originating client IP address) specified in the list of IPs under X-Forwarded-For HTTP header. If no such header is present or the value is not a valid IP, the key defaults to the source IP address of the request i.e. key type IP. - HTTP_COOKIE: The value of the HTTP cookie whose name is configured under "enforceOnKeyName". The key value is truncated to the first 128 bytes of the cookie value. If no such cookie is present in the request, the key type defaults to ALL. - HTTP_PATH: The URL path of the HTTP request. The key value is truncated to the first 128 bytes. - SNI: Server name indication in the TLS session of the HTTPS request. The key value is truncated to the first 128 bytes. The key type defaults to ALL on a HTTP session. - REGION_CODE: The country/region from which the request originates. - TLS_JA3_FINGERPRINT: JA3 TLS/SSL fingerprint if the client connects using HTTPS, HTTP/2 or HTTP/3. If not available, the key type defaults to ALL. - USER_IP: The IP address of the originating client, which is resolved based on "userIpRequestHeaders" configured with the security policy. If there is no "userIpRequestHeaders" configuration or an IP address cannot be resolved from it, the key type defaults to IP. - TLS_JA4_FINGERPRINT: JA4 TLS/SSL fingerprint if the client connects using HTTPS, HTTP/2 or HTTP/3. If not available, the key type defaults to ALL.
     #[derive(
         Clone,
         Copy,
@@ -36372,6 +39070,7 @@ pub mod security_policy_rule_rate_limit_options_enforce_on_key_config {
         RegionCode = 79559768,
         Sni = 82254,
         TlsJa3Fingerprint = 327127933,
+        TlsJa4Fingerprint = 33724926,
         UserIp = 34009627,
         XffIp = 438707118,
     }
@@ -36391,6 +39090,7 @@ pub mod security_policy_rule_rate_limit_options_enforce_on_key_config {
                 Self::RegionCode => "REGION_CODE",
                 Self::Sni => "SNI",
                 Self::TlsJa3Fingerprint => "TLS_JA3_FINGERPRINT",
+                Self::TlsJa4Fingerprint => "TLS_JA4_FINGERPRINT",
                 Self::UserIp => "USER_IP",
                 Self::XffIp => "XFF_IP",
             }
@@ -36407,6 +39107,7 @@ pub mod security_policy_rule_rate_limit_options_enforce_on_key_config {
                 "REGION_CODE" => Some(Self::RegionCode),
                 "SNI" => Some(Self::Sni),
                 "TLS_JA3_FINGERPRINT" => Some(Self::TlsJa3Fingerprint),
+                "TLS_JA4_FINGERPRINT" => Some(Self::TlsJa4Fingerprint),
                 "USER_IP" => Some(Self::UserIp),
                 "XFF_IP" => Some(Self::XffIp),
                 _ => None,
@@ -37910,6 +40611,27 @@ pub struct SetLabelsRegionInstantSnapshotRequest {
     #[prost(string, tag = "195806222")]
     pub resource: ::prost::alloc::string::String,
 }
+/// A request message for RegionSecurityPolicies.SetLabels. See the method description for details.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SetLabelsRegionSecurityPolicyRequest {
+    /// Project ID for this request.
+    #[prost(string, tag = "227560217")]
+    pub project: ::prost::alloc::string::String,
+    /// The region for this request.
+    #[prost(string, tag = "138946292")]
+    pub region: ::prost::alloc::string::String,
+    /// The body resource for this request
+    #[prost(message, optional, tag = "259357782")]
+    pub region_set_labels_request_resource: ::core::option::Option<
+        RegionSetLabelsRequest,
+    >,
+    /// An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported ( 00000000-0000-0000-0000-000000000000).
+    #[prost(string, optional, tag = "37109963")]
+    pub request_id: ::core::option::Option<::prost::alloc::string::String>,
+    /// Name or id of the resource for this request.
+    #[prost(string, tag = "195806222")]
+    pub resource: ::prost::alloc::string::String,
+}
 /// A request message for SecurityPolicies.SetLabels. See the method description for details.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SetLabelsSecurityPolicyRequest {
@@ -38942,7 +41664,7 @@ pub struct Snapshot {
     pub source_instant_snapshot_encryption_key: ::core::option::Option<
         CustomerEncryptionKey,
     >,
-    /// \[Output Only\] The unique ID of the instant snapshot used to create this snapshot. This value identifies the exact instant snapshot that was used to create this persistent disk. For example, if you created the persistent disk from an instant snapshot that was later deleted and recreated under the same name, the source instant snapshot ID would identify the exact instant snapshot that was used.
+    /// \[Output Only\] The unique ID of the instant snapshot used to create this snapshot. This value identifies the exact instant snapshot that was used to create this snapshot. For example, if you created the snapshot from an instant snapshot that was later deleted and recreated under the same name, the source instant snapshot ID would identify the exact instant snapshot that was used.
     #[prost(string, optional, tag = "287582708")]
     pub source_instant_snapshot_id: ::core::option::Option<
         ::prost::alloc::string::String,
@@ -39924,6 +42646,48 @@ pub struct StartInstanceRequest {
     #[prost(string, tag = "3744684")]
     pub zone: ::prost::alloc::string::String,
 }
+/// A request message for InstanceGroupManagers.StartInstances. See the method description for details.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct StartInstancesInstanceGroupManagerRequest {
+    /// The name of the managed instance group.
+    #[prost(string, tag = "249363395")]
+    pub instance_group_manager: ::prost::alloc::string::String,
+    /// The body resource for this request
+    #[prost(message, optional, tag = "261083819")]
+    pub instance_group_managers_start_instances_request_resource: ::core::option::Option<
+        InstanceGroupManagersStartInstancesRequest,
+    >,
+    /// Project ID for this request.
+    #[prost(string, tag = "227560217")]
+    pub project: ::prost::alloc::string::String,
+    /// An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported ( 00000000-0000-0000-0000-000000000000).
+    #[prost(string, optional, tag = "37109963")]
+    pub request_id: ::core::option::Option<::prost::alloc::string::String>,
+    /// The name of the zone where the managed instance group is located.
+    #[prost(string, tag = "3744684")]
+    pub zone: ::prost::alloc::string::String,
+}
+/// A request message for RegionInstanceGroupManagers.StartInstances. See the method description for details.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct StartInstancesRegionInstanceGroupManagerRequest {
+    /// Name of the managed instance group.
+    #[prost(string, tag = "249363395")]
+    pub instance_group_manager: ::prost::alloc::string::String,
+    /// Project ID for this request.
+    #[prost(string, tag = "227560217")]
+    pub project: ::prost::alloc::string::String,
+    /// Name of the region scoping this request.
+    #[prost(string, tag = "138946292")]
+    pub region: ::prost::alloc::string::String,
+    /// The body resource for this request
+    #[prost(message, optional, tag = "497012118")]
+    pub region_instance_group_managers_start_instances_request_resource: ::core::option::Option<
+        RegionInstanceGroupManagersStartInstancesRequest,
+    >,
+    /// An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported ( 00000000-0000-0000-0000-000000000000).
+    #[prost(string, optional, tag = "37109963")]
+    pub request_id: ::core::option::Option<::prost::alloc::string::String>,
+}
 /// A request message for Instances.StartWithEncryptionKey. See the method description for details.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct StartWithEncryptionKeyInstanceRequest {
@@ -40180,6 +42944,48 @@ pub struct StopInstanceRequest {
     /// The name of the zone for this request.
     #[prost(string, tag = "3744684")]
     pub zone: ::prost::alloc::string::String,
+}
+/// A request message for InstanceGroupManagers.StopInstances. See the method description for details.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct StopInstancesInstanceGroupManagerRequest {
+    /// The name of the managed instance group.
+    #[prost(string, tag = "249363395")]
+    pub instance_group_manager: ::prost::alloc::string::String,
+    /// The body resource for this request
+    #[prost(message, optional, tag = "37556877")]
+    pub instance_group_managers_stop_instances_request_resource: ::core::option::Option<
+        InstanceGroupManagersStopInstancesRequest,
+    >,
+    /// Project ID for this request.
+    #[prost(string, tag = "227560217")]
+    pub project: ::prost::alloc::string::String,
+    /// An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported ( 00000000-0000-0000-0000-000000000000).
+    #[prost(string, optional, tag = "37109963")]
+    pub request_id: ::core::option::Option<::prost::alloc::string::String>,
+    /// The name of the zone where the managed instance group is located.
+    #[prost(string, tag = "3744684")]
+    pub zone: ::prost::alloc::string::String,
+}
+/// A request message for RegionInstanceGroupManagers.StopInstances. See the method description for details.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct StopInstancesRegionInstanceGroupManagerRequest {
+    /// The name of the managed instance group.
+    #[prost(string, tag = "249363395")]
+    pub instance_group_manager: ::prost::alloc::string::String,
+    /// Project ID for this request.
+    #[prost(string, tag = "227560217")]
+    pub project: ::prost::alloc::string::String,
+    /// Name of the region scoping this request.
+    #[prost(string, tag = "138946292")]
+    pub region: ::prost::alloc::string::String,
+    /// The body resource for this request
+    #[prost(message, optional, tag = "270306882")]
+    pub region_instance_group_managers_stop_instances_request_resource: ::core::option::Option<
+        RegionInstanceGroupManagersStopInstancesRequest,
+    >,
+    /// An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported ( 00000000-0000-0000-0000-000000000000).
+    #[prost(string, optional, tag = "37109963")]
+    pub request_id: ::core::option::Option<::prost::alloc::string::String>,
 }
 /// Represents a zonal storage pool resource.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -40762,6 +43568,9 @@ pub struct Subnetwork {
     /// The range of internal addresses that are owned by this subnetwork. Provide this property when you create the subnetwork. For example, 10.0.0.0/8 or 100.64.0.0/10. Ranges must be unique and non-overlapping within a network. Only IPv4 is supported. This field is set at resource creation time. The range can be any range listed in the Valid ranges list. The range can be expanded after creation using expandIpCidrRange.
     #[prost(string, optional, tag = "98117322")]
     pub ip_cidr_range: ::core::option::Option<::prost::alloc::string::String>,
+    /// Reference to the source of IP, like a PublicDelegatedPrefix (PDP) for BYOIP. The PDP must be a sub-PDP in EXTERNAL_IPV6_SUBNETWORK_CREATION mode. Use one of the following formats to specify a sub-PDP when creating a dual stack subnetwork with external access using BYOIP: - Full resource URL, as in <https://www.googleapis.com/compute/v1/projects/projectId/regions/region> /publicDelegatedPrefixes/sub-pdp-name - Partial URL, as in - projects/projectId/regions/region/publicDelegatedPrefixes/ sub-pdp-name - regions/region/publicDelegatedPrefixes/sub-pdp-name
+    #[prost(string, optional, tag = "176818358")]
+    pub ip_collection: ::core::option::Option<::prost::alloc::string::String>,
     /// The access type of IPv6 address this subnet holds. It's immutable and can only be specified during creation or the first time the subnet is updated into IPV4_IPV6 dual stack.
     /// Check the Ipv6AccessType enum for the list of possible values.
     #[prost(string, optional, tag = "504658653")]
@@ -40769,6 +43578,10 @@ pub struct Subnetwork {
     /// \[Output Only\] This field is for internal use.
     #[prost(string, optional, tag = "273141258")]
     pub ipv6_cidr_range: ::core::option::Option<::prost::alloc::string::String>,
+    /// \[Output Only\] Possible endpoints of this subnetwork. It can be one of the following: - VM_ONLY: The subnetwork can be used for creating instances and IPv6 addresses with VM endpoint type. Such a subnetwork gets external IPv6 ranges from a public delegated prefix and cannot be used to create NetLb. - VM_AND_FR: The subnetwork can be used for creating both VM instances and Forwarding Rules. It can also be used to reserve IPv6 addresses with both VM and FR endpoint types. Such a subnetwork gets its IPv6 range from Google IP Pool directly.
+    /// Check the Ipv6GceEndpoint enum for the list of possible values.
+    #[prost(string, optional, tag = "320382307")]
+    pub ipv6_gce_endpoint: ::core::option::Option<::prost::alloc::string::String>,
     /// \[Output Only\] Type of the resource. Always compute#subnetwork for Subnetwork resources.
     #[prost(string, optional, tag = "3292052")]
     pub kind: ::core::option::Option<::prost::alloc::string::String>,
@@ -40790,7 +43603,7 @@ pub struct Subnetwork {
     pub private_ipv6_google_access: ::core::option::Option<
         ::prost::alloc::string::String,
     >,
-    /// The purpose of the resource. This field can be either PRIVATE, GLOBAL_MANAGED_PROXY, REGIONAL_MANAGED_PROXY, PRIVATE_SERVICE_CONNECT, or PRIVATE is the default purpose for user-created subnets or subnets that are automatically created in auto mode networks. Subnets with purpose set to GLOBAL_MANAGED_PROXY or REGIONAL_MANAGED_PROXY are user-created subnetworks that are reserved for Envoy-based load balancers. A subnet with purpose set to PRIVATE_SERVICE_CONNECT is used to publish services using Private Service Connect. If unspecified, the subnet purpose defaults to PRIVATE. The enableFlowLogs field isn't supported if the subnet purpose field is set to GLOBAL_MANAGED_PROXY or REGIONAL_MANAGED_PROXY.
+    /// The purpose of the resource. This field can be either PRIVATE, GLOBAL_MANAGED_PROXY, REGIONAL_MANAGED_PROXY, PEER_MIGRATION, PRIVATE_SERVICE_CONNECT or PRIVATE_NAT. PRIVATE is the default purpose for user-created subnets or subnets that are automatically created in auto mode networks. Subnets with purpose set to GLOBAL_MANAGED_PROXY or REGIONAL_MANAGED_PROXY are user-created subnetworks that are reserved for Envoy-based load balancers. A subnet with purpose set to PRIVATE_SERVICE_CONNECT is used to publish services using Private Service Connect. A subnet with purpose set to PEER_MIGRATION is used for subnet migration from one peered VPC to another. A subnet with purpose set to PRIVATE_NAT is used for Private NAT IP address by Private NAT Gateway. If unspecified, the subnet purpose defaults to PRIVATE. The enableFlowLogs field isn't supported if the subnet purpose field is set to GLOBAL_MANAGED_PROXY or REGIONAL_MANAGED_PROXY.
     /// Check the Purpose enum for the list of possible values.
     #[prost(string, optional, tag = "316407070")]
     pub purpose: ::core::option::Option<::prost::alloc::string::String>,
@@ -40867,6 +43680,47 @@ pub mod subnetwork {
             }
         }
     }
+    /// \[Output Only\] Possible endpoints of this subnetwork. It can be one of the following: - VM_ONLY: The subnetwork can be used for creating instances and IPv6 addresses with VM endpoint type. Such a subnetwork gets external IPv6 ranges from a public delegated prefix and cannot be used to create NetLb. - VM_AND_FR: The subnetwork can be used for creating both VM instances and Forwarding Rules. It can also be used to reserve IPv6 addresses with both VM and FR endpoint types. Such a subnetwork gets its IPv6 range from Google IP Pool directly.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Ipv6GceEndpoint {
+        /// A value indicating that the enum field is not set.
+        UndefinedIpv6GceEndpoint = 0,
+        VmAndFr = 41830108,
+        VmOnly = 236773428,
+    }
+    impl Ipv6GceEndpoint {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::UndefinedIpv6GceEndpoint => "UNDEFINED_IPV6_GCE_ENDPOINT",
+                Self::VmAndFr => "VM_AND_FR",
+                Self::VmOnly => "VM_ONLY",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNDEFINED_IPV6_GCE_ENDPOINT" => Some(Self::UndefinedIpv6GceEndpoint),
+                "VM_AND_FR" => Some(Self::VmAndFr),
+                "VM_ONLY" => Some(Self::VmOnly),
+                _ => None,
+            }
+        }
+    }
     /// This field is for internal use. This field can be both set at resource creation time and updated using patch.
     #[derive(
         Clone,
@@ -40926,7 +43780,7 @@ pub mod subnetwork {
             }
         }
     }
-    /// The purpose of the resource. This field can be either PRIVATE, GLOBAL_MANAGED_PROXY, REGIONAL_MANAGED_PROXY, PRIVATE_SERVICE_CONNECT, or PRIVATE is the default purpose for user-created subnets or subnets that are automatically created in auto mode networks. Subnets with purpose set to GLOBAL_MANAGED_PROXY or REGIONAL_MANAGED_PROXY are user-created subnetworks that are reserved for Envoy-based load balancers. A subnet with purpose set to PRIVATE_SERVICE_CONNECT is used to publish services using Private Service Connect. If unspecified, the subnet purpose defaults to PRIVATE. The enableFlowLogs field isn't supported if the subnet purpose field is set to GLOBAL_MANAGED_PROXY or REGIONAL_MANAGED_PROXY.
+    /// The purpose of the resource. This field can be either PRIVATE, GLOBAL_MANAGED_PROXY, REGIONAL_MANAGED_PROXY, PEER_MIGRATION, PRIVATE_SERVICE_CONNECT or PRIVATE_NAT. PRIVATE is the default purpose for user-created subnets or subnets that are automatically created in auto mode networks. Subnets with purpose set to GLOBAL_MANAGED_PROXY or REGIONAL_MANAGED_PROXY are user-created subnetworks that are reserved for Envoy-based load balancers. A subnet with purpose set to PRIVATE_SERVICE_CONNECT is used to publish services using Private Service Connect. A subnet with purpose set to PEER_MIGRATION is used for subnet migration from one peered VPC to another. A subnet with purpose set to PRIVATE_NAT is used for Private NAT IP address by Private NAT Gateway. If unspecified, the subnet purpose defaults to PRIVATE. The enableFlowLogs field isn't supported if the subnet purpose field is set to GLOBAL_MANAGED_PROXY or REGIONAL_MANAGED_PROXY.
     #[derive(
         Clone,
         Copy,
@@ -40946,6 +43800,8 @@ pub mod subnetwork {
         GlobalManagedProxy = 236463602,
         /// Subnet reserved for Internal HTTP(S) Load Balancing. This is a legacy purpose, please use REGIONAL_MANAGED_PROXY instead.
         InternalHttpsLoadBalancer = 248748889,
+        /// Subnetwork will be used for Migration from one peered VPC to another. (a transient state of subnetwork while migrating resources from one project to another).
+        PeerMigration = 491902225,
         /// Regular user created or automatically created subnet.
         Private = 403485027,
         /// Subnetwork used as source range for Private NAT Gateways.
@@ -40967,6 +43823,7 @@ pub mod subnetwork {
                 Self::UndefinedPurpose => "UNDEFINED_PURPOSE",
                 Self::GlobalManagedProxy => "GLOBAL_MANAGED_PROXY",
                 Self::InternalHttpsLoadBalancer => "INTERNAL_HTTPS_LOAD_BALANCER",
+                Self::PeerMigration => "PEER_MIGRATION",
                 Self::Private => "PRIVATE",
                 Self::PrivateNat => "PRIVATE_NAT",
                 Self::PrivateRfc1918 => "PRIVATE_RFC_1918",
@@ -40980,6 +43837,7 @@ pub mod subnetwork {
                 "UNDEFINED_PURPOSE" => Some(Self::UndefinedPurpose),
                 "GLOBAL_MANAGED_PROXY" => Some(Self::GlobalManagedProxy),
                 "INTERNAL_HTTPS_LOAD_BALANCER" => Some(Self::InternalHttpsLoadBalancer),
+                "PEER_MIGRATION" => Some(Self::PeerMigration),
                 "PRIVATE" => Some(Self::Private),
                 "PRIVATE_NAT" => Some(Self::PrivateNat),
                 "PRIVATE_RFC_1918" => Some(Self::PrivateRfc1918),
@@ -41411,6 +44269,48 @@ pub struct SuspendInstanceRequest {
     #[prost(string, tag = "3744684")]
     pub zone: ::prost::alloc::string::String,
 }
+/// A request message for InstanceGroupManagers.SuspendInstances. See the method description for details.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SuspendInstancesInstanceGroupManagerRequest {
+    /// The name of the managed instance group.
+    #[prost(string, tag = "249363395")]
+    pub instance_group_manager: ::prost::alloc::string::String,
+    /// The body resource for this request
+    #[prost(message, optional, tag = "46679761")]
+    pub instance_group_managers_suspend_instances_request_resource: ::core::option::Option<
+        InstanceGroupManagersSuspendInstancesRequest,
+    >,
+    /// Project ID for this request.
+    #[prost(string, tag = "227560217")]
+    pub project: ::prost::alloc::string::String,
+    /// An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported ( 00000000-0000-0000-0000-000000000000).
+    #[prost(string, optional, tag = "37109963")]
+    pub request_id: ::core::option::Option<::prost::alloc::string::String>,
+    /// The name of the zone where the managed instance group is located.
+    #[prost(string, tag = "3744684")]
+    pub zone: ::prost::alloc::string::String,
+}
+/// A request message for RegionInstanceGroupManagers.SuspendInstances. See the method description for details.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SuspendInstancesRegionInstanceGroupManagerRequest {
+    /// Name of the managed instance group.
+    #[prost(string, tag = "249363395")]
+    pub instance_group_manager: ::prost::alloc::string::String,
+    /// Project ID for this request.
+    #[prost(string, tag = "227560217")]
+    pub project: ::prost::alloc::string::String,
+    /// Name of the region scoping this request.
+    #[prost(string, tag = "138946292")]
+    pub region: ::prost::alloc::string::String,
+    /// The body resource for this request
+    #[prost(message, optional, tag = "214250236")]
+    pub region_instance_group_managers_suspend_instances_request_resource: ::core::option::Option<
+        RegionInstanceGroupManagersSuspendInstancesRequest,
+    >,
+    /// An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported ( 00000000-0000-0000-0000-000000000000).
+    #[prost(string, optional, tag = "37109963")]
+    pub request_id: ::core::option::Option<::prost::alloc::string::String>,
+}
 /// A request message for Networks.SwitchToCustomMode. See the method description for details.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SwitchToCustomModeNetworkRequest {
@@ -41781,7 +44681,7 @@ pub struct TargetHttpsProxiesSetSslCertificatesRequest {
     #[prost(string, repeated, tag = "366006543")]
     pub ssl_certificates: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
-/// Represents a Target HTTPS Proxy resource. Google Compute Engine has two Target HTTPS Proxy resources: * [Global](/compute/docs/reference/rest/v1/targetHttpsProxies) * [Regional](/compute/docs/reference/rest/v1/regionTargetHttpsProxies) A target HTTPS proxy is a component of GCP HTTPS load balancers. * targetHttpProxies are used by global external Application Load Balancers, classic Application Load Balancers, cross-region internal Application Load Balancers, and Traffic Director. * regionTargetHttpProxies are used by regional internal Application Load Balancers and regional external Application Load Balancers. Forwarding rules reference a target HTTPS proxy, and the target proxy then references a URL map. For more information, read Using Target Proxies and Forwarding rule concepts.
+/// Represents a Target HTTPS Proxy resource. Google Compute Engine has two Target HTTPS Proxy resources: * [Global](/compute/docs/reference/rest/v1/targetHttpsProxies) * [Regional](/compute/docs/reference/rest/v1/regionTargetHttpsProxies) A target HTTPS proxy is a component of Google Cloud HTTPS load balancers. * targetHttpProxies are used by global external Application Load Balancers, classic Application Load Balancers, cross-region internal Application Load Balancers, and Traffic Director. * regionTargetHttpProxies are used by regional internal Application Load Balancers and regional external Application Load Balancers. Forwarding rules reference a target HTTPS proxy, and the target proxy then references a URL map. For more information, read Using Target Proxies and Forwarding rule concepts.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TargetHttpsProxy {
     /// Optional. A URL referring to a networksecurity.AuthorizationPolicy resource that describes how the proxy should authorize inbound traffic. If left blank, access will not be restricted by an authorization policy. Refer to the AuthorizationPolicy resource for additional details. authorizationPolicy only applies to a global TargetHttpsProxy attached to globalForwardingRules with the loadBalancingScheme set to INTERNAL_SELF_MANAGED. Note: This field currently has no impact.
@@ -41824,10 +44724,10 @@ pub struct TargetHttpsProxy {
     /// \[Output Only\] Server-defined URL for the resource.
     #[prost(string, optional, tag = "456214797")]
     pub self_link: ::core::option::Option<::prost::alloc::string::String>,
-    /// Optional. A URL referring to a networksecurity.ServerTlsPolicy resource that describes how the proxy should authenticate inbound traffic. serverTlsPolicy only applies to a global TargetHttpsProxy attached to globalForwardingRules with the loadBalancingScheme set to INTERNAL_SELF_MANAGED or EXTERNAL or EXTERNAL_MANAGED. For details which ServerTlsPolicy resources are accepted with INTERNAL_SELF_MANAGED and which with EXTERNAL, EXTERNAL_MANAGED loadBalancingScheme consult ServerTlsPolicy documentation. If left blank, communications are not encrypted.
+    /// Optional. A URL referring to a networksecurity.ServerTlsPolicy resource that describes how the proxy should authenticate inbound traffic. serverTlsPolicy only applies to a global TargetHttpsProxy attached to globalForwardingRules with the loadBalancingScheme set to INTERNAL_SELF_MANAGED or EXTERNAL or EXTERNAL_MANAGED or INTERNAL_MANAGED. It also applies to a regional TargetHttpsProxy attached to regional forwardingRules with the loadBalancingScheme set to EXTERNAL_MANAGED or INTERNAL_MANAGED. For details which ServerTlsPolicy resources are accepted with INTERNAL_SELF_MANAGED and which with EXTERNAL, INTERNAL_MANAGED, EXTERNAL_MANAGED loadBalancingScheme consult ServerTlsPolicy documentation. If left blank, communications are not encrypted.
     #[prost(string, optional, tag = "295825266")]
     pub server_tls_policy: ::core::option::Option<::prost::alloc::string::String>,
-    /// URLs to SslCertificate resources that are used to authenticate connections between users and the load balancer. At least one SSL certificate must be specified. SslCertificates do not apply when the load balancing scheme is set to INTERNAL_SELF_MANAGED. The URLs should refer to a SSL Certificate resource or Certificate Manager Certificate resource. Mixing Classic Certificates and Certificate Manager Certificates is not allowed. Certificate Manager Certificates must include the certificatemanager API. Certificate Manager Certificates are not supported by Global external Application Load Balancer or Classic Application Load Balancer, use certificate_map instead. Currently, you may specify up to 15 Classic SSL Certificates. Certificate Manager Certificates accepted formats are: - //certificatemanager.googleapis.com/projects/{project}/locations/{ location}/certificates/{resourceName}. - <https://certificatemanager.googleapis.com/v1alpha1/projects/{project> }/locations/{location}/certificates/{resourceName}.
+    /// URLs to SslCertificate resources that are used to authenticate connections between users and the load balancer. At least one SSL certificate must be specified. SslCertificates do not apply when the load balancing scheme is set to INTERNAL_SELF_MANAGED. The URLs should refer to a SSL Certificate resource or Certificate Manager Certificate resource. Mixing Classic Certificates and Certificate Manager Certificates is not allowed. Certificate Manager Certificates must include the certificatemanager API namespace. Using Certificate Manager Certificates in this field is not supported by Global external Application Load Balancer or Classic Application Load Balancer, use certificate_map instead. Currently, you may specify up to 15 Classic SSL Certificates or up to 100 Certificate Manager Certificates. Certificate Manager Certificates accepted formats are: - //certificatemanager.googleapis.com/projects/{project}/locations/{ location}/certificates/{resourceName}. - <https://certificatemanager.googleapis.com/v1alpha1/projects/{project> }/locations/{location}/certificates/{resourceName}.
     #[prost(string, repeated, tag = "366006543")]
     pub ssl_certificates: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
     /// URL of SslPolicy resource that will be associated with the TargetHttpsProxy resource. If not set, the TargetHttpsProxy resource has no SSL policy configured.
@@ -41912,6 +44812,8 @@ pub mod target_https_proxy {
         Permissive = 504345247,
         /// This enables TLS 1.3 0-RTT, and only allows Early Data to be included on requests with safe HTTP methods (GET, HEAD, OPTIONS, TRACE) without query parameters. Requests that send Early Data with non-idempotent HTTP methods or with query parameters will be rejected with a HTTP 425.
         Strict = 308826825,
+        /// This enables TLS 1.3 Early Data for requests with any HTTP method including non-idempotent methods list POST. This mode does not enforce any other limitations. This may be valuable for gRPC use cases. However, we do not recommend this method unless you have evaluated your security stance and mitigated the risk of replay attacks using other mechanisms.
+        Unrestricted = 457266100,
     }
     impl TlsEarlyData {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -41924,6 +44826,7 @@ pub mod target_https_proxy {
                 Self::Disabled => "DISABLED",
                 Self::Permissive => "PERMISSIVE",
                 Self::Strict => "STRICT",
+                Self::Unrestricted => "UNRESTRICTED",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -41933,6 +44836,7 @@ pub mod target_https_proxy {
                 "DISABLED" => Some(Self::Disabled),
                 "PERMISSIVE" => Some(Self::Permissive),
                 "STRICT" => Some(Self::Strict),
+                "UNRESTRICTED" => Some(Self::Unrestricted),
                 _ => None,
             }
         }
@@ -43928,7 +46832,7 @@ pub struct UpdateRegionBackendServiceRequest {
 /// A request message for RegionCommitments.Update. See the method description for details.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdateRegionCommitmentRequest {
-    /// Name of the commitment for which auto renew is being updated.
+    /// Name of the commitment that you want to update.
     #[prost(string, tag = "482134805")]
     pub commitment: ::prost::alloc::string::String,
     /// The body resource for this request
@@ -44035,6 +46939,25 @@ pub struct UpdateReservationRequest {
     #[prost(string, tag = "3744684")]
     pub zone: ::prost::alloc::string::String,
 }
+/// A request message for Routers.UpdateRoutePolicy. See the method description for details.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateRoutePolicyRouterRequest {
+    /// Project ID for this request.
+    #[prost(string, tag = "227560217")]
+    pub project: ::prost::alloc::string::String,
+    /// Name of the region for this request.
+    #[prost(string, tag = "138946292")]
+    pub region: ::prost::alloc::string::String,
+    /// An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported ( 00000000-0000-0000-0000-000000000000).
+    #[prost(string, optional, tag = "37109963")]
+    pub request_id: ::core::option::Option<::prost::alloc::string::String>,
+    /// The body resource for this request
+    #[prost(message, optional, tag = "116219525")]
+    pub route_policy_resource: ::core::option::Option<RoutePolicy>,
+    /// Name of the Router resource where Route Policy is defined.
+    #[prost(string, tag = "148608841")]
+    pub router: ::prost::alloc::string::String,
+}
 /// A request message for Routers.Update. See the method description for details.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdateRouterRequest {
@@ -44124,13 +47047,13 @@ pub struct UrlMap {
     pub default_custom_error_response_policy: ::core::option::Option<
         CustomErrorResponsePolicy,
     >,
-    /// defaultRouteAction takes effect when none of the hostRules match. The load balancer performs advanced routing actions, such as URL rewrites and header transformations, before forwarding the request to the selected backend. If defaultRouteAction specifies any weightedBackendServices, defaultService must not be set. Conversely if defaultService is set, defaultRouteAction cannot contain any weightedBackendServices. Only one of defaultRouteAction or defaultUrlRedirect must be set. URL maps for classic Application Load Balancers only support the urlRewrite action within defaultRouteAction. defaultRouteAction has no effect when the URL map is bound to a target gRPC proxy that has the validateForProxyless field set to true.
+    /// defaultRouteAction takes effect when none of the hostRules match. The load balancer performs advanced routing actions, such as URL rewrites and header transformations, before forwarding the request to the selected backend. Only one of defaultUrlRedirect, defaultService or defaultRouteAction.weightedBackendService can be set. URL maps for classic Application Load Balancers only support the urlRewrite action within defaultRouteAction. defaultRouteAction has no effect when the URL map is bound to a target gRPC proxy that has the validateForProxyless field set to true.
     #[prost(message, optional, tag = "378919466")]
     pub default_route_action: ::core::option::Option<HttpRouteAction>,
-    /// The full or partial URL of the defaultService resource to which traffic is directed if none of the hostRules match. If defaultRouteAction is also specified, advanced routing actions, such as URL rewrites, take effect before sending the request to the backend. However, if defaultService is specified, defaultRouteAction cannot contain any defaultRouteAction.weightedBackendServices. Conversely, if defaultRouteAction specifies any defaultRouteAction.weightedBackendServices, defaultService must not be specified. If defaultService is specified, then set either defaultUrlRedirect , or defaultRouteAction.weightedBackendService Don't set both. defaultService has no effect when the URL map is bound to a target gRPC proxy that has the validateForProxyless field set to true.
+    /// The full or partial URL of the defaultService resource to which traffic is directed if none of the hostRules match. If defaultRouteAction is also specified, advanced routing actions, such as URL rewrites, take effect before sending the request to the backend. Only one of defaultUrlRedirect, defaultService or defaultRouteAction.weightedBackendService can be set. defaultService has no effect when the URL map is bound to a target gRPC proxy that has the validateForProxyless field set to true.
     #[prost(string, optional, tag = "370242231")]
     pub default_service: ::core::option::Option<::prost::alloc::string::String>,
-    /// When none of the specified hostRules match, the request is redirected to a URL specified by defaultUrlRedirect. If defaultUrlRedirect is specified, defaultService or defaultRouteAction must not be set. Not supported when the URL map is bound to a target gRPC proxy.
+    /// When none of the specified hostRules match, the request is redirected to a URL specified by defaultUrlRedirect. Only one of defaultUrlRedirect, defaultService or defaultRouteAction.weightedBackendService can be set. Not supported when the URL map is bound to a target gRPC proxy.
     #[prost(message, optional, tag = "359503338")]
     pub default_url_redirect: ::core::option::Option<HttpRedirectAction>,
     /// An optional description of this resource. Provide this property when you create the resource.
@@ -44387,7 +47310,7 @@ pub struct UsableSubnetwork {
     /// Network URL.
     #[prost(string, optional, tag = "232872494")]
     pub network: ::core::option::Option<::prost::alloc::string::String>,
-    /// The purpose of the resource. This field can be either PRIVATE, GLOBAL_MANAGED_PROXY, REGIONAL_MANAGED_PROXY, PRIVATE_SERVICE_CONNECT, or PRIVATE is the default purpose for user-created subnets or subnets that are automatically created in auto mode networks. Subnets with purpose set to GLOBAL_MANAGED_PROXY or REGIONAL_MANAGED_PROXY are user-created subnetworks that are reserved for Envoy-based load balancers. A subnet with purpose set to PRIVATE_SERVICE_CONNECT is used to publish services using Private Service Connect. If unspecified, the subnet purpose defaults to PRIVATE. The enableFlowLogs field isn't supported if the subnet purpose field is set to GLOBAL_MANAGED_PROXY or REGIONAL_MANAGED_PROXY.
+    /// The purpose of the resource. This field can be either PRIVATE, GLOBAL_MANAGED_PROXY, REGIONAL_MANAGED_PROXY, PEER_MIGRATION, PRIVATE_SERVICE_CONNECT or PRIVATE_NAT. PRIVATE is the default purpose for user-created subnets or subnets that are automatically created in auto mode networks. Subnets with purpose set to GLOBAL_MANAGED_PROXY or REGIONAL_MANAGED_PROXY are user-created subnetworks that are reserved for Envoy-based load balancers. A subnet with purpose set to PRIVATE_SERVICE_CONNECT is used to publish services using Private Service Connect. A subnet with purpose set to PEER_MIGRATION is used for subnet migration from one peered VPC to another. A subnet with purpose set to PRIVATE_NAT is used for Private NAT IP address by Private NAT Gateway. If unspecified, the subnet purpose defaults to PRIVATE. The enableFlowLogs field isn't supported if the subnet purpose field is set to GLOBAL_MANAGED_PROXY or REGIONAL_MANAGED_PROXY.
     /// Check the Purpose enum for the list of possible values.
     #[prost(string, optional, tag = "316407070")]
     pub purpose: ::core::option::Option<::prost::alloc::string::String>,
@@ -44451,7 +47374,7 @@ pub mod usable_subnetwork {
             }
         }
     }
-    /// The purpose of the resource. This field can be either PRIVATE, GLOBAL_MANAGED_PROXY, REGIONAL_MANAGED_PROXY, PRIVATE_SERVICE_CONNECT, or PRIVATE is the default purpose for user-created subnets or subnets that are automatically created in auto mode networks. Subnets with purpose set to GLOBAL_MANAGED_PROXY or REGIONAL_MANAGED_PROXY are user-created subnetworks that are reserved for Envoy-based load balancers. A subnet with purpose set to PRIVATE_SERVICE_CONNECT is used to publish services using Private Service Connect. If unspecified, the subnet purpose defaults to PRIVATE. The enableFlowLogs field isn't supported if the subnet purpose field is set to GLOBAL_MANAGED_PROXY or REGIONAL_MANAGED_PROXY.
+    /// The purpose of the resource. This field can be either PRIVATE, GLOBAL_MANAGED_PROXY, REGIONAL_MANAGED_PROXY, PEER_MIGRATION, PRIVATE_SERVICE_CONNECT or PRIVATE_NAT. PRIVATE is the default purpose for user-created subnets or subnets that are automatically created in auto mode networks. Subnets with purpose set to GLOBAL_MANAGED_PROXY or REGIONAL_MANAGED_PROXY are user-created subnetworks that are reserved for Envoy-based load balancers. A subnet with purpose set to PRIVATE_SERVICE_CONNECT is used to publish services using Private Service Connect. A subnet with purpose set to PEER_MIGRATION is used for subnet migration from one peered VPC to another. A subnet with purpose set to PRIVATE_NAT is used for Private NAT IP address by Private NAT Gateway. If unspecified, the subnet purpose defaults to PRIVATE. The enableFlowLogs field isn't supported if the subnet purpose field is set to GLOBAL_MANAGED_PROXY or REGIONAL_MANAGED_PROXY.
     #[derive(
         Clone,
         Copy,
@@ -44471,6 +47394,8 @@ pub mod usable_subnetwork {
         GlobalManagedProxy = 236463602,
         /// Subnet reserved for Internal HTTP(S) Load Balancing. This is a legacy purpose, please use REGIONAL_MANAGED_PROXY instead.
         InternalHttpsLoadBalancer = 248748889,
+        /// Subnetwork will be used for Migration from one peered VPC to another. (a transient state of subnetwork while migrating resources from one project to another).
+        PeerMigration = 491902225,
         /// Regular user created or automatically created subnet.
         Private = 403485027,
         /// Subnetwork used as source range for Private NAT Gateways.
@@ -44492,6 +47417,7 @@ pub mod usable_subnetwork {
                 Self::UndefinedPurpose => "UNDEFINED_PURPOSE",
                 Self::GlobalManagedProxy => "GLOBAL_MANAGED_PROXY",
                 Self::InternalHttpsLoadBalancer => "INTERNAL_HTTPS_LOAD_BALANCER",
+                Self::PeerMigration => "PEER_MIGRATION",
                 Self::Private => "PRIVATE",
                 Self::PrivateNat => "PRIVATE_NAT",
                 Self::PrivateRfc1918 => "PRIVATE_RFC_1918",
@@ -44505,6 +47431,7 @@ pub mod usable_subnetwork {
                 "UNDEFINED_PURPOSE" => Some(Self::UndefinedPurpose),
                 "GLOBAL_MANAGED_PROXY" => Some(Self::GlobalManagedProxy),
                 "INTERNAL_HTTPS_LOAD_BALANCER" => Some(Self::InternalHttpsLoadBalancer),
+                "PEER_MIGRATION" => Some(Self::PeerMigration),
                 "PRIVATE" => Some(Self::Private),
                 "PRIVATE_NAT" => Some(Self::PrivateNat),
                 "PRIVATE_RFC_1918" => Some(Self::PrivateRfc1918),
@@ -45483,6 +48410,8 @@ pub mod warning {
         NoResultsOnPage = 30036744,
         /// Success is reported, but some results may be missing due to errors
         PartialSuccess = 39966469,
+        /// Quota information is not available to client requests (e.g: regions.list).
+        QuotaInfoUnavailable = 304294182,
         /// The user attempted to use a resource that requires a TOS they have not accepted.
         RequiredTosAgreement = 3745539,
         /// Warning that a resource is in use.
@@ -45531,6 +48460,7 @@ pub mod warning {
                 Self::NotCriticalError => "NOT_CRITICAL_ERROR",
                 Self::NoResultsOnPage => "NO_RESULTS_ON_PAGE",
                 Self::PartialSuccess => "PARTIAL_SUCCESS",
+                Self::QuotaInfoUnavailable => "QUOTA_INFO_UNAVAILABLE",
                 Self::RequiredTosAgreement => "REQUIRED_TOS_AGREEMENT",
                 Self::ResourceInUseByOtherResourceWarning => {
                     "RESOURCE_IN_USE_BY_OTHER_RESOURCE_WARNING"
@@ -45577,6 +48507,7 @@ pub mod warning {
                 "NOT_CRITICAL_ERROR" => Some(Self::NotCriticalError),
                 "NO_RESULTS_ON_PAGE" => Some(Self::NoResultsOnPage),
                 "PARTIAL_SUCCESS" => Some(Self::PartialSuccess),
+                "QUOTA_INFO_UNAVAILABLE" => Some(Self::QuotaInfoUnavailable),
                 "REQUIRED_TOS_AGREEMENT" => Some(Self::RequiredTosAgreement),
                 "RESOURCE_IN_USE_BY_OTHER_RESOURCE_WARNING" => {
                     Some(Self::ResourceInUseByOtherResourceWarning)
@@ -45667,6 +48598,8 @@ pub mod warnings {
         NoResultsOnPage = 30036744,
         /// Success is reported, but some results may be missing due to errors
         PartialSuccess = 39966469,
+        /// Quota information is not available to client requests (e.g: regions.list).
+        QuotaInfoUnavailable = 304294182,
         /// The user attempted to use a resource that requires a TOS they have not accepted.
         RequiredTosAgreement = 3745539,
         /// Warning that a resource is in use.
@@ -45715,6 +48648,7 @@ pub mod warnings {
                 Self::NotCriticalError => "NOT_CRITICAL_ERROR",
                 Self::NoResultsOnPage => "NO_RESULTS_ON_PAGE",
                 Self::PartialSuccess => "PARTIAL_SUCCESS",
+                Self::QuotaInfoUnavailable => "QUOTA_INFO_UNAVAILABLE",
                 Self::RequiredTosAgreement => "REQUIRED_TOS_AGREEMENT",
                 Self::ResourceInUseByOtherResourceWarning => {
                     "RESOURCE_IN_USE_BY_OTHER_RESOURCE_WARNING"
@@ -45761,6 +48695,7 @@ pub mod warnings {
                 "NOT_CRITICAL_ERROR" => Some(Self::NotCriticalError),
                 "NO_RESULTS_ON_PAGE" => Some(Self::NoResultsOnPage),
                 "PARTIAL_SUCCESS" => Some(Self::PartialSuccess),
+                "QUOTA_INFO_UNAVAILABLE" => Some(Self::QuotaInfoUnavailable),
                 "REQUIRED_TOS_AGREEMENT" => Some(Self::RequiredTosAgreement),
                 "RESOURCE_IN_USE_BY_OTHER_RESOURCE_WARNING" => {
                     Some(Self::ResourceInUseByOtherResourceWarning)
@@ -46060,7 +48995,7 @@ pub mod accelerator_types_client {
     }
     impl<T> AcceleratorTypesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -46081,13 +49016,13 @@ pub mod accelerator_types_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             AcceleratorTypesClient::new(InterceptedService::new(inner, interceptor))
@@ -46240,7 +49175,7 @@ pub mod addresses_client {
     }
     impl<T> AddressesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -46261,13 +49196,13 @@ pub mod addresses_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             AddressesClient::new(InterceptedService::new(inner, interceptor))
@@ -46498,7 +49433,7 @@ pub mod autoscalers_client {
     }
     impl<T> AutoscalersClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -46519,13 +49454,13 @@ pub mod autoscalers_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             AutoscalersClient::new(InterceptedService::new(inner, interceptor))
@@ -46760,7 +49695,7 @@ pub mod backend_buckets_client {
     }
     impl<T> BackendBucketsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -46781,13 +49716,13 @@ pub mod backend_buckets_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             BackendBucketsClient::new(InterceptedService::new(inner, interceptor))
@@ -47172,7 +50107,7 @@ pub mod backend_services_client {
     }
     impl<T> BackendServicesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -47193,13 +50128,13 @@ pub mod backend_services_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             BackendServicesClient::new(InterceptedService::new(inner, interceptor))
@@ -47703,7 +50638,7 @@ pub mod disk_types_client {
     }
     impl<T> DiskTypesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -47724,13 +50659,13 @@ pub mod disk_types_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             DiskTypesClient::new(InterceptedService::new(inner, interceptor))
@@ -47871,7 +50806,7 @@ pub mod disks_client {
     }
     impl<T> DisksClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -47892,13 +50827,13 @@ pub mod disks_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             DisksClient::new(InterceptedService::new(inner, interceptor))
@@ -48405,7 +51340,7 @@ pub mod external_vpn_gateways_client {
     }
     impl<T> ExternalVpnGatewaysClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -48426,13 +51361,13 @@ pub mod external_vpn_gateways_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             ExternalVpnGatewaysClient::new(InterceptedService::new(inner, interceptor))
@@ -48669,7 +51604,7 @@ pub mod firewall_policies_client {
     }
     impl<T> FirewallPoliciesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -48690,13 +51625,13 @@ pub mod firewall_policies_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             FirewallPoliciesClient::new(InterceptedService::new(inner, interceptor))
@@ -49252,7 +52187,7 @@ pub mod firewalls_client {
     }
     impl<T> FirewallsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -49273,13 +52208,13 @@ pub mod firewalls_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             FirewallsClient::new(InterceptedService::new(inner, interceptor))
@@ -49478,7 +52413,7 @@ pub mod forwarding_rules_client {
     }
     impl<T> ForwardingRulesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -49499,13 +52434,13 @@ pub mod forwarding_rules_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             ForwardingRulesClient::new(InterceptedService::new(inner, interceptor))
@@ -49779,7 +52714,7 @@ pub mod global_addresses_client {
     }
     impl<T> GlobalAddressesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -49800,13 +52735,13 @@ pub mod global_addresses_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             GlobalAddressesClient::new(InterceptedService::new(inner, interceptor))
@@ -50020,7 +52955,7 @@ pub mod global_forwarding_rules_client {
     }
     impl<T> GlobalForwardingRulesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -50041,13 +52976,13 @@ pub mod global_forwarding_rules_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             GlobalForwardingRulesClient::new(InterceptedService::new(inner, interceptor))
@@ -50306,7 +53241,7 @@ pub mod global_network_endpoint_groups_client {
     }
     impl<T> GlobalNetworkEndpointGroupsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -50327,13 +53262,13 @@ pub mod global_network_endpoint_groups_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             GlobalNetworkEndpointGroupsClient::new(
@@ -50612,7 +53547,7 @@ pub mod global_operations_client {
     }
     impl<T> GlobalOperationsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -50633,13 +53568,13 @@ pub mod global_operations_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             GlobalOperationsClient::new(InterceptedService::new(inner, interceptor))
@@ -50837,7 +53772,7 @@ pub mod global_organization_operations_client {
     }
     impl<T> GlobalOrganizationOperationsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -50858,13 +53793,13 @@ pub mod global_organization_operations_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             GlobalOrganizationOperationsClient::new(
@@ -51023,7 +53958,7 @@ pub mod global_public_delegated_prefixes_client {
     }
     impl<T> GlobalPublicDelegatedPrefixesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -51044,13 +53979,13 @@ pub mod global_public_delegated_prefixes_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             GlobalPublicDelegatedPrefixesClient::new(
@@ -51270,7 +54205,7 @@ pub mod health_checks_client {
     }
     impl<T> HealthChecksClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -51291,13 +54226,13 @@ pub mod health_checks_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             HealthChecksClient::new(InterceptedService::new(inner, interceptor))
@@ -51537,7 +54472,7 @@ pub mod image_family_views_client {
     }
     impl<T> ImageFamilyViewsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -51558,13 +54493,13 @@ pub mod image_family_views_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             ImageFamilyViewsClient::new(InterceptedService::new(inner, interceptor))
@@ -51658,7 +54593,7 @@ pub mod images_client {
     }
     impl<T> ImagesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -51679,13 +54614,13 @@ pub mod images_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             ImagesClient::new(InterceptedService::new(inner, interceptor))
@@ -52008,7 +54943,7 @@ pub mod instance_group_manager_resize_requests_client {
     }
     impl<T> InstanceGroupManagerResizeRequestsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -52029,13 +54964,13 @@ pub mod instance_group_manager_resize_requests_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             InstanceGroupManagerResizeRequestsClient::new(
@@ -52255,7 +55190,7 @@ pub mod instance_group_managers_client {
     }
     impl<T> InstanceGroupManagersClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -52276,13 +55211,13 @@ pub mod instance_group_managers_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             InstanceGroupManagersClient::new(InterceptedService::new(inner, interceptor))
@@ -52817,6 +55752,35 @@ pub mod instance_group_managers_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        /// Flags the specified instances in the managed instance group to be resumed. This method increases the targetSize and decreases the targetSuspendedSize of the managed instance group by the number of instances that you resume. The resumeInstances operation is marked DONE if the resumeInstances request is successful. The underlying actions take additional time. You must separately verify the status of the RESUMING action with the listmanagedinstances method. In this request, you can only specify instances that are suspended. For example, if an instance was previously suspended using the suspendInstances method, it can be resumed using the resumeInstances method. If a health check is attached to the managed instance group, the specified instances will be verified as healthy after they are resumed. You can specify a maximum of 1000 instances with this method per request.
+        pub async fn resume_instances(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::ResumeInstancesInstanceGroupManagerRequest,
+            >,
+        ) -> std::result::Result<tonic::Response<super::Operation>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.compute.v1.InstanceGroupManagers/ResumeInstances",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.compute.v1.InstanceGroupManagers",
+                        "ResumeInstances",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
         /// Specifies the instance template to use when creating new instances in this group. The templates for existing instances in the group do not change unless you run recreateInstances, run applyUpdatesToInstances, or set the group's updatePolicy.type to PROACTIVE.
         pub async fn set_instance_template(
             &mut self,
@@ -52871,6 +55835,93 @@ pub mod instance_group_managers_client {
                     GrpcMethod::new(
                         "google.cloud.compute.v1.InstanceGroupManagers",
                         "SetTargetPools",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Flags the specified instances in the managed instance group to be started. This method increases the targetSize and decreases the targetStoppedSize of the managed instance group by the number of instances that you start. The startInstances operation is marked DONE if the startInstances request is successful. The underlying actions take additional time. You must separately verify the status of the STARTING action with the listmanagedinstances method. In this request, you can only specify instances that are stopped. For example, if an instance was previously stopped using the stopInstances method, it can be started using the startInstances method. If a health check is attached to the managed instance group, the specified instances will be verified as healthy after they are started. You can specify a maximum of 1000 instances with this method per request.
+        pub async fn start_instances(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::StartInstancesInstanceGroupManagerRequest,
+            >,
+        ) -> std::result::Result<tonic::Response<super::Operation>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.compute.v1.InstanceGroupManagers/StartInstances",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.compute.v1.InstanceGroupManagers",
+                        "StartInstances",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Flags the specified instances in the managed instance group to be immediately stopped. You can only specify instances that are running in this request. This method reduces the targetSize and increases the targetStoppedSize of the managed instance group by the number of instances that you stop. The stopInstances operation is marked DONE if the stopInstances request is successful. The underlying actions take additional time. You must separately verify the status of the STOPPING action with the listmanagedinstances method. If the standbyPolicy.initialDelaySec field is set, the group delays stopping the instances until initialDelaySec have passed from instance.creationTimestamp (that is, when the instance was created). This delay gives your application time to set itself up and initialize on the instance. If more than initialDelaySec seconds have passed since instance.creationTimestamp when this method is called, there will be zero delay. If the group is part of a backend service that has enabled connection draining, it can take up to 60 seconds after the connection draining duration has elapsed before the VM instance is stopped. Stopped instances can be started using the startInstances method. You can specify a maximum of 1000 instances with this method per request.
+        pub async fn stop_instances(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::StopInstancesInstanceGroupManagerRequest,
+            >,
+        ) -> std::result::Result<tonic::Response<super::Operation>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.compute.v1.InstanceGroupManagers/StopInstances",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.compute.v1.InstanceGroupManagers",
+                        "StopInstances",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Flags the specified instances in the managed instance group to be immediately suspended. You can only specify instances that are running in this request. This method reduces the targetSize and increases the targetSuspendedSize of the managed instance group by the number of instances that you suspend. The suspendInstances operation is marked DONE if the suspendInstances request is successful. The underlying actions take additional time. You must separately verify the status of the SUSPENDING action with the listmanagedinstances method. If the standbyPolicy.initialDelaySec field is set, the group delays suspension of the instances until initialDelaySec have passed from instance.creationTimestamp (that is, when the instance was created). This delay gives your application time to set itself up and initialize on the instance. If more than initialDelaySec seconds have passed since instance.creationTimestamp when this method is called, there will be zero delay. If the group is part of a backend service that has enabled connection draining, it can take up to 60 seconds after the connection draining duration has elapsed before the VM instance is suspended. Suspended instances can be resumed using the resumeInstances method. You can specify a maximum of 1000 instances with this method per request.
+        pub async fn suspend_instances(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::SuspendInstancesInstanceGroupManagerRequest,
+            >,
+        ) -> std::result::Result<tonic::Response<super::Operation>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.compute.v1.InstanceGroupManagers/SuspendInstances",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.compute.v1.InstanceGroupManagers",
+                        "SuspendInstances",
                     ),
                 );
             self.inner.unary(req, path, codec).await
@@ -52935,7 +55986,7 @@ pub mod instance_groups_client {
     }
     impl<T> InstanceGroupsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -52956,13 +56007,13 @@ pub mod instance_groups_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             InstanceGroupsClient::new(InterceptedService::new(inner, interceptor))
@@ -53269,7 +56320,7 @@ pub mod instance_settings_service_client {
     }
     impl<T> InstanceSettingsServiceClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -53290,13 +56341,13 @@ pub mod instance_settings_service_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             InstanceSettingsServiceClient::new(
@@ -53422,7 +56473,7 @@ pub mod instance_templates_client {
     }
     impl<T> InstanceTemplatesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -53443,13 +56494,13 @@ pub mod instance_templates_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             InstanceTemplatesClient::new(InterceptedService::new(inner, interceptor))
@@ -53742,7 +56793,7 @@ pub mod instances_client {
     }
     impl<T> InstancesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -53763,13 +56814,13 @@ pub mod instances_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             InstancesClient::new(InterceptedService::new(inner, interceptor))
@@ -54325,6 +57376,33 @@ pub mod instances_client {
                     GrpcMethod::new(
                         "google.cloud.compute.v1.Instances",
                         "RemoveResourcePolicies",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Mark the host as faulty and try to restart the instance on a new host.
+        pub async fn report_host_as_faulty(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ReportHostAsFaultyInstanceRequest>,
+        ) -> std::result::Result<tonic::Response<super::Operation>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.compute.v1.Instances/ReportHostAsFaulty",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.compute.v1.Instances",
+                        "ReportHostAsFaulty",
                     ),
                 );
             self.inner.unary(req, path, codec).await
@@ -55082,7 +58160,7 @@ pub mod instant_snapshots_client {
     }
     impl<T> InstantSnapshotsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -55103,13 +58181,13 @@ pub mod instant_snapshots_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             InstantSnapshotsClient::new(InterceptedService::new(inner, interceptor))
@@ -55423,7 +58501,7 @@ pub mod interconnect_attachments_client {
     }
     impl<T> InterconnectAttachmentsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -55444,13 +58522,13 @@ pub mod interconnect_attachments_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             InterconnectAttachmentsClient::new(
@@ -55721,7 +58799,7 @@ pub mod interconnect_locations_client {
     }
     impl<T> InterconnectLocationsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -55742,13 +58820,13 @@ pub mod interconnect_locations_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             InterconnectLocationsClient::new(InterceptedService::new(inner, interceptor))
@@ -55875,7 +58953,7 @@ pub mod interconnect_remote_locations_client {
     }
     impl<T> InterconnectRemoteLocationsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -55896,13 +58974,13 @@ pub mod interconnect_remote_locations_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             InterconnectRemoteLocationsClient::new(
@@ -56033,7 +59111,7 @@ pub mod interconnects_client {
     }
     impl<T> InterconnectsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -56054,13 +59132,13 @@ pub mod interconnects_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             InterconnectsClient::new(InterceptedService::new(inner, interceptor))
@@ -56332,7 +59410,7 @@ pub mod license_codes_client {
     }
     impl<T> LicenseCodesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -56353,13 +59431,13 @@ pub mod license_codes_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             LicenseCodesClient::new(InterceptedService::new(inner, interceptor))
@@ -56478,7 +59556,7 @@ pub mod licenses_client {
     }
     impl<T> LicensesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -56499,13 +59577,13 @@ pub mod licenses_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             LicensesClient::new(InterceptedService::new(inner, interceptor))
@@ -56741,7 +59819,7 @@ pub mod machine_images_client {
     }
     impl<T> MachineImagesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -56762,13 +59840,13 @@ pub mod machine_images_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             MachineImagesClient::new(InterceptedService::new(inner, interceptor))
@@ -57018,7 +60096,7 @@ pub mod machine_types_client {
     }
     impl<T> MachineTypesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -57039,13 +60117,13 @@ pub mod machine_types_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             MachineTypesClient::new(InterceptedService::new(inner, interceptor))
@@ -57189,7 +60267,7 @@ pub mod network_attachments_client {
     }
     impl<T> NetworkAttachmentsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -57210,13 +60288,13 @@ pub mod network_attachments_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             NetworkAttachmentsClient::new(InterceptedService::new(inner, interceptor))
@@ -57536,7 +60614,7 @@ pub mod network_edge_security_services_client {
     }
     impl<T> NetworkEdgeSecurityServicesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -57557,13 +60635,13 @@ pub mod network_edge_security_services_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             NetworkEdgeSecurityServicesClient::new(
@@ -57781,7 +60859,7 @@ pub mod network_endpoint_groups_client {
     }
     impl<T> NetworkEndpointGroupsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -57802,13 +60880,13 @@ pub mod network_endpoint_groups_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             NetworkEndpointGroupsClient::new(InterceptedService::new(inner, interceptor))
@@ -58143,7 +61221,7 @@ pub mod network_firewall_policies_client {
     }
     impl<T> NetworkFirewallPoliciesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -58164,13 +61242,13 @@ pub mod network_firewall_policies_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             NetworkFirewallPoliciesClient::new(
@@ -58237,6 +61315,35 @@ pub mod network_firewall_policies_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        /// Inserts a packet mirroring rule into a firewall policy.
+        pub async fn add_packet_mirroring_rule(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::AddPacketMirroringRuleNetworkFirewallPolicyRequest,
+            >,
+        ) -> std::result::Result<tonic::Response<super::Operation>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.compute.v1.NetworkFirewallPolicies/AddPacketMirroringRule",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.compute.v1.NetworkFirewallPolicies",
+                        "AddPacketMirroringRule",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
         /// Inserts a rule into a firewall policy.
         pub async fn add_rule(
             &mut self,
@@ -58260,6 +61367,38 @@ pub mod network_firewall_policies_client {
                     GrpcMethod::new(
                         "google.cloud.compute.v1.NetworkFirewallPolicies",
                         "AddRule",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Retrieves an aggregated list of network firewall policies, listing network firewall policies from all applicable scopes (global and regional) and grouping the results per scope. To prevent failure, Google recommends that you set the `returnPartialSuccess` parameter to `true`.
+        pub async fn aggregated_list(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::AggregatedListNetworkFirewallPoliciesRequest,
+            >,
+        ) -> std::result::Result<
+            tonic::Response<super::NetworkFirewallPolicyAggregatedList>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.compute.v1.NetworkFirewallPolicies/AggregatedList",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.compute.v1.NetworkFirewallPolicies",
+                        "AggregatedList",
                     ),
                 );
             self.inner.unary(req, path, codec).await
@@ -58408,6 +61547,38 @@ pub mod network_firewall_policies_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        /// Gets a packet mirroring rule of the specified priority.
+        pub async fn get_packet_mirroring_rule(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::GetPacketMirroringRuleNetworkFirewallPolicyRequest,
+            >,
+        ) -> std::result::Result<
+            tonic::Response<super::FirewallPolicyRule>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.compute.v1.NetworkFirewallPolicies/GetPacketMirroringRule",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.compute.v1.NetworkFirewallPolicies",
+                        "GetPacketMirroringRule",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
         /// Gets a rule of the specified priority.
         pub async fn get_rule(
             &mut self,
@@ -58522,6 +61693,35 @@ pub mod network_firewall_policies_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        /// Patches a packet mirroring rule of the specified priority.
+        pub async fn patch_packet_mirroring_rule(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::PatchPacketMirroringRuleNetworkFirewallPolicyRequest,
+            >,
+        ) -> std::result::Result<tonic::Response<super::Operation>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.compute.v1.NetworkFirewallPolicies/PatchPacketMirroringRule",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.compute.v1.NetworkFirewallPolicies",
+                        "PatchPacketMirroringRule",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
         /// Patches a rule of the specified priority.
         pub async fn patch_rule(
             &mut self,
@@ -58576,6 +61776,35 @@ pub mod network_firewall_policies_client {
                     GrpcMethod::new(
                         "google.cloud.compute.v1.NetworkFirewallPolicies",
                         "RemoveAssociation",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Deletes a packet mirroring rule of the specified priority.
+        pub async fn remove_packet_mirroring_rule(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::RemovePacketMirroringRuleNetworkFirewallPolicyRequest,
+            >,
+        ) -> std::result::Result<tonic::Response<super::Operation>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.compute.v1.NetworkFirewallPolicies/RemovePacketMirroringRule",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.compute.v1.NetworkFirewallPolicies",
+                        "RemovePacketMirroringRule",
                     ),
                 );
             self.inner.unary(req, path, codec).await
@@ -58673,6 +61902,151 @@ pub mod network_firewall_policies_client {
     }
 }
 /// Generated client implementations.
+pub mod network_profiles_client {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value,
+    )]
+    use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
+    /// The NetworkProfiles API.
+    #[derive(Debug, Clone)]
+    pub struct NetworkProfilesClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl NetworkProfilesClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> NetworkProfilesClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::Body>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> NetworkProfilesClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::Body>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::Body>,
+            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+        {
+            NetworkProfilesClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        /// Returns the specified network profile.
+        pub async fn get(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetNetworkProfileRequest>,
+        ) -> std::result::Result<tonic::Response<super::NetworkProfile>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.compute.v1.NetworkProfiles/Get",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("google.cloud.compute.v1.NetworkProfiles", "Get"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Retrieves a list of network profiles available to the specified project.
+        pub async fn list(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListNetworkProfilesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::NetworkProfilesListResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.compute.v1.NetworkProfiles/List",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("google.cloud.compute.v1.NetworkProfiles", "List"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+    }
+}
+/// Generated client implementations.
 pub mod networks_client {
     #![allow(
         unused_variables,
@@ -58701,7 +62075,7 @@ pub mod networks_client {
     }
     impl<T> NetworksClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -58722,13 +62096,13 @@ pub mod networks_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             NetworksClient::new(InterceptedService::new(inner, interceptor))
@@ -59064,7 +62438,7 @@ pub mod node_groups_client {
     }
     impl<T> NodeGroupsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -59085,13 +62459,13 @@ pub mod node_groups_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             NodeGroupsClient::new(InterceptedService::new(inner, interceptor))
@@ -59534,7 +62908,7 @@ pub mod node_templates_client {
     }
     impl<T> NodeTemplatesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -59555,13 +62929,13 @@ pub mod node_templates_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             NodeTemplatesClient::new(InterceptedService::new(inner, interceptor))
@@ -59841,7 +63215,7 @@ pub mod node_types_client {
     }
     impl<T> NodeTypesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -59862,13 +63236,13 @@ pub mod node_types_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             NodeTypesClient::new(InterceptedService::new(inner, interceptor))
@@ -60009,7 +63383,7 @@ pub mod packet_mirrorings_client {
     }
     impl<T> PacketMirroringsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -60030,13 +63404,13 @@ pub mod packet_mirrorings_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             PacketMirroringsClient::new(InterceptedService::new(inner, interceptor))
@@ -60293,7 +63667,7 @@ pub mod projects_client {
     }
     impl<T> ProjectsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -60314,13 +63688,13 @@ pub mod projects_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             ProjectsClient::new(InterceptedService::new(inner, interceptor))
@@ -60745,7 +64119,7 @@ pub mod public_advertised_prefixes_client {
     }
     impl<T> PublicAdvertisedPrefixesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -60766,13 +64140,13 @@ pub mod public_advertised_prefixes_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             PublicAdvertisedPrefixesClient::new(
@@ -61040,7 +64414,7 @@ pub mod public_delegated_prefixes_client {
     }
     impl<T> PublicDelegatedPrefixesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -61061,13 +64435,13 @@ pub mod public_delegated_prefixes_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             PublicDelegatedPrefixesClient::new(
@@ -61367,7 +64741,7 @@ pub mod region_autoscalers_client {
     }
     impl<T> RegionAutoscalersClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -61388,13 +64762,13 @@ pub mod region_autoscalers_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RegionAutoscalersClient::new(InterceptedService::new(inner, interceptor))
@@ -61617,7 +64991,7 @@ pub mod region_backend_services_client {
     }
     impl<T> RegionBackendServicesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -61638,13 +65012,13 @@ pub mod region_backend_services_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RegionBackendServicesClient::new(InterceptedService::new(inner, interceptor))
@@ -62057,7 +65431,7 @@ pub mod region_commitments_client {
     }
     impl<T> RegionCommitmentsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -62078,13 +65452,13 @@ pub mod region_commitments_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RegionCommitmentsClient::new(InterceptedService::new(inner, interceptor))
@@ -62227,7 +65601,7 @@ pub mod region_commitments_client {
                 );
             self.inner.unary(req, path, codec).await
         }
-        /// Updates the specified commitment with the data included in the request. Update is performed only on selected fields included as part of update-mask. Only the following fields can be modified: auto_renew.
+        /// Updates the specified commitment with the data included in the request. Update is performed only on selected fields included as part of update-mask. Only the following fields can be updated: auto_renew and plan.
         pub async fn update(
             &mut self,
             request: impl tonic::IntoRequest<super::UpdateRegionCommitmentRequest>,
@@ -62285,7 +65659,7 @@ pub mod region_disk_types_client {
     }
     impl<T> RegionDiskTypesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -62306,13 +65680,13 @@ pub mod region_disk_types_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RegionDiskTypesClient::new(InterceptedService::new(inner, interceptor))
@@ -62430,7 +65804,7 @@ pub mod region_disks_client {
     }
     impl<T> RegionDisksClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -62451,13 +65825,13 @@ pub mod region_disks_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RegionDisksClient::new(InterceptedService::new(inner, interceptor))
@@ -62966,7 +66340,7 @@ pub mod region_health_check_services_client {
     }
     impl<T> RegionHealthCheckServicesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -62987,13 +66361,13 @@ pub mod region_health_check_services_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RegionHealthCheckServicesClient::new(
@@ -63207,7 +66581,7 @@ pub mod region_health_checks_client {
     }
     impl<T> RegionHealthChecksClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -63228,13 +66602,13 @@ pub mod region_health_checks_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RegionHealthChecksClient::new(InterceptedService::new(inner, interceptor))
@@ -63460,7 +66834,7 @@ pub mod region_instance_group_managers_client {
     }
     impl<T> RegionInstanceGroupManagersClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -63481,13 +66855,13 @@ pub mod region_instance_group_managers_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RegionInstanceGroupManagersClient::new(
@@ -64002,6 +67376,35 @@ pub mod region_instance_group_managers_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        /// Flags the specified instances in the managed instance group to be resumed. This method increases the targetSize and decreases the targetSuspendedSize of the managed instance group by the number of instances that you resume. The resumeInstances operation is marked DONE if the resumeInstances request is successful. The underlying actions take additional time. You must separately verify the status of the RESUMING action with the listmanagedinstances method. In this request, you can only specify instances that are suspended. For example, if an instance was previously suspended using the suspendInstances method, it can be resumed using the resumeInstances method. If a health check is attached to the managed instance group, the specified instances will be verified as healthy after they are resumed. You can specify a maximum of 1000 instances with this method per request.
+        pub async fn resume_instances(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::ResumeInstancesRegionInstanceGroupManagerRequest,
+            >,
+        ) -> std::result::Result<tonic::Response<super::Operation>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.compute.v1.RegionInstanceGroupManagers/ResumeInstances",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.compute.v1.RegionInstanceGroupManagers",
+                        "ResumeInstances",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
         /// Sets the instance template to use when creating new instances or recreating instances in this group. Existing instances are not affected.
         pub async fn set_instance_template(
             &mut self,
@@ -64056,6 +67459,93 @@ pub mod region_instance_group_managers_client {
                     GrpcMethod::new(
                         "google.cloud.compute.v1.RegionInstanceGroupManagers",
                         "SetTargetPools",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Flags the specified instances in the managed instance group to be started. This method increases the targetSize and decreases the targetStoppedSize of the managed instance group by the number of instances that you start. The startInstances operation is marked DONE if the startInstances request is successful. The underlying actions take additional time. You must separately verify the status of the STARTING action with the listmanagedinstances method. In this request, you can only specify instances that are stopped. For example, if an instance was previously stopped using the stopInstances method, it can be started using the startInstances method. If a health check is attached to the managed instance group, the specified instances will be verified as healthy after they are started. You can specify a maximum of 1000 instances with this method per request.
+        pub async fn start_instances(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::StartInstancesRegionInstanceGroupManagerRequest,
+            >,
+        ) -> std::result::Result<tonic::Response<super::Operation>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.compute.v1.RegionInstanceGroupManagers/StartInstances",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.compute.v1.RegionInstanceGroupManagers",
+                        "StartInstances",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Flags the specified instances in the managed instance group to be immediately stopped. You can only specify instances that are running in this request. This method reduces the targetSize and increases the targetStoppedSize of the managed instance group by the number of instances that you stop. The stopInstances operation is marked DONE if the stopInstances request is successful. The underlying actions take additional time. You must separately verify the status of the STOPPING action with the listmanagedinstances method. If the standbyPolicy.initialDelaySec field is set, the group delays stopping the instances until initialDelaySec have passed from instance.creationTimestamp (that is, when the instance was created). This delay gives your application time to set itself up and initialize on the instance. If more than initialDelaySec seconds have passed since instance.creationTimestamp when this method is called, there will be zero delay. If the group is part of a backend service that has enabled connection draining, it can take up to 60 seconds after the connection draining duration has elapsed before the VM instance is stopped. Stopped instances can be started using the startInstances method. You can specify a maximum of 1000 instances with this method per request.
+        pub async fn stop_instances(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::StopInstancesRegionInstanceGroupManagerRequest,
+            >,
+        ) -> std::result::Result<tonic::Response<super::Operation>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.compute.v1.RegionInstanceGroupManagers/StopInstances",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.compute.v1.RegionInstanceGroupManagers",
+                        "StopInstances",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Flags the specified instances in the managed instance group to be immediately suspended. You can only specify instances that are running in this request. This method reduces the targetSize and increases the targetSuspendedSize of the managed instance group by the number of instances that you suspend. The suspendInstances operation is marked DONE if the suspendInstances request is successful. The underlying actions take additional time. You must separately verify the status of the SUSPENDING action with the listmanagedinstances method. If the standbyPolicy.initialDelaySec field is set, the group delays suspension of the instances until initialDelaySec have passed from instance.creationTimestamp (that is, when the instance was created). This delay gives your application time to set itself up and initialize on the instance. If more than initialDelaySec seconds have passed since instance.creationTimestamp when this method is called, there will be zero delay. If the group is part of a backend service that has enabled connection draining, it can take up to 60 seconds after the connection draining duration has elapsed before the VM instance is suspended. Suspended instances can be resumed using the resumeInstances method. You can specify a maximum of 1000 instances with this method per request.
+        pub async fn suspend_instances(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::SuspendInstancesRegionInstanceGroupManagerRequest,
+            >,
+        ) -> std::result::Result<tonic::Response<super::Operation>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.compute.v1.RegionInstanceGroupManagers/SuspendInstances",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.compute.v1.RegionInstanceGroupManagers",
+                        "SuspendInstances",
                     ),
                 );
             self.inner.unary(req, path, codec).await
@@ -64120,7 +67610,7 @@ pub mod region_instance_groups_client {
     }
     impl<T> RegionInstanceGroupsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -64141,13 +67631,13 @@ pub mod region_instance_groups_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RegionInstanceGroupsClient::new(InterceptedService::new(inner, interceptor))
@@ -64332,7 +67822,7 @@ pub mod region_instance_templates_client {
     }
     impl<T> RegionInstanceTemplatesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -64353,13 +67843,13 @@ pub mod region_instance_templates_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RegionInstanceTemplatesClient::new(
@@ -64542,7 +68032,7 @@ pub mod region_instances_client {
     }
     impl<T> RegionInstancesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -64563,13 +68053,13 @@ pub mod region_instances_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RegionInstancesClient::new(InterceptedService::new(inner, interceptor))
@@ -64663,7 +68153,7 @@ pub mod region_instant_snapshots_client {
     }
     impl<T> RegionInstantSnapshotsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -64684,13 +68174,13 @@ pub mod region_instant_snapshots_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RegionInstantSnapshotsClient::new(
@@ -64992,7 +68482,7 @@ pub mod region_network_endpoint_groups_client {
     }
     impl<T> RegionNetworkEndpointGroupsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -65013,13 +68503,13 @@ pub mod region_network_endpoint_groups_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RegionNetworkEndpointGroupsClient::new(
@@ -65298,7 +68788,7 @@ pub mod region_network_firewall_policies_client {
     }
     impl<T> RegionNetworkFirewallPoliciesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -65319,13 +68809,13 @@ pub mod region_network_firewall_policies_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RegionNetworkFirewallPoliciesClient::new(
@@ -65904,7 +69394,7 @@ pub mod region_notification_endpoints_client {
     }
     impl<T> RegionNotificationEndpointsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -65925,13 +69415,13 @@ pub mod region_notification_endpoints_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RegionNotificationEndpointsClient::new(
@@ -66120,7 +69610,7 @@ pub mod region_operations_client {
     }
     impl<T> RegionOperationsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -66141,13 +69631,13 @@ pub mod region_operations_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RegionOperationsClient::new(InterceptedService::new(inner, interceptor))
@@ -66313,7 +69803,7 @@ pub mod region_security_policies_client {
     }
     impl<T> RegionSecurityPoliciesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -66334,13 +69824,13 @@ pub mod region_security_policies_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RegionSecurityPoliciesClient::new(
@@ -66629,6 +70119,33 @@ pub mod region_security_policies_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        /// Sets the labels on a security policy. To learn more about labels, read the Labeling Resources documentation.
+        pub async fn set_labels(
+            &mut self,
+            request: impl tonic::IntoRequest<super::SetLabelsRegionSecurityPolicyRequest>,
+        ) -> std::result::Result<tonic::Response<super::Operation>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.compute.v1.RegionSecurityPolicies/SetLabels",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.compute.v1.RegionSecurityPolicies",
+                        "SetLabels",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
     }
 }
 /// Generated client implementations.
@@ -66660,7 +70177,7 @@ pub mod region_ssl_certificates_client {
     }
     impl<T> RegionSslCertificatesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -66681,13 +70198,13 @@ pub mod region_ssl_certificates_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RegionSslCertificatesClient::new(InterceptedService::new(inner, interceptor))
@@ -66865,7 +70382,7 @@ pub mod region_ssl_policies_client {
     }
     impl<T> RegionSslPoliciesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -66886,13 +70403,13 @@ pub mod region_ssl_policies_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RegionSslPoliciesClient::new(InterceptedService::new(inner, interceptor))
@@ -67120,7 +70637,7 @@ pub mod region_target_http_proxies_client {
     }
     impl<T> RegionTargetHttpProxiesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -67141,13 +70658,13 @@ pub mod region_target_http_proxies_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RegionTargetHttpProxiesClient::new(
@@ -67359,7 +70876,7 @@ pub mod region_target_https_proxies_client {
     }
     impl<T> RegionTargetHttpsProxiesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -67380,13 +70897,13 @@ pub mod region_target_https_proxies_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RegionTargetHttpsProxiesClient::new(
@@ -67654,7 +71171,7 @@ pub mod region_target_tcp_proxies_client {
     }
     impl<T> RegionTargetTcpProxiesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -67675,13 +71192,13 @@ pub mod region_target_tcp_proxies_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RegionTargetTcpProxiesClient::new(
@@ -67861,7 +71378,7 @@ pub mod region_url_maps_client {
     }
     impl<T> RegionUrlMapsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -67882,13 +71399,13 @@ pub mod region_url_maps_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RegionUrlMapsClient::new(InterceptedService::new(inner, interceptor))
@@ -68124,7 +71641,7 @@ pub mod region_zones_client {
     }
     impl<T> RegionZonesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -68145,13 +71662,13 @@ pub mod region_zones_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RegionZonesClient::new(InterceptedService::new(inner, interceptor))
@@ -68240,7 +71757,7 @@ pub mod regions_client {
     }
     impl<T> RegionsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -68261,13 +71778,13 @@ pub mod regions_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RegionsClient::new(InterceptedService::new(inner, interceptor))
@@ -68378,7 +71895,7 @@ pub mod reservations_client {
     }
     impl<T> ReservationsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -68399,13 +71916,13 @@ pub mod reservations_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             ReservationsClient::new(InterceptedService::new(inner, interceptor))
@@ -68729,7 +72246,7 @@ pub mod resource_policies_client {
     }
     impl<T> ResourcePoliciesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -68750,13 +72267,13 @@ pub mod resource_policies_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             ResourcePoliciesClient::new(InterceptedService::new(inner, interceptor))
@@ -69064,7 +72581,7 @@ pub mod routers_client {
     }
     impl<T> RoutersClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -69085,13 +72602,13 @@ pub mod routers_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RoutersClient::new(InterceptedService::new(inner, interceptor))
@@ -69176,6 +72693,33 @@ pub mod routers_client {
                 .insert(GrpcMethod::new("google.cloud.compute.v1.Routers", "Delete"));
             self.inner.unary(req, path, codec).await
         }
+        /// Deletes Route Policy
+        pub async fn delete_route_policy(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteRoutePolicyRouterRequest>,
+        ) -> std::result::Result<tonic::Response<super::Operation>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.compute.v1.Routers/DeleteRoutePolicy",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.compute.v1.Routers",
+                        "DeleteRoutePolicy",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
         /// Returns the specified Router resource.
         pub async fn get(
             &mut self,
@@ -69255,6 +72799,33 @@ pub mod routers_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        /// Returns specified Route Policy
+        pub async fn get_route_policy(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetRoutePolicyRouterRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::RoutersGetRoutePolicyResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.compute.v1.Routers/GetRoutePolicy",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("google.cloud.compute.v1.Routers", "GetRoutePolicy"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
         /// Retrieves runtime information of the specified router.
         pub async fn get_router_status(
             &mut self,
@@ -69326,6 +72897,63 @@ pub mod routers_client {
                 .insert(GrpcMethod::new("google.cloud.compute.v1.Routers", "List"));
             self.inner.unary(req, path, codec).await
         }
+        /// Retrieves a list of router bgp routes available to the specified project.
+        pub async fn list_bgp_routes(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListBgpRoutesRoutersRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::RoutersListBgpRoutes>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.compute.v1.Routers/ListBgpRoutes",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("google.cloud.compute.v1.Routers", "ListBgpRoutes"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Retrieves a list of router route policy subresources available to the specified project.
+        pub async fn list_route_policies(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListRoutePoliciesRoutersRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::RoutersListRoutePolicies>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.compute.v1.Routers/ListRoutePolicies",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.compute.v1.Routers",
+                        "ListRoutePolicies",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
         /// Patches the specified Router resource with the data included in the request. This method supports PATCH semantics and uses JSON merge patch format and processing rules.
         pub async fn patch(
             &mut self,
@@ -69346,6 +72974,33 @@ pub mod routers_client {
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("google.cloud.compute.v1.Routers", "Patch"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Patches Route Policy
+        pub async fn patch_route_policy(
+            &mut self,
+            request: impl tonic::IntoRequest<super::PatchRoutePolicyRouterRequest>,
+        ) -> std::result::Result<tonic::Response<super::Operation>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.compute.v1.Routers/PatchRoutePolicy",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.compute.v1.Routers",
+                        "PatchRoutePolicy",
+                    ),
+                );
             self.inner.unary(req, path, codec).await
         }
         /// Preview fields auto-generated during router create and update operations. Calling this method does NOT create or update the router.
@@ -69395,6 +73050,33 @@ pub mod routers_client {
                 .insert(GrpcMethod::new("google.cloud.compute.v1.Routers", "Update"));
             self.inner.unary(req, path, codec).await
         }
+        /// Updates or creates new Route Policy
+        pub async fn update_route_policy(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateRoutePolicyRouterRequest>,
+        ) -> std::result::Result<tonic::Response<super::Operation>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.compute.v1.Routers/UpdateRoutePolicy",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.compute.v1.Routers",
+                        "UpdateRoutePolicy",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
     }
 }
 /// Generated client implementations.
@@ -69426,7 +73108,7 @@ pub mod routes_client {
     }
     impl<T> RoutesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -69447,13 +73129,13 @@ pub mod routes_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RoutesClient::new(InterceptedService::new(inner, interceptor))
@@ -69608,7 +73290,7 @@ pub mod security_policies_client {
     }
     impl<T> SecurityPoliciesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -69629,13 +73311,13 @@ pub mod security_policies_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             SecurityPoliciesClient::new(InterceptedService::new(inner, interceptor))
@@ -70029,7 +73711,7 @@ pub mod service_attachments_client {
     }
     impl<T> ServiceAttachmentsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -70050,13 +73732,13 @@ pub mod service_attachments_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             ServiceAttachmentsClient::new(InterceptedService::new(inner, interceptor))
@@ -70376,7 +74058,7 @@ pub mod snapshot_settings_service_client {
     }
     impl<T> SnapshotSettingsServiceClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -70397,13 +74079,13 @@ pub mod snapshot_settings_service_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             SnapshotSettingsServiceClient::new(
@@ -70529,7 +74211,7 @@ pub mod snapshots_client {
     }
     impl<T> SnapshotsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -70550,13 +74232,13 @@ pub mod snapshots_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             SnapshotsClient::new(InterceptedService::new(inner, interceptor))
@@ -70813,7 +74495,7 @@ pub mod ssl_certificates_client {
     }
     impl<T> SslCertificatesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -70834,13 +74516,13 @@ pub mod ssl_certificates_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             SslCertificatesClient::new(InterceptedService::new(inner, interceptor))
@@ -71036,7 +74718,7 @@ pub mod ssl_policies_client {
     }
     impl<T> SslPoliciesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -71057,13 +74739,13 @@ pub mod ssl_policies_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             SslPoliciesClient::new(InterceptedService::new(inner, interceptor))
@@ -71309,7 +74991,7 @@ pub mod storage_pool_types_client {
     }
     impl<T> StoragePoolTypesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -71330,13 +75012,13 @@ pub mod storage_pool_types_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             StoragePoolTypesClient::new(InterceptedService::new(inner, interceptor))
@@ -71489,7 +75171,7 @@ pub mod storage_pools_client {
     }
     impl<T> StoragePoolsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -71510,13 +75192,13 @@ pub mod storage_pools_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             StoragePoolsClient::new(InterceptedService::new(inner, interceptor))
@@ -71843,7 +75525,7 @@ pub mod subnetworks_client {
     }
     impl<T> SubnetworksClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -71864,13 +75546,13 @@ pub mod subnetworks_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             SubnetworksClient::new(InterceptedService::new(inner, interceptor))
@@ -72248,7 +75930,7 @@ pub mod target_grpc_proxies_client {
     }
     impl<T> TargetGrpcProxiesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -72269,13 +75951,13 @@ pub mod target_grpc_proxies_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             TargetGrpcProxiesClient::new(InterceptedService::new(inner, interceptor))
@@ -72474,7 +76156,7 @@ pub mod target_http_proxies_client {
     }
     impl<T> TargetHttpProxiesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -72495,13 +76177,13 @@ pub mod target_http_proxies_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             TargetHttpProxiesClient::new(InterceptedService::new(inner, interceptor))
@@ -72759,7 +76441,7 @@ pub mod target_https_proxies_client {
     }
     impl<T> TargetHttpsProxiesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -72780,13 +76462,13 @@ pub mod target_https_proxies_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             TargetHttpsProxiesClient::new(InterceptedService::new(inner, interceptor))
@@ -73161,7 +76843,7 @@ pub mod target_instances_client {
     }
     impl<T> TargetInstancesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -73182,13 +76864,13 @@ pub mod target_instances_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             TargetInstancesClient::new(InterceptedService::new(inner, interceptor))
@@ -73413,7 +77095,7 @@ pub mod target_pools_client {
     }
     impl<T> TargetPoolsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -73434,13 +77116,13 @@ pub mod target_pools_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             TargetPoolsClient::new(InterceptedService::new(inner, interceptor))
@@ -73812,7 +77494,7 @@ pub mod target_ssl_proxies_client {
     }
     impl<T> TargetSslProxiesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -73833,13 +77515,13 @@ pub mod target_ssl_proxies_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             TargetSslProxiesClient::new(InterceptedService::new(inner, interceptor))
@@ -74146,7 +77828,7 @@ pub mod target_tcp_proxies_client {
     }
     impl<T> TargetTcpProxiesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -74167,13 +77849,13 @@ pub mod target_tcp_proxies_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             TargetTcpProxiesClient::new(InterceptedService::new(inner, interceptor))
@@ -74427,7 +78109,7 @@ pub mod target_vpn_gateways_client {
     }
     impl<T> TargetVpnGatewaysClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -74448,13 +78130,13 @@ pub mod target_vpn_gateways_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             TargetVpnGatewaysClient::new(InterceptedService::new(inner, interceptor))
@@ -74688,7 +78370,7 @@ pub mod url_maps_client {
     }
     impl<T> UrlMapsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -74709,13 +78391,13 @@ pub mod url_maps_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             UrlMapsClient::new(InterceptedService::new(inner, interceptor))
@@ -74990,7 +78672,7 @@ pub mod vpn_gateways_client {
     }
     impl<T> VpnGatewaysClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -75011,13 +78693,13 @@ pub mod vpn_gateways_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             VpnGatewaysClient::new(InterceptedService::new(inner, interceptor))
@@ -75287,7 +78969,7 @@ pub mod vpn_tunnels_client {
     }
     impl<T> VpnTunnelsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -75308,13 +78990,13 @@ pub mod vpn_tunnels_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             VpnTunnelsClient::new(InterceptedService::new(inner, interceptor))
@@ -75523,7 +79205,7 @@ pub mod zone_operations_client {
     }
     impl<T> ZoneOperationsClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -75544,13 +79226,13 @@ pub mod zone_operations_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             ZoneOperationsClient::new(InterceptedService::new(inner, interceptor))
@@ -75716,7 +79398,7 @@ pub mod zones_client {
     }
     impl<T> ZonesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -75737,13 +79419,13 @@ pub mod zones_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             ZonesClient::new(InterceptedService::new(inner, interceptor))

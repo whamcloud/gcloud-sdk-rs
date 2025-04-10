@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize}; /*
 use reqwest;
 
 use super::{configuration, Error};
-use crate::google_rest_apis::dns_v1::apis::ResponseContent;
+use crate::google_rest_apis::dns_v1::{apis::ResponseContent, models};
 
 /// struct for passing parameters to the method [`dns_managed_zone_operations_get`]
 #[derive(Clone, Debug, Default)]
@@ -103,10 +103,7 @@ pub enum DnsPeriodManagedZoneOperationsPeriodListError {
 pub async fn dns_managed_zone_operations_get(
     configuration: &configuration::Configuration,
     params: DnsPeriodManagedZoneOperationsPeriodGetParams,
-) -> Result<
-    crate::google_rest_apis::dns_v1::models::Operation,
-    Error<DnsPeriodManagedZoneOperationsPeriodGetError>,
-> {
+) -> Result<models::Operation, Error<DnsPeriodManagedZoneOperationsPeriodGetError>> {
     let local_var_configuration = configuration;
 
     // unbox the parameters
@@ -220,7 +217,7 @@ pub async fn dns_managed_zone_operations_list(
     configuration: &configuration::Configuration,
     params: DnsPeriodManagedZoneOperationsPeriodListParams,
 ) -> Result<
-    crate::google_rest_apis::dns_v1::models::ManagedZoneOperationsListResponse,
+    models::ManagedZoneOperationsListResponse,
     Error<DnsPeriodManagedZoneOperationsPeriodListError>,
 > {
     let local_var_configuration = configuration;

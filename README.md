@@ -53,7 +53,7 @@ More complete examples are located [here](examples).
 Cargo.toml:
 ```toml
 [dependencies]
-gcloud-sdk = { version = "0.25", features = ["google-firestore-v1"] }
+gcloud-sdk = { version = "0.27", features = ["google-firestore-v1"] }
 ```
 
 ## Example for REST API
@@ -87,8 +87,8 @@ Looks for credentials in the following places, preferring the first location fou
 The library provides the support for workload identity federation support to use "keyless" integrations with different providers:
 - URL based OIDC/SAML (for example GitHub actions) with text/json file formats;
 - File based OIDC/SAML  with text/json file formats;
-
-AWS provider is not supported yet (feel free to open a PR to support, https://github.com/abdolence/gcloud-sdk-rs/issues/29).
+- AWS external account: authentication from AWS computing instances(e.g. EC2, lambda, ECS, etc.) is now supported as "external-account-aws" feature in https://github.com/abdolence/gcloud-sdk-rs/pull/172.
+However, it is not intensively tested yet, so please report issues if there's a problem.
 
 ### Local development
 Don't confuse `gcloud auth login` with `gcloud auth application-default login` for local development,
@@ -97,6 +97,11 @@ since the first authorize only `gcloud` tool to access the Cloud Platform.
 The latter obtains user access credentials via a web flow and puts them in the well-known location for Application Default Credentials (ADC).
 This command is useful when you are developing code that would normally use a service account but need to run the code in a local development environment where it's easier to provide user credentials.
 So to work for local development you need to use `gcloud auth application-default login`.
+
+### Routing headers
+Some of the APIs (notable KMS, Artifact Registry and others) require additionally specify headers such as `x-goog-request-params`.
+You can find an example how to handle it [here](https://github.com/abdolence/kms-aead-rs/blob/b8bb496800625a660be0c9896366d7407b8aa714/src/providers/gcp_kms_encryption.rs#L114)
+
 
 ## High-level APIs
 Sometimes using proto generated APIs are tedious and cumbersome, so you may need to introduce facade APIs on top of them:

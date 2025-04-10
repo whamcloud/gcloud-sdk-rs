@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize}; /*
 use reqwest;
 
 use super::{configuration, Error};
-use crate::google_rest_apis::sqladmin_v1::apis::ResponseContent;
+use crate::google_rest_apis::sqladmin_v1::{apis::ResponseContent, models};
 
 /// struct for passing parameters to the method [`sql_flags_list`]
 #[derive(Clone, Debug, Default)]
@@ -53,10 +53,7 @@ pub enum SqlPeriodFlagsPeriodListError {
 pub async fn sql_flags_list(
     configuration: &configuration::Configuration,
     params: SqlPeriodFlagsPeriodListParams,
-) -> Result<
-    crate::google_rest_apis::sqladmin_v1::models::FlagsListResponse,
-    Error<SqlPeriodFlagsPeriodListError>,
-> {
+) -> Result<models::FlagsListResponse, Error<SqlPeriodFlagsPeriodListError>> {
     let local_var_configuration = configuration;
 
     // unbox the parameters

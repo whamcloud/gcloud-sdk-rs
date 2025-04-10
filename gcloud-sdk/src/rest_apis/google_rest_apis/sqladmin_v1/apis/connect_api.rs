@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize}; /*
 use reqwest;
 
 use super::{configuration, Error};
-use crate::google_rest_apis::sqladmin_v1::apis::ResponseContent;
+use crate::google_rest_apis::sqladmin_v1::{apis::ResponseContent, models};
 
 /// struct for passing parameters to the method [`sql_connect_generate_ephemeral`]
 #[derive(Clone, Debug, Default)]
@@ -42,8 +42,7 @@ pub struct SqlPeriodConnectPeriodGenerateEphemeralParams {
     pub upload_protocol: Option<String>,
     /// Legacy upload protocol for media (e.g. \"media\", \"multipart\").
     pub upload_type: Option<String>,
-    pub generate_ephemeral_cert_request:
-        Option<crate::google_rest_apis::sqladmin_v1::models::GenerateEphemeralCertRequest>,
+    pub generate_ephemeral_cert_request: Option<models::GenerateEphemeralCertRequest>,
 }
 
 /// struct for passing parameters to the method [`sql_connect_get`]
@@ -98,7 +97,7 @@ pub async fn sql_connect_generate_ephemeral(
     configuration: &configuration::Configuration,
     params: SqlPeriodConnectPeriodGenerateEphemeralParams,
 ) -> Result<
-    crate::google_rest_apis::sqladmin_v1::models::GenerateEphemeralCertResponse,
+    models::GenerateEphemeralCertResponse,
     Error<SqlPeriodConnectPeriodGenerateEphemeralError>,
 > {
     let local_var_configuration = configuration;
@@ -208,10 +207,7 @@ pub async fn sql_connect_generate_ephemeral(
 pub async fn sql_connect_get(
     configuration: &configuration::Configuration,
     params: SqlPeriodConnectPeriodGetParams,
-) -> Result<
-    crate::google_rest_apis::sqladmin_v1::models::ConnectSettings,
-    Error<SqlPeriodConnectPeriodGetError>,
-> {
+) -> Result<models::ConnectSettings, Error<SqlPeriodConnectPeriodGetError>> {
     let local_var_configuration = configuration;
 
     // unbox the parameters

@@ -2,7 +2,7 @@
 /// The primary data source for local and online products.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PrimaryProductDataSource {
-    /// Required. Immutable. Specifies the type of data source channel.
+    /// Optional. Immutable. Specifies the type of data source channel.
     #[prost(enumeration = "primary_product_data_source::Channel", tag = "3")]
     pub channel: i32,
     /// Optional. Immutable. The feed label that is specified on the data source
@@ -43,6 +43,25 @@ pub struct PrimaryProductDataSource {
     /// data sources will be replaced.
     #[prost(message, optional, tag = "7")]
     pub default_rule: ::core::option::Option<primary_product_data_source::DefaultRule>,
+    /// Optional. A list of destinations describing where products of the data
+    /// source can be shown.
+    ///
+    /// When retrieving the data source, the list contains all the destinations
+    /// that can be used for the data source, including the ones that are disabled
+    /// for the data source but enabled for the account.
+    ///
+    /// Only destinations that are enabled on the account, for example through
+    /// program participation, can be enabled on the data source.
+    ///
+    /// If unset, during creation, the destinations will be inherited based on the
+    /// account level program participation.
+    ///
+    /// If set, during creation or update, the data source will be set only for the
+    /// specified destinations.
+    ///
+    /// Updating this field requires at least one destination.
+    #[prost(message, repeated, tag = "10")]
+    pub destinations: ::prost::alloc::vec::Vec<primary_product_data_source::Destination>,
 }
 /// Nested message and enum types in `PrimaryProductDataSource`.
 pub mod primary_product_data_source {
@@ -60,10 +79,8 @@ pub mod primary_product_data_source {
         /// To link the data source to the default rule, you need to add a
         /// new reference to this list (in sequential order).
         ///
-        /// To unlink the data source from the default rule, you need to remove the
-        /// given reference from this list. To create attribute rules that are
-        /// different from the default rule, see [Set up your attribute
-        /// rules](//support.google.com/merchants/answer/14994083).
+        /// To unlink the data source from the default rule, you need to
+        /// remove the given reference from this list.
         ///
         /// Changing the order of this list will result in changing the priority of
         /// data sources in the default rule.
@@ -73,6 +90,67 @@ pub mod primary_product_data_source {
         /// to `self` if the attribute is not set in `1001`.
         #[prost(message, repeated, tag = "1")]
         pub take_from_data_sources: ::prost::alloc::vec::Vec<super::DataSourceReference>,
+    }
+    /// Destinations also known as [Marketing
+    /// methods](<https://support.google.com/merchants/answer/15130232>) selections.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct Destination {
+        /// [Marketing methods](<https://support.google.com/merchants/answer/15130232>)
+        /// (also known as destination) selections.
+        #[prost(
+            enumeration = "super::super::super::super::r#type::destination::DestinationEnum",
+            tag = "1"
+        )]
+        pub destination: i32,
+        /// The state of the destination.
+        #[prost(enumeration = "destination::State", tag = "2")]
+        pub state: i32,
+    }
+    /// Nested message and enum types in `Destination`.
+    pub mod destination {
+        /// The state of the destination.
+        #[derive(
+            Clone,
+            Copy,
+            Debug,
+            PartialEq,
+            Eq,
+            Hash,
+            PartialOrd,
+            Ord,
+            ::prost::Enumeration
+        )]
+        #[repr(i32)]
+        pub enum State {
+            /// Not specified.
+            Unspecified = 0,
+            /// Indicates that the destination is enabled.
+            Enabled = 1,
+            /// Indicates that the destination is disabled.
+            Disabled = 2,
+        }
+        impl State {
+            /// String value of the enum field names used in the ProtoBuf definition.
+            ///
+            /// The values are not transformed in any way and thus are considered stable
+            /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+            pub fn as_str_name(&self) -> &'static str {
+                match self {
+                    Self::Unspecified => "STATE_UNSPECIFIED",
+                    Self::Enabled => "ENABLED",
+                    Self::Disabled => "DISABLED",
+                }
+            }
+            /// Creates an enum from field names used in the ProtoBuf definition.
+            pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+                match value {
+                    "STATE_UNSPECIFIED" => Some(Self::Unspecified),
+                    "ENABLED" => Some(Self::Enabled),
+                    "DISABLED" => Some(Self::Disabled),
+                    _ => None,
+                }
+            }
+        }
     }
     /// Data Source Channel.
     ///
@@ -127,12 +205,9 @@ pub mod primary_product_data_source {
         }
     }
 }
-/// The supplemental data source for local and online products. Supplemental API
-/// data sources must not have `feedLabel` and `contentLanguage` fields set. You
-/// can only use supplemental data sources to update existing products. For
-/// information about creating a supplemental data source, see [Create a
-/// supplemental data source and link it to the primary data
-/// source](/merchant/api/guides/data-sources/overview#create-supplemental-data-source).
+/// The supplemental data source for local and online products. After creation,
+/// you should make sure to link the supplemental product data source into one or
+/// more primary product data sources.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SupplementalProductDataSource {
     /// Optional. Immutable. The feed label that is specified on the data source
@@ -146,7 +221,11 @@ pub struct SupplementalProductDataSource {
     ///
     /// `feedLabel` and `contentLanguage` must be either both set or unset for data
     /// sources with product content type.
-    /// They must be set for data sources with a file input.
+    ///
+    /// They must be set for data sources with a [file
+    /// input][google.shopping.merchant.datasources.v1main.FileInput].
+    /// The fields must be unset for data sources without [file
+    /// input][google.shopping.merchant.datasources.v1main.FileInput].
     ///
     /// If set, the data source will only accept products matching this
     /// combination. If unset, the data source will accept produts without that
@@ -222,6 +301,12 @@ pub struct PromotionDataSource {
     #[prost(string, tag = "2")]
     pub content_language: ::prost::alloc::string::String,
 }
+/// The product review data source.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct ProductReviewDataSource {}
+/// The merchant review data source.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct MerchantReviewDataSource {}
 /// Data source reference can be used to manage related data sources within the
 /// data source service.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -303,14 +388,14 @@ pub mod file_input {
         /// one of those three protocols. Immutable for Google Sheets files.
         #[prost(string, tag = "7")]
         pub fetch_uri: ::prost::alloc::string::String,
-        /// Optional. An optional user name for [fetch
-        /// url][google.shopping.content.bundles.DataSources.FileInput.fetch_url].
+        /// Optional. An optional user name for
+        /// [fetch_uri][google.shopping.merchant.datasources.v1beta.FileInput.FetchSettings.fetch_uri].
         /// Used for [submitting data sources through
         /// SFTP](<https://support.google.com/merchants/answer/13813117>).
         #[prost(string, tag = "8")]
         pub username: ::prost::alloc::string::String,
-        /// Optional. An optional password for [fetch
-        /// url][google.shopping.content.bundles.DataSources.FileInput.fetch_url].
+        /// Optional. An optional password for
+        /// [fetch_uri][google.shopping.merchant.datasources.v1beta.FileInput.FetchSettings.fetch_uri].
         /// Used for [submitting data sources through
         /// SFTP](<https://support.google.com/merchants/answer/13813117>).
         #[prost(string, tag = "9")]
@@ -401,10 +486,10 @@ pub mod file_input {
         /// the Merchant Center.
         Upload = 1,
         /// The file is fetched from the configured
-        /// [fetch_uri][google.shopping.content.bundles.DataSources.FileInput.FetchSettings.fetch_uri].
+        /// [fetch_uri][google.shopping.merchant.datasources.v1beta.FileInput.FetchSettings.fetch_uri].
         Fetch = 2,
         /// The file is fetched from Google Sheets specified in the
-        /// [fetch_uri][google.shopping.content.bundles.DataSources.FileInput.FetchSettings.fetch_uri].
+        /// [fetch_uri][google.shopping.merchant.datasources.v1beta.FileInput.FetchSettings.fetch_uri].
         GoogleSheets = 3,
     }
     impl FileInputType {
@@ -455,8 +540,8 @@ pub struct DataSource {
     /// Optional. The field is used only when data is managed through a file.
     #[prost(message, optional, tag = "11")]
     pub file_input: ::core::option::Option<FileInput>,
-    /// The data source type.
-    #[prost(oneof = "data_source::Type", tags = "4, 5, 6, 7, 8")]
+    /// Required. The data source type.
+    #[prost(oneof = "data_source::Type", tags = "4, 5, 6, 7, 8, 9, 12")]
     pub r#type: ::core::option::Option<data_source::Type>,
 }
 /// Nested message and enum types in `DataSource`.
@@ -523,34 +608,43 @@ pub mod data_source {
             }
         }
     }
-    /// The data source type.
+    /// Required. The data source type.
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Type {
-        /// Required. The [primary data
+        /// The [primary data
         /// source](<https://support.google.com/merchants/answer/7439058>) for local
         /// and online products.
         #[prost(message, tag = "4")]
         PrimaryProductDataSource(super::PrimaryProductDataSource),
-        /// Required. The [supplemental data
+        /// The [supplemental data
         /// source](<https://support.google.com/merchants/answer/7439058>) for local
         /// and online products.
         #[prost(message, tag = "5")]
         SupplementalProductDataSource(super::SupplementalProductDataSource),
-        /// Required. The [local
+        /// The [local
         /// inventory](<https://support.google.com/merchants/answer/7023001>) data
         /// source.
         #[prost(message, tag = "6")]
         LocalInventoryDataSource(super::LocalInventoryDataSource),
-        /// Required. The [regional
+        /// The [regional
         /// inventory](<https://support.google.com/merchants/answer/7439058>) data
         /// source.
         #[prost(message, tag = "7")]
         RegionalInventoryDataSource(super::RegionalInventoryDataSource),
-        /// Required. The
-        /// [promotion](<https://support.google.com/merchants/answer/2906014>) data
-        /// source.
+        /// The [promotion](<https://support.google.com/merchants/answer/2906014>)
+        /// data source.
         #[prost(message, tag = "8")]
         PromotionDataSource(super::PromotionDataSource),
+        /// The [product
+        /// review](<https://support.google.com/merchants/answer/7045996>)
+        /// data source.
+        #[prost(message, tag = "9")]
+        ProductReviewDataSource(super::ProductReviewDataSource),
+        /// The [merchant
+        /// review](<https://support.google.com/merchants/answer/7045996>)
+        /// data source.
+        #[prost(message, tag = "12")]
+        MerchantReviewDataSource(super::MerchantReviewDataSource),
     }
 }
 /// Request message for the GetDataSource method.
@@ -667,7 +761,7 @@ pub mod data_sources_service_client {
     }
     impl<T> DataSourcesServiceClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -688,13 +782,13 @@ pub mod data_sources_service_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             DataSourcesServiceClient::new(InterceptedService::new(inner, interceptor))
@@ -1097,7 +1191,7 @@ pub mod file_uploads_service_client {
     }
     impl<T> FileUploadsServiceClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -1118,13 +1212,13 @@ pub mod file_uploads_service_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             FileUploadsServiceClient::new(InterceptedService::new(inner, interceptor))

@@ -79,11 +79,12 @@ pub struct Attributes {
     /// categories through the API.
     #[prost(string, optional, tag = "25")]
     pub google_product_category: ::core::option::Option<::prost::alloc::string::String>,
-    /// Global Trade Item Number
+    /// Global Trade Item Numbers
     /// ([GTIN](<https://support.google.com/merchants/answer/188494#gtin>)) of the
     /// item.
-    #[prost(string, optional, tag = "26")]
-    pub gtin: ::core::option::Option<::prost::alloc::string::String>,
+    /// You can provide up to 10 GTINs.
+    #[prost(string, repeated, tag = "26")]
+    pub gtin: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
     /// Shared identifier for all variants of the same product.
     #[prost(string, optional, tag = "27")]
     pub item_group_id: ::core::option::Option<::prost::alloc::string::String>,
@@ -199,8 +200,7 @@ pub struct Attributes {
     /// Tax information.
     #[prost(message, repeated, tag = "51")]
     pub taxes: ::prost::alloc::vec::Vec<Tax>,
-    /// The tax category of the product, used to configure detailed tax nexus
-    /// in account-level tax settings.
+    /// The tax category of the product.
     #[prost(string, optional, tag = "52")]
     pub tax_category: ::core::option::Option<::prost::alloc::string::String>,
     /// The energy efficiency class as defined in EU directive 2010/30/EU.
@@ -359,6 +359,11 @@ pub struct Attributes {
     pub auto_pricing_min_price: ::core::option::Option<
         super::super::super::r#type::Price,
     >,
+    /// The list of sustainability incentive programs.
+    #[prost(message, repeated, tag = "138")]
+    pub sustainability_incentives: ::prost::alloc::vec::Vec<
+        ProductSustainabilityIncentive,
+    >,
 }
 /// The Tax of the product.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -508,6 +513,19 @@ pub struct LoyaltyProgram {
     /// The amount of loyalty points earned on a purchase.
     #[prost(int64, optional, tag = "5")]
     pub loyalty_points: ::core::option::Option<i64>,
+    /// A date range during which the item is eligible for member price. If not
+    /// specified, the member price is always applicable. The date range is
+    /// represented by a pair of ISO 8601 dates separated by a space,
+    /// comma, or slash.
+    #[prost(message, optional, tag = "6")]
+    pub member_price_effective_date: ::core::option::Option<
+        super::super::super::super::r#type::Interval,
+    >,
+    /// The label of the shipping benefit. If the field has value, this offer has
+    /// loyalty shipping benefit. If the field value isn't provided, the item is
+    /// not eligible for loyalty shipping for the given loyalty tier.
+    #[prost(string, optional, tag = "7")]
+    pub shipping_label: ::core::option::Option<::prost::alloc::string::String>,
 }
 /// The Shipping of the product.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -545,48 +563,48 @@ pub struct Shipping {
     /// Minimum handling time (inclusive) between when the order is received and
     /// shipped in business days. 0 means that the order is shipped on the same
     /// day as it is received if it happens before the cut-off time.
-    /// [minHandlingTime][google.shopping.content.bundles.Products.Shipping.min_handling_time]
+    /// [minHandlingTime][google.shopping.merchant.products.v1beta.Shipping.min_handling_time]
     /// can only be present together with
-    /// [maxHandlingTime][google.shopping.content.bundles.Products.Shipping.max_handling_time];
+    /// [maxHandlingTime][google.shopping.merchant.products.v1beta.Shipping.max_handling_time];
     /// but it is not required if
-    /// [maxHandlingTime][google.shopping.content.bundles.Products.Shipping.max_handling_time]
+    /// [maxHandlingTime][google.shopping.merchant.products.v1beta.Shipping.max_handling_time]
     /// is present.
     #[prost(int64, optional, tag = "8")]
     pub min_handling_time: ::core::option::Option<i64>,
     /// Maximum handling time (inclusive) between when the order is received and
     /// shipped in business days. 0 means that the order is shipped on the same
     /// day as it is received if it happens before the cut-off time. Both
-    /// [maxHandlingTime][google.shopping.content.bundles.Products.Shipping.max_handling_time]
+    /// [maxHandlingTime][google.shopping.merchant.products.v1beta.Shipping.max_handling_time]
     /// and
-    /// [maxTransitTime][google.shopping.content.bundles.Products.Shipping.max_transit_time]
+    /// [maxTransitTime][google.shopping.merchant.products.v1beta.Shipping.max_transit_time]
     /// are required if providing shipping speeds.
-    /// [minHandlingTime][google.shopping.content.bundles.Products.Shipping.min_handling_time]
+    /// [minHandlingTime][google.shopping.merchant.products.v1beta.Shipping.min_handling_time]
     /// is optional if
-    /// [maxHandlingTime][google.shopping.content.bundles.Products.Shipping.max_handling_time]
+    /// [maxHandlingTime][google.shopping.merchant.products.v1beta.Shipping.max_handling_time]
     /// is present.
     #[prost(int64, optional, tag = "9")]
     pub max_handling_time: ::core::option::Option<i64>,
     /// Minimum transit time (inclusive) between when the order has shipped and
     /// when it is delivered in business days. 0 means that the order is
     /// delivered on the same day as it ships.
-    /// [minTransitTime][google.shopping.content.bundles.Products.Shipping.min_transit_time]
+    /// [minTransitTime][google.shopping.merchant.products.v1beta.Shipping.min_transit_time]
     /// can only be present together with
-    /// [maxTransitTime][google.shopping.content.bundles.Products.Shipping.max_transit_time];
+    /// [maxTransitTime][google.shopping.merchant.products.v1beta.Shipping.max_transit_time];
     /// but it is not required if
-    /// [maxTransitTime][google.shopping.content.bundles.Products.Shipping.max_transit_time]
+    /// [maxTransitTime][google.shopping.merchant.products.v1beta.Shipping.max_transit_time]
     /// is present.
     #[prost(int64, optional, tag = "10")]
     pub min_transit_time: ::core::option::Option<i64>,
     /// Maximum transit time (inclusive) between when the order has shipped and
     /// when it is delivered in business days. 0 means that the order is
     /// delivered on the same day as it ships. Both
-    /// [maxHandlingTime][google.shopping.content.bundles.Products.Shipping.max_handling_time]
+    /// [maxHandlingTime][google.shopping.merchant.products.v1beta.Shipping.max_handling_time]
     /// and
-    /// [maxTransitTime][google.shopping.content.bundles.Products.Shipping.max_transit_time]
+    /// [maxTransitTime][google.shopping.merchant.products.v1beta.Shipping.max_transit_time]
     /// are required if providing shipping speeds.
-    /// [minTransitTime][google.shopping.content.bundles.Products.Shipping.min_transit_time]
+    /// [minTransitTime][google.shopping.merchant.products.v1beta.Shipping.min_transit_time]
     /// is optional if
-    /// [maxTransitTime][google.shopping.content.bundles.Products.Shipping.max_transit_time]
+    /// [maxTransitTime][google.shopping.merchant.products.v1beta.Shipping.max_transit_time]
     /// is present.
     #[prost(int64, optional, tag = "11")]
     pub max_transit_time: ::core::option::Option<i64>,
@@ -880,6 +898,78 @@ pub struct CloudExportAdditionalProperties {
     #[prost(string, optional, tag = "8")]
     pub unit_code: ::core::option::Option<::prost::alloc::string::String>,
 }
+/// Information regarding sustainability-related incentive programs such as
+/// rebates or tax relief.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ProductSustainabilityIncentive {
+    /// Sustainability incentive program.
+    #[prost(enumeration = "product_sustainability_incentive::Type", optional, tag = "1")]
+    pub r#type: ::core::option::Option<i32>,
+    /// Sustainability incentive value.
+    #[prost(oneof = "product_sustainability_incentive::Value", tags = "2, 3")]
+    pub value: ::core::option::Option<product_sustainability_incentive::Value>,
+}
+/// Nested message and enum types in `ProductSustainabilityIncentive`.
+pub mod product_sustainability_incentive {
+    /// Types of supported sustainability incentive programs.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Type {
+        /// Unspecified or unknown sustainability incentive type.
+        Unspecified = 0,
+        /// Program offering tax liability reductions for electric vehicles and, in
+        /// some countries, plug-in hybrids. These reductions can be based on a
+        /// specific amount or a percentage of the sale price.
+        EvTaxCredit = 1,
+        /// A subsidy program, often called an environmental bonus, provides a
+        /// purchase grant for electric vehicles and, in some countries, plug-in
+        /// hybrids. The grant amount may be a fixed sum or a percentage of the sale
+        /// price.
+        EvPriceDiscount = 2,
+    }
+    impl Type {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "TYPE_UNSPECIFIED",
+                Self::EvTaxCredit => "EV_TAX_CREDIT",
+                Self::EvPriceDiscount => "EV_PRICE_DISCOUNT",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+                "EV_TAX_CREDIT" => Some(Self::EvTaxCredit),
+                "EV_PRICE_DISCOUNT" => Some(Self::EvPriceDiscount),
+                _ => None,
+            }
+        }
+    }
+    /// Sustainability incentive value.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Value {
+        /// The fixed amount of the incentive.
+        #[prost(message, tag = "2")]
+        Amount(super::super::super::super::r#type::Price),
+        /// The percentage of the sale price that the incentive is applied to.
+        #[prost(double, tag = "3")]
+        Percentage(f64),
+    }
+}
 /// The subscription period of the product.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
@@ -914,31 +1004,35 @@ impl SubscriptionPeriod {
     }
 }
 /// This resource represents input data you submit for a product, not the
-/// processed product that you see in Merchant Center, in Shopping ads, or across
-/// Google surfaces. Product inputs, rules and supplemental data source data are
-/// combined to create the processed
-/// [product][google.shopping.content.bundles.Products.Product].
+///   processed product that you see in Merchant Center, in Shopping ads, or
+///   across Google surfaces. Product inputs, rules and supplemental data source
+///   data are combined to create the processed
+///   [Product][google.shopping.merchant.products.v1beta.Product].
 ///
-/// Required product input attributes to pass data validation checks are
-/// primarily defined in the [Products Data
-/// Specification](<https://support.google.com/merchants/answer/188494>).
+///   Required product input attributes to pass data validation checks are
+///   primarily defined in the [Products Data
+///   Specification](<https://support.google.com/merchants/answer/188494>).
 ///
-/// The following attributes are required:
-/// [feedLabel][google.shopping.content.bundles.Products.feed_label],
-/// [contentLanguage][google.shopping.content.bundles.Products.content_language]
-/// and [offerId][google.shopping.content.bundles.Products.offer_id].
+///   The following attributes are required:
+///   [feedLabel][google.shopping.merchant.products.v1beta.Product.feed_label],
+///   [contentLanguage][google.shopping.merchant.products.v1beta.Product.content_language]
+///   and [offerId][google.shopping.merchant.products.v1beta.Product.offer_id].
 ///
-/// After inserting, updating, or deleting a product input, it may take several
-/// minutes before the processed product can be retrieved.
+///   After inserting, updating, or deleting a product input, it may take several
+///   minutes before the processed product can be retrieved.
 ///
-/// All fields in the product input and its sub-messages match the English name
-/// of their corresponding attribute in the vertical spec with [some
-/// exceptions](<https://support.google.com/merchants/answer/7052112>).
+///   All fields in the product input and its sub-messages match the English name
+///   of their corresponding attribute in the vertical spec with [some
+///   exceptions](<https://support.google.com/merchants/answer/7052112>).
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ProductInput {
     /// Identifier. The name of the product input.
     /// Format:
     /// `"{productinput.name=accounts/{account}/productInputs/{productinput}}"`
+    /// where the last section `productinput` consists of 4 parts:
+    /// channel~content_language~feed_label~offer_id
+    /// example for product input name is
+    /// "accounts/123/productInputs/online~en~US~sku123"
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
     /// Output only. The name of the processed product.
@@ -946,7 +1040,7 @@ pub struct ProductInput {
     /// `"{product.name=accounts/{account}/products/{product}}"`
     #[prost(string, tag = "2")]
     pub product: ::prost::alloc::string::String,
-    /// Required. Immutable. The
+    /// Immutable. The
     /// [channel](<https://support.google.com/merchants/answer/7361332>) of the
     /// product.
     #[prost(
@@ -1018,8 +1112,47 @@ pub struct InsertProductInputRequest {
     pub product_input: ::core::option::Option<ProductInput>,
     /// Required. The primary or supplemental product data source name. If the
     /// product already exists and data source provided is different, then the
-    /// product will be moved to a new data source. Format:
-    /// `accounts/{account}/dataSources/{datasource}`.
+    /// product will be moved to a new data source.
+    ///
+    /// Only API data sources are supported.
+    ///
+    /// Format: `accounts/{account}/dataSources/{datasource}`.
+    #[prost(string, tag = "3")]
+    pub data_source: ::prost::alloc::string::String,
+}
+/// Request message for the UpdateProductInput method.
+/// The product (primary input) must exist for the update to succeed.
+/// If the update is for a primary product input, the existing primary product
+/// input must be from the same data source.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateProductInputRequest {
+    /// Required. The product input resource to update. Information you submit will
+    /// be applied to the processed product as well.
+    #[prost(message, optional, tag = "1")]
+    pub product_input: ::core::option::Option<ProductInput>,
+    /// Optional. The list of product attributes to be updated.
+    ///
+    /// If the update mask is omitted, then it is treated as implied field mask
+    /// equivalent to all fields that are populated (have a non-empty value).
+    ///
+    /// Attributes specified in the update mask without a value specified in the
+    /// body will be deleted from the product.
+    ///
+    /// Update mask can only be specified for top level fields in
+    /// attributes and custom attributes.
+    ///
+    /// To specify the update mask for custom attributes you need to add the
+    /// `custom_attribute.` prefix.
+    ///
+    /// Providing special "*" value for full product replacement is not supported.
+    #[prost(message, optional, tag = "2")]
+    pub update_mask: ::core::option::Option<::prost_types::FieldMask>,
+    /// Required. The primary or supplemental product data source where
+    /// `data_source` name identifies the product input to be updated.
+    ///
+    /// Only API data sources are supported.
+    ///
+    /// Format: `accounts/{account}/dataSources/{datasource}`.
     #[prost(string, tag = "3")]
     pub data_source: ::prost::alloc::string::String,
 }
@@ -1028,6 +1161,10 @@ pub struct InsertProductInputRequest {
 pub struct DeleteProductInputRequest {
     /// Required. The name of the product input resource to delete.
     /// Format: accounts/{account}/productInputs/{product}
+    /// where the last section `product` consists of 4 parts:
+    /// channel~content_language~feed_label~offer_id
+    /// example for product name is
+    /// "accounts/123/productInputs/online~en~US~sku123"
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
     /// Required. The primary or supplemental data source from which the product
@@ -1066,7 +1203,7 @@ pub mod product_inputs_service_client {
     }
     impl<T> ProductInputsServiceClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -1087,13 +1224,13 @@ pub mod product_inputs_service_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             ProductInputsServiceClient::new(InterceptedService::new(inner, interceptor))
@@ -1161,6 +1298,36 @@ pub mod product_inputs_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        /// Updates the existing product input in your Merchant Center account.
+        ///
+        /// After inserting, updating, or deleting a product input, it may take several
+        /// minutes before the processed product can be retrieved.
+        pub async fn update_product_input(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateProductInputRequest>,
+        ) -> std::result::Result<tonic::Response<super::ProductInput>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.shopping.merchant.products.v1beta.ProductInputsService/UpdateProductInput",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.shopping.merchant.products.v1beta.ProductInputsService",
+                        "UpdateProductInput",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
         /// Deletes a product input from your Merchant Center account.
         ///
         /// After inserting, updating, or deleting a product input, it may take several
@@ -1194,10 +1361,10 @@ pub mod product_inputs_service_client {
     }
 }
 /// The processed product, built from multiple [product
-/// inputs][\[google.shopping.content.bundles.Products.ProductInput\] after
-/// applying rules and supplemental data sources. This processed product matches
-/// what is shown in your Merchant Center account and in Shopping ads and other
-/// surfaces across Google. Each product is built from exactly one primary
+/// inputs][google.shopping.merchant.products.v1main.ProductInput]
+/// after applying rules and supplemental data sources. This processed product
+/// matches what is shown in your Merchant Center account and in Shopping ads and
+/// other surfaces across Google. Each product is built from exactly one primary
 /// data source product input, and multiple supplemental data source inputs.
 /// After inserting, updating, or deleting a product input, it may take
 /// several minutes before the updated processed product can be retrieved.
@@ -1210,7 +1377,10 @@ pub mod product_inputs_service_client {
 pub struct Product {
     /// The name of the product.
     /// Format:
-    /// `"{product.name=accounts/{account}/products/{product}}"`
+    /// `"{product.name=accounts/{account}/products/{product}}"` where the last
+    /// section `product` consists of 4 parts:
+    /// channel~content_language~feed_label~offer_id
+    /// example for product name is "accounts/123/products/online~en~US~sku123"
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
     /// Output only. The
@@ -1278,6 +1448,10 @@ pub struct Product {
 pub struct GetProductRequest {
     /// Required. The name of the product to retrieve.
     /// Format: `accounts/{account}/products/{product}`
+    /// where the last section `product` consists of 4 parts:
+    /// channel~content_language~feed_label~offer_id
+    /// example for product name is
+    /// "accounts/123/products/online~en~US~sku123"
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
 }
@@ -1290,7 +1464,7 @@ pub struct ListProductsRequest {
     pub parent: ::prost::alloc::string::String,
     /// The maximum number of products to return. The service may return fewer than
     /// this value.
-    /// The maximum value is 1000; values above 1000 will be coerced to 1000.
+    /// The maximum value is 250; values above 250 will be coerced to 250.
     /// If unspecified, the maximum number of products will be returned.
     #[prost(int32, tag = "2")]
     pub page_size: i32,
@@ -1344,7 +1518,7 @@ pub mod products_service_client {
     }
     impl<T> ProductsServiceClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -1365,13 +1539,13 @@ pub mod products_service_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             ProductsServiceClient::new(InterceptedService::new(inner, interceptor))

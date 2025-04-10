@@ -73,6 +73,12 @@ pub struct Instance {
     ///    number of files.
     #[prost(enumeration = "DirectoryStripeLevel", tag = "16")]
     pub directory_stripe_level: i32,
+    /// Optional. The deployment type of the instance. Allowed values are:
+    ///
+    /// * `SCRATCH`: the instance is a scratch instance.
+    /// * `PERSISTENT`: the instance is a persistent instance.
+    #[prost(enumeration = "DeploymentType", tag = "17")]
+    pub deployment_type: i32,
 }
 /// Nested message and enum types in `Instance`.
 pub mod instance {
@@ -284,7 +290,7 @@ pub struct OperationMetadata {
     pub status_message: ::prost::alloc::string::String,
     /// Output only. Identifies whether the user has requested cancellation
     /// of the operation. Operations that have been cancelled successfully
-    /// have [Operation.error][] value with a
+    /// have [Operation.error][google.longrunning.Operation.error] value with a
     /// [google.rpc.Status.code][google.rpc.Status.code] of 1, corresponding to
     /// `Code.CANCELLED`.
     #[prost(bool, tag = "6")]
@@ -468,7 +474,7 @@ pub struct ImportDataMetadata {
     pub status_message: ::prost::alloc::string::String,
     /// Output only. Identifies whether the user has requested cancellation
     /// of the operation. Operations that have successfully been cancelled
-    /// have [Operation.error][] value with a
+    /// have [Operation.error][google.longrunning.Operation.error] value with a
     /// [google.rpc.Status.code][google.rpc.Status.code] of 1, corresponding to
     /// `Code.CANCELLED`.
     #[prost(bool, tag = "7")]
@@ -503,7 +509,7 @@ pub struct ExportDataMetadata {
     pub status_message: ::prost::alloc::string::String,
     /// Output only. Identifies whether the user has requested cancellation
     /// of the operation. Operations that have successfully been cancelled
-    /// have [Operation.error][] value with a
+    /// have [Operation.error][google.longrunning.Operation.error] value with a
     /// [google.rpc.Status.code][google.rpc.Status.code] of 1, corresponding to
     /// `Code.CANCELLED`.
     #[prost(bool, tag = "7")]
@@ -686,6 +692,40 @@ impl DirectoryStripeLevel {
         }
     }
 }
+/// Represents the deployment type for the instance.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum DeploymentType {
+    /// Default Deployment Type
+    /// It is equivalent to SCRATCH
+    Unspecified = 0,
+    /// Scratch
+    Scratch = 1,
+    /// Persistent
+    Persistent = 2,
+}
+impl DeploymentType {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "DEPLOYMENT_TYPE_UNSPECIFIED",
+            Self::Scratch => "SCRATCH",
+            Self::Persistent => "PERSISTENT",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "DEPLOYMENT_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+            "SCRATCH" => Some(Self::Scratch),
+            "PERSISTENT" => Some(Self::Persistent),
+            _ => None,
+        }
+    }
+}
 /// Generated client implementations.
 pub mod parallelstore_client {
     #![allow(
@@ -729,7 +769,7 @@ pub mod parallelstore_client {
     }
     impl<T> ParallelstoreClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -750,13 +790,13 @@ pub mod parallelstore_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             ParallelstoreClient::new(InterceptedService::new(inner, interceptor))

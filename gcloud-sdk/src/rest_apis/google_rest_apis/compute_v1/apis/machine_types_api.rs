@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize}; /*
 use reqwest;
 
 use super::{configuration, Error};
-use crate::google_rest_apis::compute_v1::apis::ResponseContent;
+use crate::google_rest_apis::compute_v1::{apis::ResponseContent, models};
 
 /// struct for passing parameters to the method [`compute_machine_types_aggregated_list`]
 #[derive(Clone, Debug, Default)]
@@ -162,7 +162,7 @@ pub async fn compute_machine_types_aggregated_list(
     configuration: &configuration::Configuration,
     params: ComputePeriodMachineTypesPeriodAggregatedListParams,
 ) -> Result<
-    crate::google_rest_apis::compute_v1::models::MachineTypeAggregatedList,
+    models::MachineTypeAggregatedList,
     Error<ComputePeriodMachineTypesPeriodAggregatedListError>,
 > {
     let local_var_configuration = configuration;
@@ -308,10 +308,7 @@ pub async fn compute_machine_types_aggregated_list(
 pub async fn compute_machine_types_get(
     configuration: &configuration::Configuration,
     params: ComputePeriodMachineTypesPeriodGetParams,
-) -> Result<
-    crate::google_rest_apis::compute_v1::models::MachineType,
-    Error<ComputePeriodMachineTypesPeriodGetError>,
-> {
+) -> Result<models::MachineType, Error<ComputePeriodMachineTypesPeriodGetError>> {
     let local_var_configuration = configuration;
 
     // unbox the parameters
@@ -424,10 +421,7 @@ pub async fn compute_machine_types_get(
 pub async fn compute_machine_types_list(
     configuration: &configuration::Configuration,
     params: ComputePeriodMachineTypesPeriodListParams,
-) -> Result<
-    crate::google_rest_apis::compute_v1::models::MachineTypeList,
-    Error<ComputePeriodMachineTypesPeriodListError>,
-> {
+) -> Result<models::MachineTypeList, Error<ComputePeriodMachineTypesPeriodListError>> {
     let local_var_configuration = configuration;
 
     // unbox the parameters

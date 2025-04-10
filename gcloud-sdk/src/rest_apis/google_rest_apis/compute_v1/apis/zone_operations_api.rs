@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize}; /*
 use reqwest;
 
 use super::{configuration, Error};
-use crate::google_rest_apis::compute_v1::apis::ResponseContent;
+use crate::google_rest_apis::compute_v1::{apis::ResponseContent, models};
 
 /// struct for passing parameters to the method [`compute_zone_operations_delete`]
 #[derive(Clone, Debug, Default)]
@@ -306,10 +306,7 @@ pub async fn compute_zone_operations_delete(
 pub async fn compute_zone_operations_get(
     configuration: &configuration::Configuration,
     params: ComputePeriodZoneOperationsPeriodGetParams,
-) -> Result<
-    crate::google_rest_apis::compute_v1::models::Operation,
-    Error<ComputePeriodZoneOperationsPeriodGetError>,
-> {
+) -> Result<models::Operation, Error<ComputePeriodZoneOperationsPeriodGetError>> {
     let local_var_configuration = configuration;
 
     // unbox the parameters
@@ -422,10 +419,7 @@ pub async fn compute_zone_operations_get(
 pub async fn compute_zone_operations_list(
     configuration: &configuration::Configuration,
     params: ComputePeriodZoneOperationsPeriodListParams,
-) -> Result<
-    crate::google_rest_apis::compute_v1::models::OperationList,
-    Error<ComputePeriodZoneOperationsPeriodListError>,
-> {
+) -> Result<models::OperationList, Error<ComputePeriodZoneOperationsPeriodListError>> {
     let local_var_configuration = configuration;
 
     // unbox the parameters
@@ -561,10 +555,7 @@ pub async fn compute_zone_operations_list(
 pub async fn compute_zone_operations_wait(
     configuration: &configuration::Configuration,
     params: ComputePeriodZoneOperationsPeriodWaitParams,
-) -> Result<
-    crate::google_rest_apis::compute_v1::models::Operation,
-    Error<ComputePeriodZoneOperationsPeriodWaitError>,
-> {
+) -> Result<models::Operation, Error<ComputePeriodZoneOperationsPeriodWaitError>> {
     let local_var_configuration = configuration;
 
     // unbox the parameters

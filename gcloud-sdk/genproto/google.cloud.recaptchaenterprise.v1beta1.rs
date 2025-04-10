@@ -557,17 +557,15 @@ pub mod event {
     )]
     #[repr(i32)]
     pub enum FraudPrevention {
-        /// Default, unspecified setting. If opted in for automatic detection,
-        /// `fraud_prevention_assessment` is returned based on the request.
-        /// Otherwise, `fraud_prevention_assessment` is returned if
-        /// `transaction_data` is present in the `Event` and Fraud Prevention is
+        /// Default, unspecified setting. `fraud_prevention_assessment` is returned
+        /// if `transaction_data` is present in `Event` and Fraud Prevention is
         /// enabled in the Google Cloud console.
         Unspecified = 0,
         /// Enable Fraud Prevention for this assessment, if Fraud Prevention is
         /// enabled in the Google Cloud console.
         Enabled = 1,
-        /// Disable Fraud Prevention for this assessment, regardless of opt-in
-        /// status or the Google Cloud console settings.
+        /// Disable Fraud Prevention for this assessment, regardless of the Google
+        /// Cloud console settings.
         Disabled = 2,
     }
     impl FraudPrevention {
@@ -980,7 +978,7 @@ pub mod recaptcha_enterprise_service_v1_beta1_client {
     }
     impl<T> RecaptchaEnterpriseServiceV1Beta1Client<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -1001,13 +999,13 @@ pub mod recaptcha_enterprise_service_v1_beta1_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             RecaptchaEnterpriseServiceV1Beta1Client::new(

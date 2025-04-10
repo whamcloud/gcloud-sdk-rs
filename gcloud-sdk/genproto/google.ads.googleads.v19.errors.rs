@@ -2312,6 +2312,10 @@ pub mod asset_error_enum {
         LeadFormLocationAnswerTypeDisallowed = 37,
         /// Page Feed label text contains invalid characters.
         PageFeedInvalidLabelText = 38,
+        /// The customer is not in the allow-list for whatsapp message asset type.
+        CustomerNotOnAllowlistForWhatsappMessageAssets = 39,
+        /// Only customers on the allowlist can create AppDeepLinkAsset.
+        CustomerNotOnAllowlistForAppDeepLinkAssets = 40,
     }
     impl AssetError {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -2394,6 +2398,12 @@ pub mod asset_error_enum {
                     "LEAD_FORM_LOCATION_ANSWER_TYPE_DISALLOWED"
                 }
                 Self::PageFeedInvalidLabelText => "PAGE_FEED_INVALID_LABEL_TEXT",
+                Self::CustomerNotOnAllowlistForWhatsappMessageAssets => {
+                    "CUSTOMER_NOT_ON_ALLOWLIST_FOR_WHATSAPP_MESSAGE_ASSETS"
+                }
+                Self::CustomerNotOnAllowlistForAppDeepLinkAssets => {
+                    "CUSTOMER_NOT_ON_ALLOWLIST_FOR_APP_DEEP_LINK_ASSETS"
+                }
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -2477,6 +2487,12 @@ pub mod asset_error_enum {
                     Some(Self::LeadFormLocationAnswerTypeDisallowed)
                 }
                 "PAGE_FEED_INVALID_LABEL_TEXT" => Some(Self::PageFeedInvalidLabelText),
+                "CUSTOMER_NOT_ON_ALLOWLIST_FOR_WHATSAPP_MESSAGE_ASSETS" => {
+                    Some(Self::CustomerNotOnAllowlistForWhatsappMessageAssets)
+                }
+                "CUSTOMER_NOT_ON_ALLOWLIST_FOR_APP_DEEP_LINK_ASSETS" => {
+                    Some(Self::CustomerNotOnAllowlistForAppDeepLinkAssets)
+                }
                 _ => None,
             }
         }
@@ -2761,6 +2777,9 @@ pub mod asset_group_listing_group_filter_error_enum {
         /// There cannot be more than one mutate operation per request that targets a
         /// single asset group listing group filter.
         MultipleOperationsOnOneNode = 23,
+        /// The tree is in an invalid state in the database. Any changes that don't
+        /// fix its issues will fail validation.
+        TreeWasInvalidBeforeMutation = 24,
     }
     impl AssetGroupListingGroupFilterError {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -2813,6 +2832,7 @@ pub mod asset_group_listing_group_filter_error_enum {
                 }
                 Self::PageFeedFilterHasParent => "PAGE_FEED_FILTER_HAS_PARENT",
                 Self::MultipleOperationsOnOneNode => "MULTIPLE_OPERATIONS_ON_ONE_NODE",
+                Self::TreeWasInvalidBeforeMutation => "TREE_WAS_INVALID_BEFORE_MUTATION",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -2865,6 +2885,9 @@ pub mod asset_group_listing_group_filter_error_enum {
                 "PAGE_FEED_FILTER_HAS_PARENT" => Some(Self::PageFeedFilterHasParent),
                 "MULTIPLE_OPERATIONS_ON_ONE_NODE" => {
                     Some(Self::MultipleOperationsOnOneNode)
+                }
+                "TREE_WAS_INVALID_BEFORE_MUTATION" => {
+                    Some(Self::TreeWasInvalidBeforeMutation)
                 }
                 _ => None,
             }
@@ -3024,6 +3047,12 @@ pub mod asset_link_error_enum {
         CustomerNotVerified = 23,
         /// Call to action value is not supported.
         UnsupportedCallToAction = 24,
+        /// For Performance Max campaigns where brand_guidelines_enabled is false,
+        /// business name and logo assets must be linked as AssetGroupAssets.
+        BrandAssetsNotLinkedAtAssetGroupLevel = 25,
+        /// For Performance Max campaigns where brand_guidelines_enabled is true,
+        /// business name and logo assets must be linked as CampaignAssets.
+        BrandAssetsNotLinkedAtCampaignLevel = 26,
     }
     impl AssetLinkError {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -3081,6 +3110,12 @@ pub mod asset_link_error_enum {
                 }
                 Self::CustomerNotVerified => "CUSTOMER_NOT_VERIFIED",
                 Self::UnsupportedCallToAction => "UNSUPPORTED_CALL_TO_ACTION",
+                Self::BrandAssetsNotLinkedAtAssetGroupLevel => {
+                    "BRAND_ASSETS_NOT_LINKED_AT_ASSET_GROUP_LEVEL"
+                }
+                Self::BrandAssetsNotLinkedAtCampaignLevel => {
+                    "BRAND_ASSETS_NOT_LINKED_AT_CAMPAIGN_LEVEL"
+                }
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -3139,6 +3174,12 @@ pub mod asset_link_error_enum {
                 }
                 "CUSTOMER_NOT_VERIFIED" => Some(Self::CustomerNotVerified),
                 "UNSUPPORTED_CALL_TO_ACTION" => Some(Self::UnsupportedCallToAction),
+                "BRAND_ASSETS_NOT_LINKED_AT_ASSET_GROUP_LEVEL" => {
+                    Some(Self::BrandAssetsNotLinkedAtAssetGroupLevel)
+                }
+                "BRAND_ASSETS_NOT_LINKED_AT_CAMPAIGN_LEVEL" => {
+                    Some(Self::BrandAssetsNotLinkedAtCampaignLevel)
+                }
                 _ => None,
             }
         }
@@ -3845,6 +3886,78 @@ pub mod authorization_error_enum {
         }
     }
 }
+/// Container for enum describing possible automatically created asset removal
+/// errors.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct AutomaticallyCreatedAssetRemovalErrorEnum {}
+/// Nested message and enum types in `AutomaticallyCreatedAssetRemovalErrorEnum`.
+pub mod automatically_created_asset_removal_error_enum {
+    /// Enum describing possible automatically created asset removal errors.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AutomaticallyCreatedAssetRemovalError {
+        /// Enum unspecified.
+        Unspecified = 0,
+        /// The received error code is not known in this version.
+        Unknown = 1,
+        /// The ad does not exist.
+        AdDoesNotExist = 2,
+        /// Ad type is not supported. Only Responsive Search Ad type is supported.
+        InvalidAdType = 3,
+        /// The asset does not exist.
+        AssetDoesNotExist = 4,
+        /// The asset field type does not match.
+        AssetFieldTypeDoesNotMatch = 5,
+        /// Not an automatically created asset.
+        NotAnAutomaticallyCreatedAsset = 6,
+    }
+    impl AutomaticallyCreatedAssetRemovalError {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "UNSPECIFIED",
+                Self::Unknown => "UNKNOWN",
+                Self::AdDoesNotExist => "AD_DOES_NOT_EXIST",
+                Self::InvalidAdType => "INVALID_AD_TYPE",
+                Self::AssetDoesNotExist => "ASSET_DOES_NOT_EXIST",
+                Self::AssetFieldTypeDoesNotMatch => "ASSET_FIELD_TYPE_DOES_NOT_MATCH",
+                Self::NotAnAutomaticallyCreatedAsset => {
+                    "NOT_AN_AUTOMATICALLY_CREATED_ASSET"
+                }
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNSPECIFIED" => Some(Self::Unspecified),
+                "UNKNOWN" => Some(Self::Unknown),
+                "AD_DOES_NOT_EXIST" => Some(Self::AdDoesNotExist),
+                "INVALID_AD_TYPE" => Some(Self::InvalidAdType),
+                "ASSET_DOES_NOT_EXIST" => Some(Self::AssetDoesNotExist),
+                "ASSET_FIELD_TYPE_DOES_NOT_MATCH" => {
+                    Some(Self::AssetFieldTypeDoesNotMatch)
+                }
+                "NOT_AN_AUTOMATICALLY_CREATED_ASSET" => {
+                    Some(Self::NotAnAutomaticallyCreatedAsset)
+                }
+                _ => None,
+            }
+        }
+    }
+}
 /// Container for enum describing possible batch job errors.
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct BatchJobErrorEnum {}
@@ -3884,6 +3997,35 @@ pub mod batch_job_error_enum {
         /// The batch job cannot be listed due to unexpected errors such as duplicate
         /// checkpoints.
         CannotListResults = 8,
+        /// The request contains interdependent AssetGroup and AssetGroupAsset
+        /// operations that are treated atomically as a single transaction, and one
+        /// or more of the operations in that transaction failed, which caused the
+        /// entire transaction, and therefore this mutate operation, to fail. The
+        /// operations that caused the transaction to fail can be found in the
+        /// consecutive AssetGroup or AssetGroupAsset results with the same asset
+        /// group id. The mutate operation will be successful once the remaining
+        /// errors in the transaction are fixed.
+        AssetGroupAndAssetGroupAssetTransactionFailure = 9,
+        /// The request contains interdependent AssetGroupListingGroupFilter
+        /// operations that are treated atomically as a single transaction, and one
+        /// or more of the operations in that transaction failed, which caused the
+        /// entire transaction, and therefore this mutate operation, to fail. The
+        /// operations that caused the transaction to fail can be found in the
+        /// consecutive AssetGroupListingGroupFilter results with the same asset
+        /// group id. The mutate operation will be successful once the remaining
+        /// errors in the transaction are fixed.
+        AssetGroupListingGroupFilterTransactionFailure = 10,
+        /// The AddBatchJobOperationsRequest is too large. Split the request into
+        /// smaller requests. The maximum allowed request size is 10484504 bytes.
+        RequestTooLarge = 11,
+        /// This error indicates a failed transaction involving interdependent
+        /// Campaign and CampaignAsset operations that are treated atomically as a
+        /// single transaction. Because some operations within the transaction
+        /// failed, the entire set of changes was rejected. Related error details are
+        /// found in the results for the Campaign and CampaignAssets sharing the same
+        /// Campaign ID. The transaction will succeed after all associated errors are
+        /// resolved.
+        CampaignAndCampaignAssetTransactionFailure = 12,
     }
     impl BatchJobError {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -3903,6 +4045,16 @@ pub mod batch_job_error_enum {
                 Self::InvalidPageSize => "INVALID_PAGE_SIZE",
                 Self::CanOnlyRemovePendingJob => "CAN_ONLY_REMOVE_PENDING_JOB",
                 Self::CannotListResults => "CANNOT_LIST_RESULTS",
+                Self::AssetGroupAndAssetGroupAssetTransactionFailure => {
+                    "ASSET_GROUP_AND_ASSET_GROUP_ASSET_TRANSACTION_FAILURE"
+                }
+                Self::AssetGroupListingGroupFilterTransactionFailure => {
+                    "ASSET_GROUP_LISTING_GROUP_FILTER_TRANSACTION_FAILURE"
+                }
+                Self::RequestTooLarge => "REQUEST_TOO_LARGE",
+                Self::CampaignAndCampaignAssetTransactionFailure => {
+                    "CAMPAIGN_AND_CAMPAIGN_ASSET_TRANSACTION_FAILURE"
+                }
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -3919,6 +4071,16 @@ pub mod batch_job_error_enum {
                 "INVALID_PAGE_SIZE" => Some(Self::InvalidPageSize),
                 "CAN_ONLY_REMOVE_PENDING_JOB" => Some(Self::CanOnlyRemovePendingJob),
                 "CANNOT_LIST_RESULTS" => Some(Self::CannotListResults),
+                "ASSET_GROUP_AND_ASSET_GROUP_ASSET_TRANSACTION_FAILURE" => {
+                    Some(Self::AssetGroupAndAssetGroupAssetTransactionFailure)
+                }
+                "ASSET_GROUP_LISTING_GROUP_FILTER_TRANSACTION_FAILURE" => {
+                    Some(Self::AssetGroupListingGroupFilterTransactionFailure)
+                }
+                "REQUEST_TOO_LARGE" => Some(Self::RequestTooLarge),
+                "CAMPAIGN_AND_CAMPAIGN_ASSET_TRANSACTION_FAILURE" => {
+                    Some(Self::CampaignAndCampaignAssetTransactionFailure)
+                }
                 _ => None,
             }
         }
@@ -4399,6 +4561,96 @@ pub mod billing_setup_error_enum {
                 "TOO_MANY_BILLING_SETUPS_FOR_PAYMENTS_ACCOUNT" => {
                     Some(Self::TooManyBillingSetupsForPaymentsAccount)
                 }
+                _ => None,
+            }
+        }
+    }
+}
+/// Container for enum describing brand guidelines migration errors.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct BrandGuidelinesMigrationErrorEnum {}
+/// Nested message and enum types in `BrandGuidelinesMigrationErrorEnum`.
+pub mod brand_guidelines_migration_error_enum {
+    /// Enum describing brand guidelines migration errors.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum BrandGuidelinesMigrationError {
+        /// Enum unspecified.
+        Unspecified = 0,
+        /// The received error code is not known in this version.
+        Unknown = 1,
+        /// This campaign is already enabled for Brand Guidelines.
+        BrandGuidelinesAlreadyEnabled = 2,
+        /// Brand Guidelines can only be enabled for active or suspended campaigns.
+        CannotEnableBrandGuidelinesForRemovedCampaign = 3,
+        /// Maximum of 5 square and landscape logos can be specified for Brand
+        /// Guidelines.
+        BrandGuidelinesLogoLimitExceeded = 4,
+        /// Either auto_populate_brand_assets must be true or brand_assets must be
+        /// provided, but not both.
+        CannotAutoPopulateBrandAssetsWhenBrandAssetsProvided = 5,
+        /// Either auto_populate_brand_assets can be false or brand_assets can be
+        /// omitted, but not both.
+        AutoPopulateBrandAssetsRequiredWhenBrandAssetsOmitted = 6,
+        /// A maximum of 10 enable operations can be executed in a request.
+        TooManyEnableOperations = 7,
+    }
+    impl BrandGuidelinesMigrationError {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "UNSPECIFIED",
+                Self::Unknown => "UNKNOWN",
+                Self::BrandGuidelinesAlreadyEnabled => "BRAND_GUIDELINES_ALREADY_ENABLED",
+                Self::CannotEnableBrandGuidelinesForRemovedCampaign => {
+                    "CANNOT_ENABLE_BRAND_GUIDELINES_FOR_REMOVED_CAMPAIGN"
+                }
+                Self::BrandGuidelinesLogoLimitExceeded => {
+                    "BRAND_GUIDELINES_LOGO_LIMIT_EXCEEDED"
+                }
+                Self::CannotAutoPopulateBrandAssetsWhenBrandAssetsProvided => {
+                    "CANNOT_AUTO_POPULATE_BRAND_ASSETS_WHEN_BRAND_ASSETS_PROVIDED"
+                }
+                Self::AutoPopulateBrandAssetsRequiredWhenBrandAssetsOmitted => {
+                    "AUTO_POPULATE_BRAND_ASSETS_REQUIRED_WHEN_BRAND_ASSETS_OMITTED"
+                }
+                Self::TooManyEnableOperations => "TOO_MANY_ENABLE_OPERATIONS",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNSPECIFIED" => Some(Self::Unspecified),
+                "UNKNOWN" => Some(Self::Unknown),
+                "BRAND_GUIDELINES_ALREADY_ENABLED" => {
+                    Some(Self::BrandGuidelinesAlreadyEnabled)
+                }
+                "CANNOT_ENABLE_BRAND_GUIDELINES_FOR_REMOVED_CAMPAIGN" => {
+                    Some(Self::CannotEnableBrandGuidelinesForRemovedCampaign)
+                }
+                "BRAND_GUIDELINES_LOGO_LIMIT_EXCEEDED" => {
+                    Some(Self::BrandGuidelinesLogoLimitExceeded)
+                }
+                "CANNOT_AUTO_POPULATE_BRAND_ASSETS_WHEN_BRAND_ASSETS_PROVIDED" => {
+                    Some(Self::CannotAutoPopulateBrandAssetsWhenBrandAssetsProvided)
+                }
+                "AUTO_POPULATE_BRAND_ASSETS_REQUIRED_WHEN_BRAND_ASSETS_OMITTED" => {
+                    Some(Self::AutoPopulateBrandAssetsRequiredWhenBrandAssetsOmitted)
+                }
+                "TOO_MANY_ENABLE_OPERATIONS" => Some(Self::TooManyEnableOperations),
                 _ => None,
             }
         }
@@ -5256,6 +5508,54 @@ pub mod campaign_error_enum {
         /// Dynamic text asset cannot be opted out when final URL expansion is opted
         /// in.
         DynamicTextAssetCannotOptOutWithFinalUrlExpansionOptIn = 89,
+        /// Can not set a campaign level match type.
+        CannotSetCampaignKeywordMatchType = 90,
+        /// The campaign level keyword match type cannot be switched to non-broad
+        /// when keyword conversion to broad match is in process.
+        CannotDisableBroadMatchWhenKeywordConversionInProcess = 91,
+        /// The campaign level keyword match type cannot be switched to non-broad
+        /// when the campaign has any attached brand list or when a brand hint shared
+        /// set is attached to the campaign.
+        CannotDisableBroadMatchWhenTargetingBrands = 92,
+        /// Cannot set campaign level keyword match type to BROAD if the campaign is
+        /// a base campaign with an associated trial that is currently promoting.
+        CannotEnableBroadMatchForBaseCampaignWithPromotingTrial = 93,
+        /// Cannot set campaign level keyword match type to BROAD if the campaign is
+        /// a trial currently promoting.
+        CannotEnableBroadMatchForPromotingTrialCampaign = 94,
+        /// Performance Max campaigns with Brand Guidelines enabled require at least
+        /// one business name to be linked as a CampaignAsset. Performance Max
+        /// campaigns for online sales with a product feed must meet this requirement
+        /// only when there are assets that are linked to the campaign's asset
+        /// groups.
+        RequiredBusinessNameAssetNotLinked = 95,
+        /// Performance Max campaigns with Brand Guidelines enabled require at least
+        /// one square logo to be linked as a CampaignAsset. Performance Max
+        /// campaigns for online sales with a product feed must meet this requirement
+        /// only when there are assets that are linked to the campaign's asset
+        /// groups.
+        RequiredLogoAssetNotLinked = 96,
+        /// Brand Guideline fields can only be set for campaigns that have Brand
+        /// Guidelines enabled.
+        BrandGuidelinesNotEnabledForCampaign = 98,
+        /// When a Brand Guidelines color field is set, both main color and accent
+        /// color are required.
+        BrandGuidelinesMainAndAccentColorsRequired = 99,
+        /// Brand Guidelines colors must be hex colors matching the regular
+        /// expression '#\[0-9a-fA-F\]{6}', for example '#abc123'
+        BrandGuidelinesColorInvalidFormat = 100,
+        /// Brand Guidelines font family must be one of the supported Google Fonts.
+        /// See Campaign.brand_guidelines.predefined_font_family for the list of
+        /// supported fonts.
+        BrandGuidelinesUnsupportedFontFamily = 101,
+        /// Brand Guidelines cannot be set for this channel type. Brand Guidelines
+        /// supports Performance Max campaigns.
+        BrandGuidelinesUnsupportedChannel = 102,
+        /// Brand Guidelines cannot be enabled for Performance Max for travel goals
+        /// campaigns.
+        CannotEnableBrandGuidelinesForTravelGoals = 103,
+        /// This customer is not allowlisted for enabling Brand Guidelines.
+        CustomerNotAllowlistedForBrandGuidelines = 104,
     }
     impl CampaignError {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -5428,6 +5728,46 @@ pub mod campaign_error_enum {
                 }
                 Self::DynamicTextAssetCannotOptOutWithFinalUrlExpansionOptIn => {
                     "DYNAMIC_TEXT_ASSET_CANNOT_OPT_OUT_WITH_FINAL_URL_EXPANSION_OPT_IN"
+                }
+                Self::CannotSetCampaignKeywordMatchType => {
+                    "CANNOT_SET_CAMPAIGN_KEYWORD_MATCH_TYPE"
+                }
+                Self::CannotDisableBroadMatchWhenKeywordConversionInProcess => {
+                    "CANNOT_DISABLE_BROAD_MATCH_WHEN_KEYWORD_CONVERSION_IN_PROCESS"
+                }
+                Self::CannotDisableBroadMatchWhenTargetingBrands => {
+                    "CANNOT_DISABLE_BROAD_MATCH_WHEN_TARGETING_BRANDS"
+                }
+                Self::CannotEnableBroadMatchForBaseCampaignWithPromotingTrial => {
+                    "CANNOT_ENABLE_BROAD_MATCH_FOR_BASE_CAMPAIGN_WITH_PROMOTING_TRIAL"
+                }
+                Self::CannotEnableBroadMatchForPromotingTrialCampaign => {
+                    "CANNOT_ENABLE_BROAD_MATCH_FOR_PROMOTING_TRIAL_CAMPAIGN"
+                }
+                Self::RequiredBusinessNameAssetNotLinked => {
+                    "REQUIRED_BUSINESS_NAME_ASSET_NOT_LINKED"
+                }
+                Self::RequiredLogoAssetNotLinked => "REQUIRED_LOGO_ASSET_NOT_LINKED",
+                Self::BrandGuidelinesNotEnabledForCampaign => {
+                    "BRAND_GUIDELINES_NOT_ENABLED_FOR_CAMPAIGN"
+                }
+                Self::BrandGuidelinesMainAndAccentColorsRequired => {
+                    "BRAND_GUIDELINES_MAIN_AND_ACCENT_COLORS_REQUIRED"
+                }
+                Self::BrandGuidelinesColorInvalidFormat => {
+                    "BRAND_GUIDELINES_COLOR_INVALID_FORMAT"
+                }
+                Self::BrandGuidelinesUnsupportedFontFamily => {
+                    "BRAND_GUIDELINES_UNSUPPORTED_FONT_FAMILY"
+                }
+                Self::BrandGuidelinesUnsupportedChannel => {
+                    "BRAND_GUIDELINES_UNSUPPORTED_CHANNEL"
+                }
+                Self::CannotEnableBrandGuidelinesForTravelGoals => {
+                    "CANNOT_ENABLE_BRAND_GUIDELINES_FOR_TRAVEL_GOALS"
+                }
+                Self::CustomerNotAllowlistedForBrandGuidelines => {
+                    "CUSTOMER_NOT_ALLOWLISTED_FOR_BRAND_GUIDELINES"
                 }
             }
         }
@@ -5614,6 +5954,48 @@ pub mod campaign_error_enum {
                 }
                 "DYNAMIC_TEXT_ASSET_CANNOT_OPT_OUT_WITH_FINAL_URL_EXPANSION_OPT_IN" => {
                     Some(Self::DynamicTextAssetCannotOptOutWithFinalUrlExpansionOptIn)
+                }
+                "CANNOT_SET_CAMPAIGN_KEYWORD_MATCH_TYPE" => {
+                    Some(Self::CannotSetCampaignKeywordMatchType)
+                }
+                "CANNOT_DISABLE_BROAD_MATCH_WHEN_KEYWORD_CONVERSION_IN_PROCESS" => {
+                    Some(Self::CannotDisableBroadMatchWhenKeywordConversionInProcess)
+                }
+                "CANNOT_DISABLE_BROAD_MATCH_WHEN_TARGETING_BRANDS" => {
+                    Some(Self::CannotDisableBroadMatchWhenTargetingBrands)
+                }
+                "CANNOT_ENABLE_BROAD_MATCH_FOR_BASE_CAMPAIGN_WITH_PROMOTING_TRIAL" => {
+                    Some(Self::CannotEnableBroadMatchForBaseCampaignWithPromotingTrial)
+                }
+                "CANNOT_ENABLE_BROAD_MATCH_FOR_PROMOTING_TRIAL_CAMPAIGN" => {
+                    Some(Self::CannotEnableBroadMatchForPromotingTrialCampaign)
+                }
+                "REQUIRED_BUSINESS_NAME_ASSET_NOT_LINKED" => {
+                    Some(Self::RequiredBusinessNameAssetNotLinked)
+                }
+                "REQUIRED_LOGO_ASSET_NOT_LINKED" => {
+                    Some(Self::RequiredLogoAssetNotLinked)
+                }
+                "BRAND_GUIDELINES_NOT_ENABLED_FOR_CAMPAIGN" => {
+                    Some(Self::BrandGuidelinesNotEnabledForCampaign)
+                }
+                "BRAND_GUIDELINES_MAIN_AND_ACCENT_COLORS_REQUIRED" => {
+                    Some(Self::BrandGuidelinesMainAndAccentColorsRequired)
+                }
+                "BRAND_GUIDELINES_COLOR_INVALID_FORMAT" => {
+                    Some(Self::BrandGuidelinesColorInvalidFormat)
+                }
+                "BRAND_GUIDELINES_UNSUPPORTED_FONT_FAMILY" => {
+                    Some(Self::BrandGuidelinesUnsupportedFontFamily)
+                }
+                "BRAND_GUIDELINES_UNSUPPORTED_CHANNEL" => {
+                    Some(Self::BrandGuidelinesUnsupportedChannel)
+                }
+                "CANNOT_ENABLE_BRAND_GUIDELINES_FOR_TRAVEL_GOALS" => {
+                    Some(Self::CannotEnableBrandGuidelinesForTravelGoals)
+                }
+                "CUSTOMER_NOT_ALLOWLISTED_FOR_BRAND_GUIDELINES" => {
+                    Some(Self::CustomerNotAllowlistedForBrandGuidelines)
                 }
                 _ => None,
             }
@@ -7185,6 +7567,9 @@ pub mod conversion_value_rule_error_enum {
         InvalidAudienceUserInterest = 12,
         /// When a value rule is created, it shouldn't have REMOVED status.
         CannotAddRuleWithStatusRemoved = 13,
+        /// The value rule's itinerary condition contains invalid travel start day,
+        /// it contains no day of week.
+        NoDayOfWeekSelected = 14,
     }
     impl ConversionValueRuleError {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -7215,6 +7600,7 @@ pub mod conversion_value_rule_error_enum {
                 Self::CannotAddRuleWithStatusRemoved => {
                     "CANNOT_ADD_RULE_WITH_STATUS_REMOVED"
                 }
+                Self::NoDayOfWeekSelected => "NO_DAY_OF_WEEK_SELECTED",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -7244,6 +7630,7 @@ pub mod conversion_value_rule_error_enum {
                 "CANNOT_ADD_RULE_WITH_STATUS_REMOVED" => {
                     Some(Self::CannotAddRuleWithStatusRemoved)
                 }
+                "NO_DAY_OF_WEEK_SELECTED" => Some(Self::NoDayOfWeekSelected),
                 _ => None,
             }
         }
@@ -7317,6 +7704,9 @@ pub mod conversion_value_rule_set_error_enum {
         /// not supported. The list of conversion action categories must be an empty
         /// list, only STORE_VISIT, or only STORE_SALE.
         UnsupportedConversionActionCategories = 14,
+        /// Dimension ITINERARY can only be used on campaigns with an advertising
+        /// channel type of PERFORMANCE_MAX or HOTEL.
+        DimensionNotSupportedForCampaignType = 15,
     }
     impl ConversionValueRuleSetError {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -7358,6 +7748,9 @@ pub mod conversion_value_rule_set_error_enum {
                 Self::UnsupportedConversionActionCategories => {
                     "UNSUPPORTED_CONVERSION_ACTION_CATEGORIES"
                 }
+                Self::DimensionNotSupportedForCampaignType => {
+                    "DIMENSION_NOT_SUPPORTED_FOR_CAMPAIGN_TYPE"
+                }
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -7395,6 +7788,9 @@ pub mod conversion_value_rule_set_error_enum {
                 }
                 "UNSUPPORTED_CONVERSION_ACTION_CATEGORIES" => {
                     Some(Self::UnsupportedConversionActionCategories)
+                }
+                "DIMENSION_NOT_SUPPORTED_FOR_CAMPAIGN_TYPE" => {
+                    Some(Self::DimensionNotSupportedForCampaignType)
                 }
                 _ => None,
             }
@@ -8975,6 +9371,10 @@ pub mod customer_error_enum {
         StatusChangeDisallowed = 2,
         /// CustomerService cannot get a customer that has not been fully set up.
         AccountNotSetUp = 3,
+        /// Customer creation is denied for policy violation.
+        CreationDeniedForPolicyViolation = 4,
+        /// Manager account is ineligible to create new accounts.
+        CreationDeniedIneligibleMcc = 5,
     }
     impl CustomerError {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -8987,6 +9387,10 @@ pub mod customer_error_enum {
                 Self::Unknown => "UNKNOWN",
                 Self::StatusChangeDisallowed => "STATUS_CHANGE_DISALLOWED",
                 Self::AccountNotSetUp => "ACCOUNT_NOT_SET_UP",
+                Self::CreationDeniedForPolicyViolation => {
+                    "CREATION_DENIED_FOR_POLICY_VIOLATION"
+                }
+                Self::CreationDeniedIneligibleMcc => "CREATION_DENIED_INELIGIBLE_MCC",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -8996,6 +9400,12 @@ pub mod customer_error_enum {
                 "UNKNOWN" => Some(Self::Unknown),
                 "STATUS_CHANGE_DISALLOWED" => Some(Self::StatusChangeDisallowed),
                 "ACCOUNT_NOT_SET_UP" => Some(Self::AccountNotSetUp),
+                "CREATION_DENIED_FOR_POLICY_VIOLATION" => {
+                    Some(Self::CreationDeniedForPolicyViolation)
+                }
+                "CREATION_DENIED_INELIGIBLE_MCC" => {
+                    Some(Self::CreationDeniedIneligibleMcc)
+                }
                 _ => None,
             }
         }
@@ -9512,6 +9922,85 @@ pub mod customizer_attribute_error_enum {
                 "DUPLICATE_CUSTOMIZER_ATTRIBUTE_NAME" => {
                     Some(Self::DuplicateCustomizerAttributeName)
                 }
+                _ => None,
+            }
+        }
+    }
+}
+/// Container for enum describing possible DataLink errors.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct DataLinkErrorEnum {}
+/// Nested message and enum types in `DataLinkErrorEnum`.
+pub mod data_link_error_enum {
+    /// Enum describing possible DataLink errors.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum DataLinkError {
+        /// Enum unspecified.
+        Unspecified = 0,
+        /// The received error code is not known in this version.
+        Unknown = 1,
+        /// The requested YouTube Channel ID is invalid.
+        YoutubeChannelIdInvalid = 2,
+        /// The requested YouTube Video ID is invalid.
+        YoutubeVideoIdInvalid = 3,
+        /// The requested YouTube Video ID doesn't belong to the requested YouTube
+        /// Channel ID.
+        YoutubeVideoFromDifferentChannel = 4,
+        /// A link cannot be created because the customer doesn't have the
+        /// permission.
+        PermissionDenied = 5,
+        /// A link can not be removed or updated because the status is invalid.
+        InvalidStatus = 6,
+        /// The input status in the update request is invalid.
+        InvalidUpdateStatus = 7,
+        /// The input resource name is invalid.
+        InvalidResourceName = 8,
+    }
+    impl DataLinkError {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "UNSPECIFIED",
+                Self::Unknown => "UNKNOWN",
+                Self::YoutubeChannelIdInvalid => "YOUTUBE_CHANNEL_ID_INVALID",
+                Self::YoutubeVideoIdInvalid => "YOUTUBE_VIDEO_ID_INVALID",
+                Self::YoutubeVideoFromDifferentChannel => {
+                    "YOUTUBE_VIDEO_FROM_DIFFERENT_CHANNEL"
+                }
+                Self::PermissionDenied => "PERMISSION_DENIED",
+                Self::InvalidStatus => "INVALID_STATUS",
+                Self::InvalidUpdateStatus => "INVALID_UPDATE_STATUS",
+                Self::InvalidResourceName => "INVALID_RESOURCE_NAME",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNSPECIFIED" => Some(Self::Unspecified),
+                "UNKNOWN" => Some(Self::Unknown),
+                "YOUTUBE_CHANNEL_ID_INVALID" => Some(Self::YoutubeChannelIdInvalid),
+                "YOUTUBE_VIDEO_ID_INVALID" => Some(Self::YoutubeVideoIdInvalid),
+                "YOUTUBE_VIDEO_FROM_DIFFERENT_CHANNEL" => {
+                    Some(Self::YoutubeVideoFromDifferentChannel)
+                }
+                "PERMISSION_DENIED" => Some(Self::PermissionDenied),
+                "INVALID_STATUS" => Some(Self::InvalidStatus),
+                "INVALID_UPDATE_STATUS" => Some(Self::InvalidUpdateStatus),
+                "INVALID_RESOURCE_NAME" => Some(Self::InvalidResourceName),
                 _ => None,
             }
         }
@@ -15225,6 +15714,10 @@ pub mod offline_user_data_job_error_enum {
         /// All the fields are not present in the EventAttribute of the Customer
         /// Match.
         EventAttributeAllFieldsAreRequired = 45,
+        /// Consent was provided at the operation level for an OfflineUserDataJobType
+        /// that expects it at the job level. The provided operation-level consent
+        /// will be ignored.
+        OperationLevelConsentProvided = 48,
     }
     impl OfflineUserDataJobError {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -15293,6 +15786,7 @@ pub mod offline_user_data_job_error_enum {
                 Self::EventAttributeAllFieldsAreRequired => {
                     "EVENT_ATTRIBUTE_ALL_FIELDS_ARE_REQUIRED"
                 }
+                Self::OperationLevelConsentProvided => "OPERATION_LEVEL_CONSENT_PROVIDED",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -15359,6 +15853,9 @@ pub mod offline_user_data_job_error_enum {
                 "INVALID_EVENT_VALUE" => Some(Self::InvalidEventValue),
                 "EVENT_ATTRIBUTE_ALL_FIELDS_ARE_REQUIRED" => {
                     Some(Self::EventAttributeAllFieldsAreRequired)
+                }
+                "OPERATION_LEVEL_CONSENT_PROVIDED" => {
+                    Some(Self::OperationLevelConsentProvided)
                 }
                 _ => None,
             }
@@ -16322,6 +16819,12 @@ pub mod quota_error_enum {
         AccessProhibited = 3,
         /// Too many requests in a short amount of time.
         ResourceTemporarilyExhausted = 4,
+        /// Too many expensive requests from query pattern over a short amount of
+        /// time.
+        ExcessiveShortTermQueryResourceConsumption = 5,
+        /// Too many expensive requests from query pattern over an extended duration
+        /// of time.
+        ExcessiveLongTermQueryResourceConsumption = 6,
     }
     impl QuotaError {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -16335,6 +16838,12 @@ pub mod quota_error_enum {
                 Self::ResourceExhausted => "RESOURCE_EXHAUSTED",
                 Self::AccessProhibited => "ACCESS_PROHIBITED",
                 Self::ResourceTemporarilyExhausted => "RESOURCE_TEMPORARILY_EXHAUSTED",
+                Self::ExcessiveShortTermQueryResourceConsumption => {
+                    "EXCESSIVE_SHORT_TERM_QUERY_RESOURCE_CONSUMPTION"
+                }
+                Self::ExcessiveLongTermQueryResourceConsumption => {
+                    "EXCESSIVE_LONG_TERM_QUERY_RESOURCE_CONSUMPTION"
+                }
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -16346,6 +16855,12 @@ pub mod quota_error_enum {
                 "ACCESS_PROHIBITED" => Some(Self::AccessProhibited),
                 "RESOURCE_TEMPORARILY_EXHAUSTED" => {
                     Some(Self::ResourceTemporarilyExhausted)
+                }
+                "EXCESSIVE_SHORT_TERM_QUERY_RESOURCE_CONSUMPTION" => {
+                    Some(Self::ExcessiveShortTermQueryResourceConsumption)
+                }
+                "EXCESSIVE_LONG_TERM_QUERY_RESOURCE_CONSUMPTION" => {
+                    Some(Self::ExcessiveLongTermQueryResourceConsumption)
                 }
                 _ => None,
             }
@@ -16537,6 +17052,47 @@ pub mod recommendation_error_enum {
         /// One or more recommendation_types need to be passed into the generate
         /// recommendations request.
         RecommendationTypesCannotBeEmpty = 21,
+        /// Bidding info is required for the CAMPAIGN_BUDGET recommendation type.
+        CampaignBudgetRecommendationTypeRequiresBiddingInfo = 22,
+        /// Bidding strategy type is required for the CAMPAIGN_BUDGET
+        /// recommendation type.
+        CampaignBudgetRecommendationTypeRequiresBiddingStrategyType = 23,
+        /// Asset group info is required for the campaign budget recommendation type.
+        CampaignBudgetRecommendationTypeRequiresAssetGroupInfo = 24,
+        /// Asset group info with final url is required for the CAMPAIGN_BUDGET
+        /// recommendation type.
+        CampaignBudgetRecommendationTypeRequiresAssetGroupInfoWithFinalUrl = 25,
+        /// Country codes are required for the CAMPAIGN_BUDGET recommendation type
+        /// for SEARCH channel.
+        CampaignBudgetRecommendationTypeRequiresCountryCodesForSearchChannel = 26,
+        /// Country code is invalid for the CAMPAIGN_BUDGET recommendation type for
+        /// SEARCH channel.
+        CampaignBudgetRecommendationTypeInvalidCountryCodeForSearchChannel = 27,
+        /// Language codes are required for the CAMPAIGN_BUDGET recommendation type
+        /// for SEARCH channel.
+        CampaignBudgetRecommendationTypeRequiresLanguageCodesForSearchChannel = 28,
+        /// Either positive or negative location ids are required for the
+        /// CAMPAIGN_BUDGET recommendation type for SEARCH channel.
+        CampaignBudgetRecommendationTypeRequiresEitherPositiveOrNegativeLocationIdsForSearchChannel = 29,
+        /// Ad group info is required for the CAMPAIGN_BUDGET recommendation type for
+        /// SEARCH channel.
+        CampaignBudgetRecommendationTypeRequiresAdGroupInfoForSearchChannel = 30,
+        /// Keywords are required for the CAMPAIGN_BUDGET recommendation type for
+        /// SEARCH channel.
+        CampaignBudgetRecommendationTypeRequiresKeywordsForSearchChannel = 31,
+        /// Location is required for the CAMPAIGN_BUDGET recommendation type for
+        /// bidding strategy type TARGET_IMPRESSION_SHARE.
+        CampaignBudgetRecommendationTypeWithChannelTypeSearchAndBiddingStrategyTypeTargetImpressionShareRequiresLocation = 32,
+        /// Target impression share micros are required for the CAMPAIGN_BUDGET
+        /// recommendation type for bidding strategy type TARGET_IMPRESSION_SHARE.
+        CampaignBudgetRecommendationTypeWithChannelTypeSearchAndBiddingStrategyTypeTargetImpressionShareRequiresTargetImpressionShareMicros = 33,
+        /// Target impression share micros are required to be between 1 and 1000000
+        /// for the CAMPAIGN_BUDGET recommendation type for bidding strategy type
+        /// TARGET_IMPRESSION_SHARE.
+        CampaignBudgetRecommendationTypeTargetImpressionShareMicrosBetween1And1000000 = 34,
+        /// Target impression share info is required for the CAMPAIGN_BUDGET
+        /// recommendation type for bidding strategy type TARGET_IMPRESSION_SHARE.
+        CampaignBudgetRecommendationTypeWithChannelTypeSearchAndBiddingStrategyTypeTargetImpressionShareRequiresTargetImpressionShareInfo = 35,
     }
     impl RecommendationError {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -16576,6 +17132,48 @@ pub mod recommendation_error_enum {
                 Self::RecommendationTypesCannotBeEmpty => {
                     "RECOMMENDATION_TYPES_CANNOT_BE_EMPTY"
                 }
+                Self::CampaignBudgetRecommendationTypeRequiresBiddingInfo => {
+                    "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_REQUIRES_BIDDING_INFO"
+                }
+                Self::CampaignBudgetRecommendationTypeRequiresBiddingStrategyType => {
+                    "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_REQUIRES_BIDDING_STRATEGY_TYPE"
+                }
+                Self::CampaignBudgetRecommendationTypeRequiresAssetGroupInfo => {
+                    "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_REQUIRES_ASSET_GROUP_INFO"
+                }
+                Self::CampaignBudgetRecommendationTypeRequiresAssetGroupInfoWithFinalUrl => {
+                    "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_REQUIRES_ASSET_GROUP_INFO_WITH_FINAL_URL"
+                }
+                Self::CampaignBudgetRecommendationTypeRequiresCountryCodesForSearchChannel => {
+                    "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_REQUIRES_COUNTRY_CODES_FOR_SEARCH_CHANNEL"
+                }
+                Self::CampaignBudgetRecommendationTypeInvalidCountryCodeForSearchChannel => {
+                    "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_INVALID_COUNTRY_CODE_FOR_SEARCH_CHANNEL"
+                }
+                Self::CampaignBudgetRecommendationTypeRequiresLanguageCodesForSearchChannel => {
+                    "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_REQUIRES_LANGUAGE_CODES_FOR_SEARCH_CHANNEL"
+                }
+                Self::CampaignBudgetRecommendationTypeRequiresEitherPositiveOrNegativeLocationIdsForSearchChannel => {
+                    "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_REQUIRES_EITHER_POSITIVE_OR_NEGATIVE_LOCATION_IDS_FOR_SEARCH_CHANNEL"
+                }
+                Self::CampaignBudgetRecommendationTypeRequiresAdGroupInfoForSearchChannel => {
+                    "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_REQUIRES_AD_GROUP_INFO_FOR_SEARCH_CHANNEL"
+                }
+                Self::CampaignBudgetRecommendationTypeRequiresKeywordsForSearchChannel => {
+                    "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_REQUIRES_KEYWORDS_FOR_SEARCH_CHANNEL"
+                }
+                Self::CampaignBudgetRecommendationTypeWithChannelTypeSearchAndBiddingStrategyTypeTargetImpressionShareRequiresLocation => {
+                    "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_WITH_CHANNEL_TYPE_SEARCH_AND_BIDDING_STRATEGY_TYPE_TARGET_IMPRESSION_SHARE_REQUIRES_LOCATION"
+                }
+                Self::CampaignBudgetRecommendationTypeWithChannelTypeSearchAndBiddingStrategyTypeTargetImpressionShareRequiresTargetImpressionShareMicros => {
+                    "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_WITH_CHANNEL_TYPE_SEARCH_AND_BIDDING_STRATEGY_TYPE_TARGET_IMPRESSION_SHARE_REQUIRES_TARGET_IMPRESSION_SHARE_MICROS"
+                }
+                Self::CampaignBudgetRecommendationTypeTargetImpressionShareMicrosBetween1And1000000 => {
+                    "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_TARGET_IMPRESSION_SHARE_MICROS_BETWEEN_1_AND_1000000"
+                }
+                Self::CampaignBudgetRecommendationTypeWithChannelTypeSearchAndBiddingStrategyTypeTargetImpressionShareRequiresTargetImpressionShareInfo => {
+                    "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_WITH_CHANNEL_TYPE_SEARCH_AND_BIDDING_STRATEGY_TYPE_TARGET_IMPRESSION_SHARE_REQUIRES_TARGET_IMPRESSION_SHARE_INFO"
+                }
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -16613,6 +17211,72 @@ pub mod recommendation_error_enum {
                 }
                 "RECOMMENDATION_TYPES_CANNOT_BE_EMPTY" => {
                     Some(Self::RecommendationTypesCannotBeEmpty)
+                }
+                "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_REQUIRES_BIDDING_INFO" => {
+                    Some(Self::CampaignBudgetRecommendationTypeRequiresBiddingInfo)
+                }
+                "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_REQUIRES_BIDDING_STRATEGY_TYPE" => {
+                    Some(
+                        Self::CampaignBudgetRecommendationTypeRequiresBiddingStrategyType,
+                    )
+                }
+                "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_REQUIRES_ASSET_GROUP_INFO" => {
+                    Some(Self::CampaignBudgetRecommendationTypeRequiresAssetGroupInfo)
+                }
+                "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_REQUIRES_ASSET_GROUP_INFO_WITH_FINAL_URL" => {
+                    Some(
+                        Self::CampaignBudgetRecommendationTypeRequiresAssetGroupInfoWithFinalUrl,
+                    )
+                }
+                "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_REQUIRES_COUNTRY_CODES_FOR_SEARCH_CHANNEL" => {
+                    Some(
+                        Self::CampaignBudgetRecommendationTypeRequiresCountryCodesForSearchChannel,
+                    )
+                }
+                "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_INVALID_COUNTRY_CODE_FOR_SEARCH_CHANNEL" => {
+                    Some(
+                        Self::CampaignBudgetRecommendationTypeInvalidCountryCodeForSearchChannel,
+                    )
+                }
+                "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_REQUIRES_LANGUAGE_CODES_FOR_SEARCH_CHANNEL" => {
+                    Some(
+                        Self::CampaignBudgetRecommendationTypeRequiresLanguageCodesForSearchChannel,
+                    )
+                }
+                "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_REQUIRES_EITHER_POSITIVE_OR_NEGATIVE_LOCATION_IDS_FOR_SEARCH_CHANNEL" => {
+                    Some(
+                        Self::CampaignBudgetRecommendationTypeRequiresEitherPositiveOrNegativeLocationIdsForSearchChannel,
+                    )
+                }
+                "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_REQUIRES_AD_GROUP_INFO_FOR_SEARCH_CHANNEL" => {
+                    Some(
+                        Self::CampaignBudgetRecommendationTypeRequiresAdGroupInfoForSearchChannel,
+                    )
+                }
+                "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_REQUIRES_KEYWORDS_FOR_SEARCH_CHANNEL" => {
+                    Some(
+                        Self::CampaignBudgetRecommendationTypeRequiresKeywordsForSearchChannel,
+                    )
+                }
+                "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_WITH_CHANNEL_TYPE_SEARCH_AND_BIDDING_STRATEGY_TYPE_TARGET_IMPRESSION_SHARE_REQUIRES_LOCATION" => {
+                    Some(
+                        Self::CampaignBudgetRecommendationTypeWithChannelTypeSearchAndBiddingStrategyTypeTargetImpressionShareRequiresLocation,
+                    )
+                }
+                "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_WITH_CHANNEL_TYPE_SEARCH_AND_BIDDING_STRATEGY_TYPE_TARGET_IMPRESSION_SHARE_REQUIRES_TARGET_IMPRESSION_SHARE_MICROS" => {
+                    Some(
+                        Self::CampaignBudgetRecommendationTypeWithChannelTypeSearchAndBiddingStrategyTypeTargetImpressionShareRequiresTargetImpressionShareMicros,
+                    )
+                }
+                "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_TARGET_IMPRESSION_SHARE_MICROS_BETWEEN_1_AND_1000000" => {
+                    Some(
+                        Self::CampaignBudgetRecommendationTypeTargetImpressionShareMicrosBetween1And1000000,
+                    )
+                }
+                "CAMPAIGN_BUDGET_RECOMMENDATION_TYPE_WITH_CHANNEL_TYPE_SEARCH_AND_BIDDING_STRATEGY_TYPE_TARGET_IMPRESSION_SHARE_REQUIRES_TARGET_IMPRESSION_SHARE_INFO" => {
+                    Some(
+                        Self::CampaignBudgetRecommendationTypeWithChannelTypeSearchAndBiddingStrategyTypeTargetImpressionShareRequiresTargetImpressionShareInfo,
+                    )
                 }
                 _ => None,
             }
@@ -17293,6 +17957,65 @@ pub mod setting_error_enum {
         }
     }
 }
+/// Container for enum describing possible shareable preview errors.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct ShareablePreviewErrorEnum {}
+/// Nested message and enum types in `ShareablePreviewErrorEnum`.
+pub mod shareable_preview_error_enum {
+    /// Enum describing possible shareable preview errors.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum ShareablePreviewError {
+        /// Enum unspecified.
+        Unspecified = 0,
+        /// Used for return value only. Represents value unknown in this version.
+        Unknown = 1,
+        /// The maximum of 10 asset groups was exceeded.
+        TooManyAssetGroupsInRequest = 2,
+        /// asset group does not exist under this customer.
+        AssetGroupDoesNotExistUnderThisCustomer = 3,
+    }
+    impl ShareablePreviewError {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "UNSPECIFIED",
+                Self::Unknown => "UNKNOWN",
+                Self::TooManyAssetGroupsInRequest => "TOO_MANY_ASSET_GROUPS_IN_REQUEST",
+                Self::AssetGroupDoesNotExistUnderThisCustomer => {
+                    "ASSET_GROUP_DOES_NOT_EXIST_UNDER_THIS_CUSTOMER"
+                }
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNSPECIFIED" => Some(Self::Unspecified),
+                "UNKNOWN" => Some(Self::Unknown),
+                "TOO_MANY_ASSET_GROUPS_IN_REQUEST" => {
+                    Some(Self::TooManyAssetGroupsInRequest)
+                }
+                "ASSET_GROUP_DOES_NOT_EXIST_UNDER_THIS_CUSTOMER" => {
+                    Some(Self::AssetGroupDoesNotExistUnderThisCustomer)
+                }
+                _ => None,
+            }
+        }
+    }
+}
 /// Container for enum describing possible shared criterion errors.
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct SharedCriterionErrorEnum {}
@@ -17406,6 +18129,65 @@ pub mod shared_set_error_enum {
                 "DUPLICATE_NAME" => Some(Self::DuplicateName),
                 "SHARED_SET_REMOVED" => Some(Self::SharedSetRemoved),
                 "SHARED_SET_IN_USE" => Some(Self::SharedSetInUse),
+                _ => None,
+            }
+        }
+    }
+}
+/// Container for enum describing possible errors querying shopping product.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct ShoppingProductErrorEnum {}
+/// Nested message and enum types in `ShoppingProductErrorEnum`.
+pub mod shopping_product_error_enum {
+    /// Enum describing possible errors querying shopping product.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum ShoppingProductError {
+        /// Enum unspecified.
+        Unspecified = 0,
+        /// The received error code is not known in this version.
+        Unknown = 1,
+        /// A filter on the `campaign` resource name is missing.
+        MissingCampaignFilter = 2,
+        /// A filter on the `ad_group` resource name is missing.
+        MissingAdGroupFilter = 3,
+        /// Date segmentation is not supported.
+        UnsupportedDateSegmentation = 4,
+    }
+    impl ShoppingProductError {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "UNSPECIFIED",
+                Self::Unknown => "UNKNOWN",
+                Self::MissingCampaignFilter => "MISSING_CAMPAIGN_FILTER",
+                Self::MissingAdGroupFilter => "MISSING_AD_GROUP_FILTER",
+                Self::UnsupportedDateSegmentation => "UNSUPPORTED_DATE_SEGMENTATION",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNSPECIFIED" => Some(Self::Unspecified),
+                "UNKNOWN" => Some(Self::Unknown),
+                "MISSING_CAMPAIGN_FILTER" => Some(Self::MissingCampaignFilter),
+                "MISSING_AD_GROUP_FILTER" => Some(Self::MissingAdGroupFilter),
+                "UNSUPPORTED_DATE_SEGMENTATION" => {
+                    Some(Self::UnsupportedDateSegmentation)
+                }
                 _ => None,
             }
         }
@@ -17922,6 +18704,8 @@ pub mod url_field_error_enum {
         NullCustomParameterValue = 57,
         /// Track parameter is not supported.
         ValueTrackParameterNotSupported = 58,
+        /// The app store connected to the url is not supported.
+        UnsupportedAppStore = 59,
     }
     impl UrlFieldError {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -18019,6 +18803,7 @@ pub mod url_field_error_enum {
                 Self::ValueTrackParameterNotSupported => {
                     "VALUE_TRACK_PARAMETER_NOT_SUPPORTED"
                 }
+                Self::UnsupportedAppStore => "UNSUPPORTED_APP_STORE",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -18125,6 +18910,7 @@ pub mod url_field_error_enum {
                 "VALUE_TRACK_PARAMETER_NOT_SUPPORTED" => {
                     Some(Self::ValueTrackParameterNotSupported)
                 }
+                "UNSUPPORTED_APP_STORE" => Some(Self::UnsupportedAppStore),
                 _ => None,
             }
         }
@@ -18187,6 +18973,92 @@ pub mod user_data_error_enum {
                 }
                 "TOO_MANY_USER_IDENTIFIERS" => Some(Self::TooManyUserIdentifiers),
                 "USER_LIST_NOT_APPLICABLE" => Some(Self::UserListNotApplicable),
+                _ => None,
+            }
+        }
+    }
+}
+/// Container for enum describing possible user list customer type errors.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct UserListCustomerTypeErrorEnum {}
+/// Nested message and enum types in `UserListCustomerTypeErrorEnum`.
+pub mod user_list_customer_type_error_enum {
+    /// Enum describing possible user list customer type errors.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum UserListCustomerTypeError {
+        /// Enum unspecified.
+        Unspecified = 0,
+        /// The received error code is not known in this version.
+        Unknown = 1,
+        /// Cannot add the conflicting customer types to the same user list.
+        /// Conflicting labels:
+        /// 1. Purchasers - Converted Leads
+        /// 2. Purchasers - Qualified Leads
+        /// 3. Purchasers - Cart Abandoners
+        /// 4. Qualified Leads - Converted Leads
+        /// 5. Disengaged customers - Converted Leads
+        /// 6. Disengaged customers - Qualified Leads
+        /// 7. Disengaged customers- Cart Abandoners
+        ConflictingCustomerTypes = 2,
+        /// The account does not have access to the user list.
+        NoAccessToUserList = 3,
+        /// The given user list is not eligible for applying customer types.
+        /// The user list must belong to one of the following types: CRM_BASED,
+        /// RULE_BASED, ADVERTISER_DATA_MODEL_BASED, GCN.
+        UserlistNotEligible = 4,
+        /// To edit the user list customer type, conversion tracking must be
+        /// enabled in your account. If cross-tracking is enabled, your account must
+        /// be a MCC manager account to modify user list customer types. More info at
+        /// <https://support.google.com/google-ads/answer/3030657>
+        ConversionTrackingNotEnabledOrNotMccManagerAccount = 5,
+        /// Too many user lists for the customer type.
+        TooManyUserListsForTheCustomerType = 6,
+    }
+    impl UserListCustomerTypeError {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "UNSPECIFIED",
+                Self::Unknown => "UNKNOWN",
+                Self::ConflictingCustomerTypes => "CONFLICTING_CUSTOMER_TYPES",
+                Self::NoAccessToUserList => "NO_ACCESS_TO_USER_LIST",
+                Self::UserlistNotEligible => "USERLIST_NOT_ELIGIBLE",
+                Self::ConversionTrackingNotEnabledOrNotMccManagerAccount => {
+                    "CONVERSION_TRACKING_NOT_ENABLED_OR_NOT_MCC_MANAGER_ACCOUNT"
+                }
+                Self::TooManyUserListsForTheCustomerType => {
+                    "TOO_MANY_USER_LISTS_FOR_THE_CUSTOMER_TYPE"
+                }
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNSPECIFIED" => Some(Self::Unspecified),
+                "UNKNOWN" => Some(Self::Unknown),
+                "CONFLICTING_CUSTOMER_TYPES" => Some(Self::ConflictingCustomerTypes),
+                "NO_ACCESS_TO_USER_LIST" => Some(Self::NoAccessToUserList),
+                "USERLIST_NOT_ELIGIBLE" => Some(Self::UserlistNotEligible),
+                "CONVERSION_TRACKING_NOT_ENABLED_OR_NOT_MCC_MANAGER_ACCOUNT" => {
+                    Some(Self::ConversionTrackingNotEnabledOrNotMccManagerAccount)
+                }
+                "TOO_MANY_USER_LISTS_FOR_THE_CUSTOMER_TYPE" => {
+                    Some(Self::TooManyUserListsForTheCustomerType)
+                }
                 _ => None,
             }
         }
@@ -18569,7 +19441,7 @@ pub struct ErrorCode {
     /// The list of error enums
     #[prost(
         oneof = "error_code::ErrorCode",
-        tags = "1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 182, 17, 161, 18, 159, 19, 21, 24, 25, 107, 149, 155, 148, 153, 154, 152, 26, 29, 166, 160, 31, 165, 109, 32, 150, 158, 90, 151, 33, 34, 35, 36, 37, 38, 39, 40, 110, 42, 116, 86, 162, 44, 45, 46, 47, 48, 49, 58, 180, 51, 52, 53, 54, 55, 56, 57, 117, 59, 60, 61, 62, 63, 64, 65, 115, 143, 111, 145, 146, 66, 67, 68, 70, 71, 72, 132, 74, 133, 76, 77, 78, 136, 79, 80, 81, 82, 83, 84, 87, 88, 91, 92, 93, 94, 96, 97, 98, 100, 101, 102, 103, 140, 141, 104, 105, 112, 114, 118, 119, 137, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 134, 135, 138, 139, 164, 174, 147, 156, 167, 169, 170, 171, 176, 177, 178, 179, 181"
+        tags = "1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 182, 17, 161, 18, 159, 19, 21, 24, 25, 107, 149, 155, 148, 153, 154, 152, 26, 29, 166, 160, 31, 165, 109, 32, 150, 158, 90, 151, 33, 34, 35, 36, 37, 38, 39, 40, 110, 42, 116, 86, 162, 44, 45, 46, 47, 48, 49, 58, 180, 51, 52, 53, 54, 55, 56, 57, 117, 59, 60, 61, 62, 63, 64, 65, 115, 143, 111, 145, 146, 66, 67, 68, 70, 71, 72, 132, 74, 133, 76, 77, 78, 136, 79, 80, 81, 82, 83, 84, 87, 88, 91, 92, 93, 94, 96, 97, 98, 100, 101, 102, 103, 140, 141, 104, 105, 112, 114, 118, 119, 137, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 134, 135, 138, 139, 164, 174, 147, 156, 167, 169, 187, 170, 171, 176, 177, 178, 179, 181, 183, 184, 185, 186, 191"
     )]
     pub error_code: ::core::option::Option<error_code::ErrorCode>,
 }
@@ -19328,6 +20200,9 @@ pub mod error_code {
             tag = "169"
         )]
         ProductLinkError(i32),
+        /// The reasons for the data link error
+        #[prost(enumeration = "super::data_link_error_enum::DataLinkError", tag = "187")]
+        DataLinkError(i32),
         /// The reasons for the customer SK Ad network conversion value schema error
         #[prost(
             enumeration = "super::customer_sk_ad_network_conversion_value_schema_error_enum::CustomerSkAdNetworkConversionValueSchemaError",
@@ -19367,6 +20242,36 @@ pub mod error_code {
             tag = "181"
         )]
         IdentityVerificationError(i32),
+        /// The reasons for a user list customer type error.
+        #[prost(
+            enumeration = "super::user_list_customer_type_error_enum::UserListCustomerTypeError",
+            tag = "183"
+        )]
+        UserListCustomerTypeError(i32),
+        /// The reasons for error in querying shopping product.
+        #[prost(
+            enumeration = "super::shopping_product_error_enum::ShoppingProductError",
+            tag = "184"
+        )]
+        ShoppingProductError(i32),
+        /// The reasons for error in automatically created asset removal action.
+        #[prost(
+            enumeration = "super::automatically_created_asset_removal_error_enum::AutomaticallyCreatedAssetRemovalError",
+            tag = "185"
+        )]
+        AutomaticallyCreatedAssetRemovalError(i32),
+        /// The reasons for the shareable preview error.
+        #[prost(
+            enumeration = "super::shareable_preview_error_enum::ShareablePreviewError",
+            tag = "186"
+        )]
+        ShareablePreviewError(i32),
+        /// The reasons for the brand guidelines migration error.
+        #[prost(
+            enumeration = "super::brand_guidelines_migration_error_enum::BrandGuidelinesMigrationError",
+            tag = "191"
+        )]
+        BrandGuidelinesMigrationError(i32),
     }
 }
 /// Describes the part of the request proto that caused the error.

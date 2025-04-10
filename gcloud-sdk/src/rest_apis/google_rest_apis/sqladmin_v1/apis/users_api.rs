@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize}; /*
 use reqwest;
 
 use super::{configuration, Error};
-use crate::google_rest_apis::sqladmin_v1::apis::ResponseContent;
+use crate::google_rest_apis::sqladmin_v1::{apis::ResponseContent, models};
 
 /// struct for passing parameters to the method [`sql_users_delete`]
 #[derive(Clone, Debug, Default)]
@@ -112,7 +112,7 @@ pub struct SqlPeriodUsersPeriodInsertParams {
     pub upload_protocol: Option<String>,
     /// Legacy upload protocol for media (e.g. \"media\", \"multipart\").
     pub upload_type: Option<String>,
-    pub user: Option<crate::google_rest_apis::sqladmin_v1::models::User>,
+    pub user: Option<models::User>,
 }
 
 /// struct for passing parameters to the method [`sql_users_list`]
@@ -179,7 +179,7 @@ pub struct SqlPeriodUsersPeriodUpdateParams {
     pub host: Option<String>,
     /// Name of the user in the instance.
     pub name: Option<String>,
-    pub user: Option<crate::google_rest_apis::sqladmin_v1::models::User>,
+    pub user: Option<models::User>,
 }
 
 /// struct for typed errors of method [`sql_users_delete`]
@@ -221,10 +221,7 @@ pub enum SqlPeriodUsersPeriodUpdateError {
 pub async fn sql_users_delete(
     configuration: &configuration::Configuration,
     params: SqlPeriodUsersPeriodDeleteParams,
-) -> Result<
-    crate::google_rest_apis::sqladmin_v1::models::Operation,
-    Error<SqlPeriodUsersPeriodDeleteError>,
-> {
+) -> Result<models::Operation, Error<SqlPeriodUsersPeriodDeleteError>> {
     let local_var_configuration = configuration;
 
     // unbox the parameters
@@ -340,8 +337,7 @@ pub async fn sql_users_delete(
 pub async fn sql_users_get(
     configuration: &configuration::Configuration,
     params: SqlPeriodUsersPeriodGetParams,
-) -> Result<crate::google_rest_apis::sqladmin_v1::models::User, Error<SqlPeriodUsersPeriodGetError>>
-{
+) -> Result<models::User, Error<SqlPeriodUsersPeriodGetError>> {
     let local_var_configuration = configuration;
 
     // unbox the parameters
@@ -454,10 +450,7 @@ pub async fn sql_users_get(
 pub async fn sql_users_insert(
     configuration: &configuration::Configuration,
     params: SqlPeriodUsersPeriodInsertParams,
-) -> Result<
-    crate::google_rest_apis::sqladmin_v1::models::Operation,
-    Error<SqlPeriodUsersPeriodInsertError>,
-> {
+) -> Result<models::Operation, Error<SqlPeriodUsersPeriodInsertError>> {
     let local_var_configuration = configuration;
 
     // unbox the parameters
@@ -565,10 +558,7 @@ pub async fn sql_users_insert(
 pub async fn sql_users_list(
     configuration: &configuration::Configuration,
     params: SqlPeriodUsersPeriodListParams,
-) -> Result<
-    crate::google_rest_apis::sqladmin_v1::models::UsersListResponse,
-    Error<SqlPeriodUsersPeriodListError>,
-> {
+) -> Result<models::UsersListResponse, Error<SqlPeriodUsersPeriodListError>> {
     let local_var_configuration = configuration;
 
     // unbox the parameters
@@ -674,10 +664,7 @@ pub async fn sql_users_list(
 pub async fn sql_users_update(
     configuration: &configuration::Configuration,
     params: SqlPeriodUsersPeriodUpdateParams,
-) -> Result<
-    crate::google_rest_apis::sqladmin_v1::models::Operation,
-    Error<SqlPeriodUsersPeriodUpdateError>,
-> {
+) -> Result<models::Operation, Error<SqlPeriodUsersPeriodUpdateError>> {
     let local_var_configuration = configuration;
 
     // unbox the parameters

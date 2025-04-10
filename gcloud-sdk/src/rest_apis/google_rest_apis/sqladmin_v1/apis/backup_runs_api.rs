@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize}; /*
 use reqwest;
 
 use super::{configuration, Error};
-use crate::google_rest_apis::sqladmin_v1::apis::ResponseContent;
+use crate::google_rest_apis::sqladmin_v1::{apis::ResponseContent, models};
 
 /// struct for passing parameters to the method [`sql_backup_runs_delete`]
 #[derive(Clone, Debug, Default)]
@@ -108,7 +108,7 @@ pub struct SqlPeriodBackupRunsPeriodInsertParams {
     pub upload_protocol: Option<String>,
     /// Legacy upload protocol for media (e.g. \"media\", \"multipart\").
     pub upload_type: Option<String>,
-    pub backup_run: Option<crate::google_rest_apis::sqladmin_v1::models::BackupRun>,
+    pub backup_run: Option<models::BackupRun>,
 }
 
 /// struct for passing parameters to the method [`sql_backup_runs_list`]
@@ -178,10 +178,7 @@ pub enum SqlPeriodBackupRunsPeriodListError {
 pub async fn sql_backup_runs_delete(
     configuration: &configuration::Configuration,
     params: SqlPeriodBackupRunsPeriodDeleteParams,
-) -> Result<
-    crate::google_rest_apis::sqladmin_v1::models::Operation,
-    Error<SqlPeriodBackupRunsPeriodDeleteError>,
-> {
+) -> Result<models::Operation, Error<SqlPeriodBackupRunsPeriodDeleteError>> {
     let local_var_configuration = configuration;
 
     // unbox the parameters
@@ -289,10 +286,7 @@ pub async fn sql_backup_runs_delete(
 pub async fn sql_backup_runs_get(
     configuration: &configuration::Configuration,
     params: SqlPeriodBackupRunsPeriodGetParams,
-) -> Result<
-    crate::google_rest_apis::sqladmin_v1::models::BackupRun,
-    Error<SqlPeriodBackupRunsPeriodGetError>,
-> {
+) -> Result<models::BackupRun, Error<SqlPeriodBackupRunsPeriodGetError>> {
     let local_var_configuration = configuration;
 
     // unbox the parameters
@@ -400,10 +394,7 @@ pub async fn sql_backup_runs_get(
 pub async fn sql_backup_runs_insert(
     configuration: &configuration::Configuration,
     params: SqlPeriodBackupRunsPeriodInsertParams,
-) -> Result<
-    crate::google_rest_apis::sqladmin_v1::models::Operation,
-    Error<SqlPeriodBackupRunsPeriodInsertError>,
-> {
+) -> Result<models::Operation, Error<SqlPeriodBackupRunsPeriodInsertError>> {
     let local_var_configuration = configuration;
 
     // unbox the parameters
@@ -511,10 +502,7 @@ pub async fn sql_backup_runs_insert(
 pub async fn sql_backup_runs_list(
     configuration: &configuration::Configuration,
     params: SqlPeriodBackupRunsPeriodListParams,
-) -> Result<
-    crate::google_rest_apis::sqladmin_v1::models::BackupRunsListResponse,
-    Error<SqlPeriodBackupRunsPeriodListError>,
-> {
+) -> Result<models::BackupRunsListResponse, Error<SqlPeriodBackupRunsPeriodListError>> {
     let local_var_configuration = configuration;
 
     // unbox the parameters

@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize}; /*
 use reqwest;
 
 use super::{configuration, Error};
-use crate::google_rest_apis::bigquery_v2::apis::ResponseContent;
+use crate::google_rest_apis::bigquery_v2::{apis::ResponseContent, models};
 
 /// struct for passing parameters to the method [`bigquery_row_access_policies_list`]
 #[derive(Clone, Debug, Default)]
@@ -54,7 +54,7 @@ pub async fn bigquery_row_access_policies_list(
     configuration: &configuration::Configuration,
     params: BigqueryPeriodRowAccessPoliciesPeriodListParams,
 ) -> Result<
-    crate::google_rest_apis::bigquery_v2::models::ListRowAccessPoliciesResponse,
+    models::ListRowAccessPoliciesResponse,
     Error<BigqueryPeriodRowAccessPoliciesPeriodListError>,
 > {
     let local_var_configuration = configuration;

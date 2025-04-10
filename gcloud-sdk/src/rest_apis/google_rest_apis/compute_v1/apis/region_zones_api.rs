@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize}; /*
 use reqwest;
 
 use super::{configuration, Error};
-use crate::google_rest_apis::compute_v1::apis::ResponseContent;
+use crate::google_rest_apis::compute_v1::{apis::ResponseContent, models};
 
 /// struct for passing parameters to the method [`compute_region_zones_list`]
 #[derive(Clone, Debug, Default)]
@@ -67,10 +67,7 @@ pub enum ComputePeriodRegionZonesPeriodListError {
 pub async fn compute_region_zones_list(
     configuration: &configuration::Configuration,
     params: ComputePeriodRegionZonesPeriodListParams,
-) -> Result<
-    crate::google_rest_apis::compute_v1::models::ZoneList,
-    Error<ComputePeriodRegionZonesPeriodListError>,
-> {
+) -> Result<models::ZoneList, Error<ComputePeriodRegionZonesPeriodListError>> {
     let local_var_configuration = configuration;
 
     // unbox the parameters

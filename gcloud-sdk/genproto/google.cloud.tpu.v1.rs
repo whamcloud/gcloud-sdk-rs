@@ -155,6 +155,8 @@ pub mod node {
         Hidden = 14,
         /// TPU node is currently unhiding.
         Unhiding = 15,
+        /// TPU node has unknown state after a failed repair.
+        Unknown = 16,
     }
     impl State {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -178,6 +180,7 @@ pub mod node {
                 Self::Hiding => "HIDING",
                 Self::Hidden => "HIDDEN",
                 Self::Unhiding => "UNHIDING",
+                Self::Unknown => "UNKNOWN",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -198,6 +201,7 @@ pub mod node {
                 "HIDING" => Some(Self::Hiding),
                 "HIDDEN" => Some(Self::Hidden),
                 "UNHIDING" => Some(Self::Unhiding),
+                "UNKNOWN" => Some(Self::Unknown),
                 _ => None,
             }
         }
@@ -624,7 +628,7 @@ pub mod tpu_client {
     }
     impl<T> TpuClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -645,13 +649,13 @@ pub mod tpu_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             TpuClient::new(InterceptedService::new(inner, interceptor))

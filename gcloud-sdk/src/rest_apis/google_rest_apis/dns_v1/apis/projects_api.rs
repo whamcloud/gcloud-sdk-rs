@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize}; /*
 use reqwest;
 
 use super::{configuration, Error};
-use crate::google_rest_apis::dns_v1::apis::ResponseContent;
+use crate::google_rest_apis::dns_v1::{apis::ResponseContent, models};
 
 /// struct for passing parameters to the method [`dns_projects_get`]
 #[derive(Clone, Debug, Default)]
@@ -55,8 +55,7 @@ pub enum DnsPeriodProjectsPeriodGetError {
 pub async fn dns_projects_get(
     configuration: &configuration::Configuration,
     params: DnsPeriodProjectsPeriodGetParams,
-) -> Result<crate::google_rest_apis::dns_v1::models::Project, Error<DnsPeriodProjectsPeriodGetError>>
-{
+) -> Result<models::Project, Error<DnsPeriodProjectsPeriodGetError>> {
     let local_var_configuration = configuration;
 
     // unbox the parameters

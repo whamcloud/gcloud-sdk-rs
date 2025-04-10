@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize}; /*
 use reqwest;
 
 use super::{configuration, Error};
-use crate::google_rest_apis::sqladmin_v1::apis::ResponseContent;
+use crate::google_rest_apis::sqladmin_v1::{apis::ResponseContent, models};
 
 /// struct for passing parameters to the method [`sql_operations_get`]
 #[derive(Clone, Debug, Default)]
@@ -97,10 +97,7 @@ pub enum SqlPeriodOperationsPeriodListError {
 pub async fn sql_operations_get(
     configuration: &configuration::Configuration,
     params: SqlPeriodOperationsPeriodGetParams,
-) -> Result<
-    crate::google_rest_apis::sqladmin_v1::models::Operation,
-    Error<SqlPeriodOperationsPeriodGetError>,
-> {
+) -> Result<models::Operation, Error<SqlPeriodOperationsPeriodGetError>> {
     let local_var_configuration = configuration;
 
     // unbox the parameters
@@ -206,10 +203,7 @@ pub async fn sql_operations_get(
 pub async fn sql_operations_list(
     configuration: &configuration::Configuration,
     params: SqlPeriodOperationsPeriodListParams,
-) -> Result<
-    crate::google_rest_apis::sqladmin_v1::models::OperationsListResponse,
-    Error<SqlPeriodOperationsPeriodListError>,
-> {
+) -> Result<models::OperationsListResponse, Error<SqlPeriodOperationsPeriodListError>> {
     let local_var_configuration = configuration;
 
     // unbox the parameters

@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize}; /*
 use reqwest;
 
 use super::{configuration, Error};
-use crate::google_rest_apis::sqladmin_v1::apis::ResponseContent;
+use crate::google_rest_apis::sqladmin_v1::{apis::ResponseContent, models};
 
 /// struct for passing parameters to the method [`sql_tiers_list`]
 #[derive(Clone, Debug, Default)]
@@ -53,10 +53,7 @@ pub enum SqlPeriodTiersPeriodListError {
 pub async fn sql_tiers_list(
     configuration: &configuration::Configuration,
     params: SqlPeriodTiersPeriodListParams,
-) -> Result<
-    crate::google_rest_apis::sqladmin_v1::models::TiersListResponse,
-    Error<SqlPeriodTiersPeriodListError>,
-> {
+) -> Result<models::TiersListResponse, Error<SqlPeriodTiersPeriodListError>> {
     let local_var_configuration = configuration;
 
     // unbox the parameters

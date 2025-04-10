@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize}; /*
 use reqwest;
 
 use super::{configuration, Error};
-use crate::google_rest_apis::compute_v1::apis::ResponseContent;
+use crate::google_rest_apis::compute_v1::{apis::ResponseContent, models};
 
 /// struct for passing parameters to the method [`compute_interconnect_locations_get`]
 #[derive(Clone, Debug, Default)]
@@ -105,10 +105,7 @@ pub enum ComputePeriodInterconnectLocationsPeriodListError {
 pub async fn compute_interconnect_locations_get(
     configuration: &configuration::Configuration,
     params: ComputePeriodInterconnectLocationsPeriodGetParams,
-) -> Result<
-    crate::google_rest_apis::compute_v1::models::InterconnectLocation,
-    Error<ComputePeriodInterconnectLocationsPeriodGetError>,
-> {
+) -> Result<models::InterconnectLocation, Error<ComputePeriodInterconnectLocationsPeriodGetError>> {
     let local_var_configuration = configuration;
 
     // unbox the parameters
@@ -221,7 +218,7 @@ pub async fn compute_interconnect_locations_list(
     configuration: &configuration::Configuration,
     params: ComputePeriodInterconnectLocationsPeriodListParams,
 ) -> Result<
-    crate::google_rest_apis::compute_v1::models::InterconnectLocationList,
+    models::InterconnectLocationList,
     Error<ComputePeriodInterconnectLocationsPeriodListError>,
 > {
     let local_var_configuration = configuration;

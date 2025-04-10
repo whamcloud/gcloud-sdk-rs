@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize}; /*
 use reqwest;
 
 use super::{configuration, Error};
-use crate::google_rest_apis::compute_v1::apis::ResponseContent;
+use crate::google_rest_apis::compute_v1::{apis::ResponseContent, models};
 
 /// struct for passing parameters to the method [`compute_region_disk_types_get`]
 #[derive(Clone, Debug, Default)]
@@ -109,10 +109,7 @@ pub enum ComputePeriodRegionDiskTypesPeriodListError {
 pub async fn compute_region_disk_types_get(
     configuration: &configuration::Configuration,
     params: ComputePeriodRegionDiskTypesPeriodGetParams,
-) -> Result<
-    crate::google_rest_apis::compute_v1::models::DiskType,
-    Error<ComputePeriodRegionDiskTypesPeriodGetError>,
-> {
+) -> Result<models::DiskType, Error<ComputePeriodRegionDiskTypesPeriodGetError>> {
     let local_var_configuration = configuration;
 
     // unbox the parameters
@@ -225,10 +222,7 @@ pub async fn compute_region_disk_types_get(
 pub async fn compute_region_disk_types_list(
     configuration: &configuration::Configuration,
     params: ComputePeriodRegionDiskTypesPeriodListParams,
-) -> Result<
-    crate::google_rest_apis::compute_v1::models::RegionDiskTypeList,
-    Error<ComputePeriodRegionDiskTypesPeriodListError>,
-> {
+) -> Result<models::RegionDiskTypeList, Error<ComputePeriodRegionDiskTypesPeriodListError>> {
     let local_var_configuration = configuration;
 
     // unbox the parameters

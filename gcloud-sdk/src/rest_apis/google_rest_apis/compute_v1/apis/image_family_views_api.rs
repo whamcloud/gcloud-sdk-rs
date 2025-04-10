@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize}; /*
 use reqwest;
 
 use super::{configuration, Error};
-use crate::google_rest_apis::compute_v1::apis::ResponseContent;
+use crate::google_rest_apis::compute_v1::{apis::ResponseContent, models};
 
 /// struct for passing parameters to the method [`compute_image_family_views_get`]
 #[derive(Clone, Debug, Default)]
@@ -59,10 +59,7 @@ pub enum ComputePeriodImageFamilyViewsPeriodGetError {
 pub async fn compute_image_family_views_get(
     configuration: &configuration::Configuration,
     params: ComputePeriodImageFamilyViewsPeriodGetParams,
-) -> Result<
-    crate::google_rest_apis::compute_v1::models::ImageFamilyView,
-    Error<ComputePeriodImageFamilyViewsPeriodGetError>,
-> {
+) -> Result<models::ImageFamilyView, Error<ComputePeriodImageFamilyViewsPeriodGetError>> {
     let local_var_configuration = configuration;
 
     // unbox the parameters

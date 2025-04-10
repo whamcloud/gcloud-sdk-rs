@@ -298,6 +298,8 @@ pub enum EvConnectorType {
     UnspecifiedGbT = 8,
     /// Unspecified wall outlet.
     UnspecifiedWallOutlet = 9,
+    /// The North American Charging System (NACS), standardized as SAE J3400.
+    Nacs = 10,
 }
 impl EvConnectorType {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -316,6 +318,7 @@ impl EvConnectorType {
             Self::Tesla => "EV_CONNECTOR_TYPE_TESLA",
             Self::UnspecifiedGbT => "EV_CONNECTOR_TYPE_UNSPECIFIED_GB_T",
             Self::UnspecifiedWallOutlet => "EV_CONNECTOR_TYPE_UNSPECIFIED_WALL_OUTLET",
+            Self::Nacs => "EV_CONNECTOR_TYPE_NACS",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -333,6 +336,7 @@ impl EvConnectorType {
             "EV_CONNECTOR_TYPE_UNSPECIFIED_WALL_OUTLET" => {
                 Some(Self::UnspecifiedWallOutlet)
             }
+            "EV_CONNECTOR_TYPE_NACS" => Some(Self::Nacs),
             _ => None,
         }
     }
@@ -381,6 +385,8 @@ pub mod fuel_options {
             Unspecified = 0,
             /// Diesel fuel.
             Diesel = 1,
+            /// Diesel plus fuel.
+            DieselPlus = 19,
             /// Regular unleaded.
             RegularUnleaded = 2,
             /// Midgrade.
@@ -403,12 +409,14 @@ pub mod fuel_options {
             Sp99 = 11,
             /// SP 100.
             Sp100 = 12,
-            /// LPG.
+            /// Liquefied Petroleum Gas.
             Lpg = 13,
             /// E 80.
             E80 = 14,
             /// E 85.
             E85 = 15,
+            /// E 100.
+            E100 = 20,
             /// Methane.
             Methane = 16,
             /// Bio-diesel.
@@ -425,6 +433,7 @@ pub mod fuel_options {
                 match self {
                     Self::Unspecified => "FUEL_TYPE_UNSPECIFIED",
                     Self::Diesel => "DIESEL",
+                    Self::DieselPlus => "DIESEL_PLUS",
                     Self::RegularUnleaded => "REGULAR_UNLEADED",
                     Self::Midgrade => "MIDGRADE",
                     Self::Premium => "PREMIUM",
@@ -439,6 +448,7 @@ pub mod fuel_options {
                     Self::Lpg => "LPG",
                     Self::E80 => "E80",
                     Self::E85 => "E85",
+                    Self::E100 => "E100",
                     Self::Methane => "METHANE",
                     Self::BioDiesel => "BIO_DIESEL",
                     Self::TruckDiesel => "TRUCK_DIESEL",
@@ -449,6 +459,7 @@ pub mod fuel_options {
                 match value {
                     "FUEL_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
                     "DIESEL" => Some(Self::Diesel),
+                    "DIESEL_PLUS" => Some(Self::DieselPlus),
                     "REGULAR_UNLEADED" => Some(Self::RegularUnleaded),
                     "MIDGRADE" => Some(Self::Midgrade),
                     "PREMIUM" => Some(Self::Premium),
@@ -463,6 +474,7 @@ pub mod fuel_options {
                     "LPG" => Some(Self::Lpg),
                     "E80" => Some(Self::E80),
                     "E85" => Some(Self::E85),
+                    "E100" => Some(Self::E100),
                     "METHANE" => Some(Self::Methane),
                     "BIO_DIESEL" => Some(Self::BioDiesel),
                     "TRUCK_DIESEL" => Some(Self::TruckDiesel),
@@ -546,6 +558,11 @@ pub struct Place {
     /// A short, human-readable address for this place.
     #[prost(string, tag = "51")]
     pub short_formatted_address: ::prost::alloc::string::String,
+    /// The address in postal address format.
+    #[prost(message, optional, tag = "90")]
+    pub postal_address: ::core::option::Option<
+        super::super::super::r#type::PostalAddress,
+    >,
     /// Repeated components for each locality level.
     /// Note the following facts about the address_components\[\] array:
     /// - The array of address components may contain more components than the
@@ -589,7 +606,12 @@ pub struct Place {
     /// reviews can be returned.
     #[prost(message, repeated, tag = "53")]
     pub reviews: ::prost::alloc::vec::Vec<Review>,
-    /// The regular hours of operation.
+    /// The regular hours of operation. Note that if a place is always open (24
+    /// hours), the `close` field will not be set. Clients can rely on always open
+    /// (24 hours) being represented as an
+    /// [open][google.maps.places.v1.Place.OpeningHours.Period.open] period
+    /// containing [day][Point.day] with value `0`, [hour][Point.hour] with
+    /// value `0`, and [minute][Point.minute] with value `0`.
     #[prost(message, optional, tag = "21")]
     pub regular_opening_hours: ::core::option::Option<place::OpeningHours>,
     /// Number of minutes this place's timezone is currently offset from UTC.
@@ -597,6 +619,9 @@ pub struct Place {
     /// fractions of an hour, e.g. X hours and 15 minutes.
     #[prost(int32, optional, tag = "22")]
     pub utc_offset_minutes: ::core::option::Option<i32>,
+    /// IANA Time Zone Database time zone. For example "America/New_York".
+    #[prost(message, optional, tag = "88")]
+    pub time_zone: ::core::option::Option<super::super::super::r#type::TimeZone>,
     /// Information (including references) about photos of this place. A maximum of
     /// 10 photos can be returned.
     #[prost(message, repeated, tag = "54")]
@@ -604,6 +629,7 @@ pub struct Place {
     /// The place's address in adr microformat: <http://microformats.org/wiki/adr.>
     #[prost(string, tag = "24")]
     pub adr_format_address: ::prost::alloc::string::String,
+    /// The business status for the place.
     #[prost(enumeration = "place::BusinessStatus", tag = "25")]
     pub business_status: i32,
     /// Price level of the place.
@@ -872,10 +898,10 @@ pub mod place {
                 /// Monday, etc.
                 #[prost(int32, optional, tag = "1")]
                 pub day: ::core::option::Option<i32>,
-                /// The hour in 2 digits. Ranges from 00 to 23.
+                /// The hour in 24 hour format. Ranges from 0 to 23.
                 #[prost(int32, optional, tag = "2")]
                 pub hour: ::core::option::Option<i32>,
-                /// The minute in 2 digits. Ranges from 00 to 59.
+                /// The minute. Ranges from 0 to 59.
                 #[prost(int32, optional, tag = "3")]
                 pub minute: ::core::option::Option<i32>,
                 /// Date in the local timezone for the place.
@@ -2323,7 +2349,7 @@ pub mod places_client {
     }
     impl<T> PlacesClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -2344,13 +2370,13 @@ pub mod places_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             PlacesClient::new(InterceptedService::new(inner, interceptor))

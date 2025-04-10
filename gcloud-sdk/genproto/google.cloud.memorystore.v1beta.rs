@@ -348,10 +348,12 @@ pub mod instance {
     pub enum Mode {
         /// Mode is not specified.
         Unspecified = 0,
-        /// Instance is in standalone mode.
+        /// Deprecated: Use CLUSTER_DISABLED instead.
         Standalone = 1,
         /// Instance is in cluster mode.
         Cluster = 2,
+        /// Cluster mode is disabled for the instance.
+        ClusterDisabled = 4,
     }
     impl Mode {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -363,6 +365,7 @@ pub mod instance {
                 Self::Unspecified => "MODE_UNSPECIFIED",
                 Self::Standalone => "STANDALONE",
                 Self::Cluster => "CLUSTER",
+                Self::ClusterDisabled => "CLUSTER_DISABLED",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -371,6 +374,7 @@ pub mod instance {
                 "MODE_UNSPECIFIED" => Some(Self::Unspecified),
                 "STANDALONE" => Some(Self::Standalone),
                 "CLUSTER" => Some(Self::Cluster),
+                "CLUSTER_DISABLED" => Some(Self::ClusterDisabled),
                 _ => None,
             }
         }
@@ -1046,7 +1050,7 @@ pub mod memorystore_client {
     }
     impl<T> MemorystoreClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -1067,13 +1071,13 @@ pub mod memorystore_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             MemorystoreClient::new(InterceptedService::new(inner, interceptor))

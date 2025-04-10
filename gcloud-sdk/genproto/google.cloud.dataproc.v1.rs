@@ -294,7 +294,7 @@ pub mod autoscaling_policy_service_client {
     }
     impl<T> AutoscalingPolicyServiceClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -315,13 +315,13 @@ pub mod autoscaling_policy_service_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             AutoscalingPolicyServiceClient::new(
@@ -600,6 +600,12 @@ pub struct ExecutionConfig {
     /// a Cloud Storage bucket.**
     #[prost(string, tag = "10")]
     pub staging_bucket: ::prost::alloc::string::String,
+    /// Optional. Authentication configuration used to set the default identity for
+    /// the workload execution. The config specifies the type of identity
+    /// (service account or user) that will be used by workloads to access
+    /// resources on the project(s).
+    #[prost(message, optional, tag = "11")]
+    pub authentication_config: ::core::option::Option<AuthenticationConfig>,
     /// Network configuration for workload execution.
     #[prost(oneof = "execution_config::Network", tags = "4, 5")]
     pub network: ::core::option::Option<execution_config::Network>,
@@ -1012,6 +1018,65 @@ pub mod gke_node_pool_config {
         /// **Note:** Quota must be sufficient to scale up the cluster.
         #[prost(int32, tag = "3")]
         pub max_node_count: i32,
+    }
+}
+/// Authentication configuration for a workload is used to set the default
+/// identity for the workload execution.
+/// The config specifies the type of identity (service account or user) that
+/// will be used by workloads to access resources on the project(s).
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct AuthenticationConfig {
+    /// Optional. Authentication type for the user workload running in containers.
+    #[prost(enumeration = "authentication_config::AuthenticationType", tag = "1")]
+    pub user_workload_authentication_type: i32,
+}
+/// Nested message and enum types in `AuthenticationConfig`.
+pub mod authentication_config {
+    /// Authentication types for workload execution.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AuthenticationType {
+        /// If AuthenticationType is unspecified then END_USER_CREDENTIALS is used
+        /// for 3.0 and newer runtimes, and SERVICE_ACCOUNT is used for older
+        /// runtimes.
+        Unspecified = 0,
+        /// Use service account credentials for authenticating to other services.
+        ServiceAccount = 1,
+        /// Use OAuth credentials associated with the workload creator/user for
+        /// authenticating to other services.
+        EndUserCredentials = 2,
+    }
+    impl AuthenticationType {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "AUTHENTICATION_TYPE_UNSPECIFIED",
+                Self::ServiceAccount => "SERVICE_ACCOUNT",
+                Self::EndUserCredentials => "END_USER_CREDENTIALS",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "AUTHENTICATION_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+                "SERVICE_ACCOUNT" => Some(Self::ServiceAccount),
+                "END_USER_CREDENTIALS" => Some(Self::EndUserCredentials),
+                _ => None,
+            }
+        }
     }
 }
 /// Autotuning configuration of the workload.
@@ -1614,7 +1679,7 @@ pub mod batch_controller_client {
     }
     impl<T> BatchControllerClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -1635,13 +1700,13 @@ pub mod batch_controller_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             BatchControllerClient::new(InterceptedService::new(inner, interceptor))
@@ -4025,7 +4090,7 @@ pub mod cluster_controller_client {
     }
     impl<T> ClusterControllerClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -4046,13 +4111,13 @@ pub mod cluster_controller_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             ClusterControllerClient::new(InterceptedService::new(inner, interceptor))
@@ -5636,7 +5701,7 @@ pub mod job_controller_client {
     }
     impl<T> JobControllerClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -5657,13 +5722,13 @@ pub mod job_controller_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             JobControllerClient::new(InterceptedService::new(inner, interceptor))
@@ -6008,7 +6073,7 @@ pub mod node_group_controller_client {
     }
     impl<T> NodeGroupControllerClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -6029,13 +6094,13 @@ pub mod node_group_controller_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             NodeGroupControllerClient::new(InterceptedService::new(inner, interceptor))
@@ -6524,7 +6589,7 @@ pub mod session_controller_client {
     }
     impl<T> SessionControllerClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -6545,13 +6610,13 @@ pub mod session_controller_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             SessionControllerClient::new(InterceptedService::new(inner, interceptor))
@@ -6886,7 +6951,7 @@ pub mod session_template_controller_client {
     }
     impl<T> SessionTemplateControllerClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -6907,13 +6972,13 @@ pub mod session_template_controller_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             SessionTemplateControllerClient::new(
@@ -7908,7 +7973,7 @@ pub mod workflow_template_service_client {
     }
     impl<T> WorkflowTemplateServiceClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -7929,13 +7994,13 @@ pub mod workflow_template_service_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             WorkflowTemplateServiceClient::new(

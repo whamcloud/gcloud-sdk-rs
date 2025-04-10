@@ -33,7 +33,7 @@ pub struct CreateChallengeRequest {
     pub challenge: ::core::option::Option<Challenge>,
 }
 /// A request for an OIDC token, providing all the necessary information needed
-/// for this service to verify the plaform state of the requestor.
+/// for this service to verify the platform state of the requestor.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct VerifyAttestationRequest {
     /// Required. The name of the Challenge whose nonce was used to generate the
@@ -56,6 +56,10 @@ pub struct VerifyAttestationRequest {
     /// the token output.
     #[prost(message, optional, tag = "5")]
     pub token_options: ::core::option::Option<TokenOptions>,
+    /// Optional. An optional indicator of the attester, only applies to certain
+    /// products.
+    #[prost(string, tag = "8")]
+    pub attester: ::prost::alloc::string::String,
     /// An optional tee attestation report, used to populate hardware rooted
     /// claims.
     #[prost(oneof = "verify_attestation_request::TeeAttestation", tags = "6, 7")]
@@ -397,7 +401,7 @@ pub mod confidential_computing_client {
     }
     impl<T> ConfidentialComputingClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -418,13 +422,13 @@ pub mod confidential_computing_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             ConfidentialComputingClient::new(InterceptedService::new(inner, interceptor))

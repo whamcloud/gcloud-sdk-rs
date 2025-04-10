@@ -270,6 +270,20 @@ pub struct UploadedMavenArtifact {
     #[prost(message, optional, tag = "3")]
     pub push_timing: ::core::option::Option<TimeSpan>,
 }
+/// A Go module artifact uploaded to Artifact Registry using the GoModule
+/// directive.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UploadedGoModule {
+    /// URI of the uploaded artifact.
+    #[prost(string, tag = "1")]
+    pub uri: ::prost::alloc::string::String,
+    /// Hash types and values of the Go Module Artifact.
+    #[prost(message, optional, tag = "2")]
+    pub file_hashes: ::core::option::Option<FileHashes>,
+    /// Output only. Stores timing information for pushing the specified artifact.
+    #[prost(message, optional, tag = "3")]
+    pub push_timing: ::core::option::Option<TimeSpan>,
+}
 /// An npm package uploaded to Artifact Registry using the NpmPackage
 /// directive.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -444,8 +458,9 @@ pub struct Results {
     /// corresponding to build step indices.
     ///
     /// [Cloud Builders](<https://cloud.google.com/cloud-build/docs/cloud-builders>)
-    /// can produce this output by writing to `$BUILDER_OUTPUT/output`.
-    /// Only the first 4KB of data is stored.
+    /// can produce this output by writing to `$BUILDER_OUTPUT/output`. Only the
+    /// first 50KB of data is stored. Note that the `$BUILDER_OUTPUT` variable is
+    /// read-only and can't be substituted.
     #[prost(bytes = "vec", repeated, tag = "6")]
     pub build_step_outputs: ::prost::alloc::vec::Vec<::prost::alloc::vec::Vec<u8>>,
     /// Time to push all non-container artifacts to Cloud Storage.
@@ -457,6 +472,10 @@ pub struct Results {
     /// Maven artifacts uploaded to Artifact Registry at the end of the build.
     #[prost(message, repeated, tag = "9")]
     pub maven_artifacts: ::prost::alloc::vec::Vec<UploadedMavenArtifact>,
+    /// Optional. Go module artifacts uploaded to Artifact Registry at the end of
+    /// the build.
+    #[prost(message, repeated, tag = "10")]
+    pub go_modules: ::prost::alloc::vec::Vec<UploadedGoModule>,
     /// Npm packages uploaded to Artifact Registry at the end of the build.
     #[prost(message, repeated, tag = "12")]
     pub npm_packages: ::prost::alloc::vec::Vec<UploadedNpmPackage>,
@@ -630,9 +649,16 @@ pub struct Build {
     /// build.
     #[prost(message, repeated, tag = "49")]
     pub warnings: ::prost::alloc::vec::Vec<build::Warning>,
+    /// Optional. Configuration for git operations.
+    #[prost(message, optional, tag = "48")]
+    pub git_config: ::core::option::Option<GitConfig>,
     /// Output only. Contains information about the build when status=FAILURE.
     #[prost(message, optional, tag = "51")]
     pub failure_info: ::core::option::Option<build::FailureInfo>,
+    /// Optional. Dependencies that the Cloud Build worker will fetch before
+    /// executing user steps.
+    #[prost(message, repeated, tag = "56")]
+    pub dependencies: ::prost::alloc::vec::Vec<Dependency>,
 }
 /// Nested message and enum types in `Build`.
 pub mod build {
@@ -842,6 +868,91 @@ pub mod build {
         }
     }
 }
+/// A dependency that the Cloud Build worker will fetch before executing user
+/// steps.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Dependency {
+    /// The type of dependency to fetch.
+    #[prost(oneof = "dependency::Dep", tags = "1, 2")]
+    pub dep: ::core::option::Option<dependency::Dep>,
+}
+/// Nested message and enum types in `Dependency`.
+pub mod dependency {
+    /// Represents a git repository as a build dependency.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct GitSourceDependency {
+        /// Required. The kind of repo (url or dev connect).
+        #[prost(message, optional, tag = "1")]
+        pub repository: ::core::option::Option<GitSourceRepository>,
+        /// Required. The revision that we will fetch the repo at.
+        #[prost(string, tag = "2")]
+        pub revision: ::prost::alloc::string::String,
+        /// Optional. True if submodules should be fetched too (default false).
+        #[prost(bool, tag = "3")]
+        pub recurse_submodules: bool,
+        /// Optional. How much history should be fetched for the build (default 1, -1
+        /// for all history).
+        #[prost(int64, tag = "4")]
+        pub depth: i64,
+        /// Required. Where should the files be placed on the worker.
+        #[prost(string, tag = "5")]
+        pub dest_path: ::prost::alloc::string::String,
+    }
+    /// A repository for a git source.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct GitSourceRepository {
+        /// The type of git source repo (url or dev connect).
+        #[prost(oneof = "git_source_repository::Repotype", tags = "1, 2")]
+        pub repotype: ::core::option::Option<git_source_repository::Repotype>,
+    }
+    /// Nested message and enum types in `GitSourceRepository`.
+    pub mod git_source_repository {
+        /// The type of git source repo (url or dev connect).
+        #[derive(Clone, PartialEq, ::prost::Oneof)]
+        pub enum Repotype {
+            /// Location of the Git repository.
+            #[prost(string, tag = "1")]
+            Url(::prost::alloc::string::String),
+            /// The Developer Connect Git repository link or the url that matches a
+            /// repository link in the current project, formatted as
+            /// `projects/*/locations/*/connections/*/gitRepositoryLink/*`
+            #[prost(string, tag = "2")]
+            DeveloperConnect(::prost::alloc::string::String),
+        }
+    }
+    /// The type of dependency to fetch.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Dep {
+        /// If set to true disable all dependency fetching (ignoring the default
+        /// source as well).
+        #[prost(bool, tag = "1")]
+        Empty(bool),
+        /// Represents a git repository as a build dependency.
+        #[prost(message, tag = "2")]
+        GitSource(GitSourceDependency),
+    }
+}
+/// GitConfig is a configuration for git operations.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GitConfig {
+    /// Configuration for HTTP related git operations.
+    #[prost(message, optional, tag = "1")]
+    pub http: ::core::option::Option<git_config::HttpConfig>,
+}
+/// Nested message and enum types in `GitConfig`.
+pub mod git_config {
+    /// HttpConfig is a configuration for HTTP related git operations.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct HttpConfig {
+        /// SecretVersion resource of the HTTP proxy URL. The Service Account used in
+        /// the build (either the default Service Account or
+        /// user-specified Service Account) should have
+        /// `secretmanager.versions.access` permissions on this secret. The proxy URL
+        /// should be in format `[protocol://][user\[:password\]@]proxyhost\[:port\]`.
+        #[prost(string, tag = "1")]
+        pub proxy_secret_version_name: ::prost::alloc::string::String,
+    }
+}
 /// Artifacts produced by a build that should be uploaded upon
 /// successful completion of all build steps.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -880,6 +991,12 @@ pub struct Artifacts {
     /// If any artifacts fail to be pushed, the build is marked FAILURE.
     #[prost(message, repeated, tag = "3")]
     pub maven_artifacts: ::prost::alloc::vec::Vec<artifacts::MavenArtifact>,
+    /// Optional. A list of Go modules to be uploaded to Artifact Registry upon
+    /// successful completion of all build steps.
+    ///
+    /// If any objects fail to be pushed, the build is marked FAILURE.
+    #[prost(message, repeated, tag = "4")]
+    pub go_modules: ::prost::alloc::vec::Vec<artifacts::GoModule>,
     /// A list of Python packages to be uploaded to Artifact Registry upon
     /// successful completion of all build steps.
     ///
@@ -951,6 +1068,41 @@ pub mod artifacts {
         /// Registry.
         #[prost(string, tag = "5")]
         pub version: ::prost::alloc::string::String,
+    }
+    /// Go module to upload to Artifact Registry upon successful completion of all
+    /// build steps. A module refers to all dependencies in a go.mod file.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct GoModule {
+        /// Optional. Artifact Registry repository name.
+        ///
+        /// Specified Go modules will be zipped and uploaded to Artifact Registry
+        /// with this location as a prefix.
+        /// e.g. my-go-repo
+        #[prost(string, tag = "1")]
+        pub repository_name: ::prost::alloc::string::String,
+        /// Optional. Location of the Artifact Registry repository. i.e. us-east1
+        /// Defaults to the build’s location.
+        #[prost(string, tag = "2")]
+        pub repository_location: ::prost::alloc::string::String,
+        /// Optional. Project ID of the Artifact Registry repository.
+        /// Defaults to the build project.
+        #[prost(string, tag = "3")]
+        pub repository_project_id: ::prost::alloc::string::String,
+        /// Optional. Source path of the go.mod file in the build's workspace. If not
+        /// specified, this will default to the current directory.
+        /// e.g. ~/code/go/mypackage
+        #[prost(string, tag = "4")]
+        pub source_path: ::prost::alloc::string::String,
+        /// Optional. The Go module's "module path".
+        /// e.g. example.com/foo/v2
+        #[prost(string, tag = "5")]
+        pub module_path: ::prost::alloc::string::String,
+        /// Optional. The Go module's semantic version in the form vX.Y.Z. e.g.
+        /// v0.1.1 Pre-release identifiers can also be added by appending a dash and
+        /// dot separated ASCII alphanumeric characters and hyphens.
+        /// e.g. v0.2.3-alpha.x.12m.5
+        #[prost(string, tag = "6")]
+        pub module_version: ::prost::alloc::string::String,
     }
     /// Python package to upload to Artifact Registry upon successful completion
     /// of all build steps. A package can encapsulate multiple objects to be
@@ -1077,6 +1229,8 @@ pub mod hash {
         Sha256 = 1,
         /// Use a md5 hash.
         Md5 = 2,
+        /// Dirhash of a Go module's source code which is then hex-encoded.
+        GoModuleH1 = 3,
         /// Use a sha512 hash.
         Sha512 = 4,
     }
@@ -1090,6 +1244,7 @@ pub mod hash {
                 Self::None => "NONE",
                 Self::Sha256 => "SHA256",
                 Self::Md5 => "MD5",
+                Self::GoModuleH1 => "GO_MODULE_H1",
                 Self::Sha512 => "SHA512",
             }
         }
@@ -1099,6 +1254,7 @@ pub mod hash {
                 "NONE" => Some(Self::None),
                 "SHA256" => Some(Self::Sha256),
                 "MD5" => Some(Self::Md5),
+                "GO_MODULE_H1" => Some(Self::GoModuleH1),
                 "SHA512" => Some(Self::Sha512),
                 _ => None,
             }
@@ -1660,8 +1816,9 @@ pub struct BuildTrigger {
     pub source_to_build: ::core::option::Option<GitRepoSource>,
     /// The service account used for all user-controlled operations including
     /// UpdateBuildTrigger, RunBuildTrigger, CreateBuild, and CancelBuild.
-    /// If no service account is set, then the standard Cloud Build service account
-    /// (\[PROJECT_NUM\]@system.gserviceaccount.com) will be used instead.
+    /// If no service account is set and the legacy Cloud Build service account
+    /// (`\[PROJECT_NUM\]@cloudbuild.gserviceaccount.com`) is the default for the
+    /// project then it will be used instead.
     /// Format: `projects/{PROJECT_ID}/serviceAccounts/{ACCOUNT_ID_OR_EMAIL}`
     #[prost(string, tag = "33")]
     pub service_account: ::prost::alloc::string::String,
@@ -1958,8 +2115,14 @@ pub mod webhook_config {
 /// Requests.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PullRequestFilter {
-    /// Configure builds to run whether a repository owner or collaborator need to
-    /// comment `/gcbrun`.
+    /// If CommentControl is enabled, depending on the setting, builds may not
+    /// fire until a repository writer comments `/gcbrun` on a pull
+    /// request or `/gcbrun` is in the pull request description.
+    /// Only PR comments that contain `/gcbrun` will trigger builds.
+    ///
+    /// If CommentControl is set to disabled, comments with `/gcbrun` from a user
+    /// with repository write permission or above will
+    /// still trigger builds to run.
     #[prost(enumeration = "pull_request_filter::CommentControl", tag = "5")]
     pub comment_control: i32,
     /// If true, branches that do NOT match the git_ref will trigger a build.
@@ -1972,7 +2135,15 @@ pub struct PullRequestFilter {
 }
 /// Nested message and enum types in `PullRequestFilter`.
 pub mod pull_request_filter {
-    /// Controls behavior of Pull Request comments.
+    /// Controls whether or not a `/gcbrun` comment is required from a user with
+    /// repository write permission or above in order to
+    /// trigger Build runs for pull requests. Pull Request update events differ
+    /// between repo types.
+    /// Check repo specific guides
+    /// ([GitHub](<https://cloud.google.com/build/docs/automating-builds/github/build-repos-from-github-enterprise#creating_a_github_enterprise_trigger>),
+    /// [Bitbucket](<https://cloud.google.com/build/docs/automating-builds/bitbucket/build-repos-from-bitbucket-server#creating_a_bitbucket_server_trigger>),
+    /// [GitLab](<https://cloud.google.com/build/docs/automating-builds/gitlab/build-repos-from-gitlab#creating_a_gitlab_trigger>)
+    /// for details.
     #[derive(
         Clone,
         Copy,
@@ -1986,13 +2157,21 @@ pub mod pull_request_filter {
     )]
     #[repr(i32)]
     pub enum CommentControl {
-        /// Do not require comments on Pull Requests before builds are triggered.
+        /// Do not require `/gcbrun` comments from a user with repository write
+        /// permission or above on pull requests before builds are triggered.
+        /// Comments that contain `/gcbrun` will still fire builds so this should
+        /// be thought of as comments not required.
         CommentsDisabled = 0,
-        /// Enforce that repository owners or collaborators must comment on Pull
-        /// Requests before builds are triggered.
+        /// Builds will only fire in response to pull requests if:
+        /// 1. The pull request author has repository write permission or above and
+        /// `/gcbrun` is in the PR description.
+        /// 2. A user with repository writer permissions or above comments `/gcbrun`
+        /// on a pull request authored by any user.
         CommentsEnabled = 1,
-        /// Enforce that repository owners or collaborators must comment on external
-        /// contributors' Pull Requests before builds are triggered.
+        /// Builds will only fire in response to pull requests if:
+        /// 1. The pull request author is a repository writer or above.
+        /// 2. If the author does not have write permissions, a user with write
+        /// permissions or above must comment `/gcbrun` in order to fire a build.
         CommentsEnabledForExternalContributorsOnly = 2,
     }
     impl CommentControl {
@@ -2168,7 +2347,7 @@ pub struct BuildOptions {
     /// "disk free"; some of the space will be used by the operating system and
     /// build utilities. Also note that this is the minimum disk size that will be
     /// allocated for the build -- the build may run with a larger disk than
-    /// requested. At present, the maximum disk size is 2000GB; builds that request
+    /// requested. At present, the maximum disk size is 4000GB; builds that request
     /// more than the maximum are rejected with an error.
     #[prost(int64, tag = "6")]
     pub disk_size_gb: i64,
@@ -2237,6 +2416,11 @@ pub struct BuildOptions {
     /// Optional. Option to specify how default logs buckets are setup.
     #[prost(enumeration = "build_options::DefaultLogsBucketBehavior", tag = "21")]
     pub default_logs_bucket_behavior: i32,
+    /// Optional. Option to specify whether structured logging is enabled.
+    ///
+    /// If true, JSON-formatted logs are parsed as structured logs.
+    #[prost(bool, tag = "23")]
+    pub enable_structured_logging: bool,
 }
 /// Nested message and enum types in `BuildOptions`.
 pub mod build_options {
@@ -2573,6 +2757,8 @@ pub struct ReceiveTriggerWebhookRequest {
 /// ReceiveTriggerWebhook method.
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct ReceiveTriggerWebhookResponse {}
+/// GitHubEnterpriseConfig represents a configuration for a GitHub Enterprise
+/// server.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GitHubEnterpriseConfig {
     /// Optional. The full resource name for the GitHubEnterpriseConfig
@@ -3078,7 +3264,7 @@ pub mod cloud_build_client {
     }
     impl<T> CloudBuildClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
         T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
         <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
@@ -3099,13 +3285,13 @@ pub mod cloud_build_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
             >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             CloudBuildClient::new(InterceptedService::new(inner, interceptor))

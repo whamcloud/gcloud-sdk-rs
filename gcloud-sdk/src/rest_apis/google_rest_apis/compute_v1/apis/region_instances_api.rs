@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize}; /*
 use reqwest;
 
 use super::{configuration, Error};
-use crate::google_rest_apis::compute_v1::apis::ResponseContent;
+use crate::google_rest_apis::compute_v1::{apis::ResponseContent, models};
 
 /// struct for passing parameters to the method [`compute_region_instances_bulk_insert`]
 #[derive(Clone, Debug, Default)]
@@ -46,8 +46,7 @@ pub struct ComputePeriodRegionInstancesPeriodBulkInsertParams {
     pub user_ip: Option<String>,
     /// An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported ( 00000000-0000-0000-0000-000000000000).
     pub request_id: Option<String>,
-    pub bulk_insert_instance_resource:
-        Option<crate::google_rest_apis::compute_v1::models::BulkInsertInstanceResource>,
+    pub bulk_insert_instance_resource: Option<models::BulkInsertInstanceResource>,
 }
 
 /// struct for typed errors of method [`compute_region_instances_bulk_insert`]
@@ -61,10 +60,7 @@ pub enum ComputePeriodRegionInstancesPeriodBulkInsertError {
 pub async fn compute_region_instances_bulk_insert(
     configuration: &configuration::Configuration,
     params: ComputePeriodRegionInstancesPeriodBulkInsertParams,
-) -> Result<
-    crate::google_rest_apis::compute_v1::models::Operation,
-    Error<ComputePeriodRegionInstancesPeriodBulkInsertError>,
-> {
+) -> Result<models::Operation, Error<ComputePeriodRegionInstancesPeriodBulkInsertError>> {
     let local_var_configuration = configuration;
 
     // unbox the parameters

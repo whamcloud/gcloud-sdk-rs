@@ -7,10 +7,10 @@ use tracing::*;
 #[derive(Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(untagged)]
 pub enum ExternalCredentialSource {
-    UrlBased(ExternalCredentialUrl),
-    FileBased(ExternalCredentialFile),
     #[cfg(feature = "external-account-aws")]
     Aws(Aws),
+    UrlBased(ExternalCredentialUrl),
+    FileBased(ExternalCredentialFile),
 }
 
 #[derive(Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -74,6 +74,10 @@ pub async fn subject_token(
             environment_id,
             ..
         }) => {
+            debug!(
+                "Using external credentials AWS source. Regional URL: {}",
+                regional_cred_verification_url
+            );
             if environment_id.starts_with("aws") {
                 if environment_id != "aws1" {
                     return Err(crate::error::ErrorKind::ExternalCredsSourceError(
