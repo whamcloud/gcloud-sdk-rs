@@ -1695,6 +1695,365 @@ pub mod autofeed_settings_service_client {
         }
     }
 }
+/// Collection of information related to the [automatic
+/// improvements](<https://developers.google.com/shopping-content/guides/automatic-improvements>)
+/// of an account.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AutomaticImprovements {
+    /// Identifier. The resource name of the automatic improvements.
+    /// Format: `accounts/{account}/automaticImprovements`.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Turning on [item
+    /// updates](<https://support.google.com/merchants/answer/3246284>) allows
+    /// Google to automatically update items for you. When item updates are on,
+    /// Google uses the structured data markup on the website and advanced data
+    /// extractors to update the price and availability of the items. When the item
+    /// updates are off, items with mismatched data aren't shown.
+    /// This field is only updated (cleared) if provided in the update mask.
+    #[prost(message, optional, tag = "2")]
+    pub item_updates: ::core::option::Option<AutomaticItemUpdates>,
+    /// This improvement will attempt to automatically correct submitted images if
+    /// they don't meet the [image
+    /// requirements](<https://support.google.com/merchants/answer/6324350>), for
+    /// example, removing overlays. If successful, the image will be replaced and
+    /// approved. This improvement is only applied to images of disapproved offers.
+    /// For more information see: [Automatic image
+    /// improvements](<https://support.google.com/merchants/answer/9242973>)
+    /// This field is only updated (cleared) if provided in the update mask.
+    #[prost(message, optional, tag = "3")]
+    pub image_improvements: ::core::option::Option<AutomaticImageImprovements>,
+    /// Not available for MCAs
+    /// [accounts](<https://support.google.com/merchants/answer/188487>). By turning
+    /// on [automatic shipping
+    /// improvements](<https://support.google.com/merchants/answer/10027038>),
+    /// you are allowing Google to improve the accuracy of your delivery times
+    /// shown to shoppers using Google. More accurate delivery times, especially
+    /// when faster, typically lead to better conversion rates. Google will improve
+    /// your estimated delivery times based on various factors:
+    /// * Delivery address of an order
+    /// * Current handling time and shipping time settings
+    /// * Estimated weekdays or business days
+    /// * Parcel tracking data
+    /// This field is only updated (cleared) if provided in the update mask.
+    #[prost(message, optional, tag = "4")]
+    pub shipping_improvements: ::core::option::Option<AutomaticShippingImprovements>,
+}
+/// Turning on [item
+/// updates](<https://support.google.com/merchants/answer/3246284>) allows
+/// Google to automatically update items for you. When item updates are on,
+/// Google uses the structured data markup on the website and advanced data
+/// extractors to update the price and availability of the items. When the item
+/// updates are off, items with mismatched data aren't shown.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct AutomaticItemUpdates {
+    /// Optional. Determines which attributes of the items should be automatically
+    /// updated. If this field is not present and provided in the update mask, then
+    /// the settings will be deleted. If there are no settings for subaccount, they
+    /// are inherited from aggregator.
+    #[prost(message, optional, tag = "1")]
+    pub account_item_updates_settings: ::core::option::Option<
+        automatic_item_updates::ItemUpdatesAccountLevelSettings,
+    >,
+    /// Output only. The effective value of allow_price_updates.
+    /// If account_item_updates_settings is present, then this value is the same.
+    /// Otherwise, it represents the inherited value of the parent account.
+    /// The default value is true if no settings are present.
+    /// Read-only.
+    #[prost(bool, tag = "2")]
+    pub effective_allow_price_updates: bool,
+    /// Output only. The effective value of allow_availability_updates.
+    /// If account_item_updates_settings is present, then this value is the same.
+    /// Otherwise, it represents the inherited value of the parent account.
+    /// The default value is true if no settings are present.
+    /// Read-only.
+    #[prost(bool, tag = "3")]
+    pub effective_allow_availability_updates: bool,
+    /// Output only. The effective value of
+    /// allow_strict_availability_updates.
+    /// If account_item_updates_settings is present, then this value is the same.
+    /// Otherwise, it represents the inherited value of the parent account.
+    /// The default value is true if no settings are present.
+    /// Read-only.
+    #[prost(bool, tag = "4")]
+    pub effective_allow_strict_availability_updates: bool,
+    /// Output only. The effective value of allow_condition_updates.
+    /// If account_item_updates_settings is present, then this value is the same.
+    /// Otherwise, it represents the inherited value of the parent account.
+    /// The default value is true if no settings are present.
+    /// Read-only.
+    #[prost(bool, tag = "5")]
+    pub effective_allow_condition_updates: bool,
+}
+/// Nested message and enum types in `AutomaticItemUpdates`.
+pub mod automatic_item_updates {
+    /// Settings for the Automatic Item Updates.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct ItemUpdatesAccountLevelSettings {
+        /// If price updates are enabled, Google always updates the active price with
+        /// the crawled information.
+        #[prost(bool, optional, tag = "1")]
+        pub allow_price_updates: ::core::option::Option<bool>,
+        /// If availability updates are enabled, any previous availability values
+        /// get overwritten if Google finds an out-of-stock annotation on the offer's
+        /// page.
+        /// If additionally `allow_strict_availability_updates` field is set to
+        /// true, values get overwritten if Google finds an in-stock annotation on
+        /// the offer’s page.
+        #[prost(bool, optional, tag = "2")]
+        pub allow_availability_updates: ::core::option::Option<bool>,
+        /// If `allow_availability_updates` is enabled, items are automatically
+        /// updated in all your Shopping target countries. By default, availability
+        /// updates will only be applied to items that are 'out of stock' on your
+        /// website but 'in stock' on Shopping. Set this to true to also update items
+        /// that are 'in stock' on your website, but 'out of stock' on Google
+        /// Shopping. In order for this field to have an effect, you must also set
+        /// `allow_availability_updates`.
+        #[prost(bool, optional, tag = "3")]
+        pub allow_strict_availability_updates: ::core::option::Option<bool>,
+        /// If condition updates are enabled, Google always updates item condition
+        /// with the condition detected from the details of your product.
+        #[prost(bool, optional, tag = "4")]
+        pub allow_condition_updates: ::core::option::Option<bool>,
+    }
+}
+/// This improvement will attempt to automatically correct submitted images if
+/// they don't meet the [image
+/// requirements](<https://support.google.com/merchants/answer/6324350>), for
+/// example, removing overlays. If successful, the image will be replaced and
+/// approved. This improvement is only applied to images of disapproved offers.
+/// For more information see: [Automatic image
+/// improvements](<https://support.google.com/merchants/answer/9242973>)
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct AutomaticImageImprovements {
+    /// Optional. Determines how the images should be automatically updated.
+    /// If this field is not present and provided in the update mask, then the
+    /// settings will be deleted. If there are no settings for subaccount, they are
+    /// inherited from aggregator.
+    #[prost(message, optional, tag = "1")]
+    pub account_image_improvements_settings: ::core::option::Option<
+        automatic_image_improvements::ImageImprovementsAccountLevelSettings,
+    >,
+    /// Output only. The effective value of allow_automatic_image_improvements.
+    /// If account_image_improvements_settings is present, then this value is the
+    /// same. Otherwise, it represents the inherited value of the parent account.
+    /// Read-only.
+    #[prost(bool, tag = "2")]
+    pub effective_allow_automatic_image_improvements: bool,
+}
+/// Nested message and enum types in `AutomaticImageImprovements`.
+pub mod automatic_image_improvements {
+    /// Settings for the Automatic Image Improvements.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct ImageImprovementsAccountLevelSettings {
+        /// Enables automatic image improvements.
+        #[prost(bool, optional, tag = "1")]
+        pub allow_automatic_image_improvements: ::core::option::Option<bool>,
+    }
+}
+/// Not available for MCAs
+/// [accounts](<https://support.google.com/merchants/answer/188487>). By turning on
+/// [automatic shipping
+/// improvements](<https://support.google.com/merchants/answer/10027038>),
+/// you are allowing Google to improve the accuracy of your delivery times shown
+/// to shoppers using Google. More accurate delivery times, especially when
+/// faster, typically lead to better conversion rates. Google will improve your
+/// estimated delivery times based on various factors:
+/// * Delivery address of an order
+/// * Current handling time and shipping time settings
+/// * Estimated weekdays or business days
+/// * Parcel tracking data
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct AutomaticShippingImprovements {
+    /// Enables automatic shipping improvements.
+    #[prost(bool, optional, tag = "1")]
+    pub allow_shipping_improvements: ::core::option::Option<bool>,
+}
+/// Request message for the `GetAutomaticImprovements` method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetAutomaticImprovementsRequest {
+    /// Required. The resource name of the automatic improvements.
+    /// Format: `accounts/{account}/automaticImprovements`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Request message for the `UpdateAutomaticImprovements` method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateAutomaticImprovementsRequest {
+    /// Required. The new version of the automatic imrovements.
+    #[prost(message, optional, tag = "1")]
+    pub automatic_improvements: ::core::option::Option<AutomaticImprovements>,
+    /// Required. List of fields being updated.
+    /// The following fields are supported (in both `snake_case` and
+    /// `lowerCamelCase`):
+    ///
+    /// - `item_updates`
+    /// - `item_updates.account_level_settings`
+    /// - `image_improvements`
+    /// - `image_improvements.account_level_settings`
+    /// - `shipping_improvements`
+    /// - `shipping_improvements.allow_shipping_improvements`
+    #[prost(message, optional, tag = "2")]
+    pub update_mask: ::core::option::Option<::prost_types::FieldMask>,
+}
+/// Generated client implementations.
+pub mod automatic_improvements_service_client {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value,
+    )]
+    use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
+    /// Service to manage the automatic improvements of an account. The automatic
+    /// improvements of the account can be used to automatically update products,
+    /// improve images and shipping.
+    #[derive(Debug, Clone)]
+    pub struct AutomaticImprovementsServiceClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl AutomaticImprovementsServiceClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> AutomaticImprovementsServiceClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> AutomaticImprovementsServiceClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+        {
+            AutomaticImprovementsServiceClient::new(
+                InterceptedService::new(inner, interceptor),
+            )
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        /// Retrieves the automatic improvements of an account.
+        pub async fn get_automatic_improvements(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetAutomaticImprovementsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::AutomaticImprovements>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.shopping.merchant.accounts.v1beta.AutomaticImprovementsService/GetAutomaticImprovements",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.shopping.merchant.accounts.v1beta.AutomaticImprovementsService",
+                        "GetAutomaticImprovements",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Updates the automatic improvements of an account.
+        pub async fn update_automatic_improvements(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateAutomaticImprovementsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::AutomaticImprovements>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.shopping.merchant.accounts.v1beta.AutomaticImprovementsService/UpdateAutomaticImprovements",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.shopping.merchant.accounts.v1beta.AutomaticImprovementsService",
+                        "UpdateAutomaticImprovements",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+    }
+}
 /// Collection of information related to the [identity of a
 /// business](<https://support.google.com/merchants/answer/12564247>).
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -2511,6 +2870,282 @@ pub mod email_preferences_service_client {
         }
     }
 }
+/// Collection of information related to a Google Business Profile (GBP) account.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GbpAccount {
+    /// Identifier. The resource name of the GBP account. Format:
+    /// `accounts/{account}/gbpAccount/{gbp_account}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// The id of the GBP account.
+    #[prost(string, tag = "2")]
+    pub gbp_account_id: ::prost::alloc::string::String,
+    /// The type of the Business Profile.
+    #[prost(enumeration = "gbp_account::Type", tag = "3")]
+    pub r#type: i32,
+    /// The name of the Business Profile.
+    /// For personal accounts: Email id of the owner.
+    /// For Business accounts: Name of the Business Account.
+    #[prost(string, tag = "5")]
+    pub gbp_account_name: ::prost::alloc::string::String,
+    /// Number of listings under this account.
+    #[prost(int64, tag = "6")]
+    pub listing_count: i64,
+}
+/// Nested message and enum types in `GbpAccount`.
+pub mod gbp_account {
+    /// The type of the GBP account.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Type {
+        /// Default value. This value is unused.
+        Unspecified = 0,
+        /// The GBP account is a user account.
+        User = 1,
+        /// The GBP account is a business account.
+        BusinessAccount = 2,
+    }
+    impl Type {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "TYPE_UNSPECIFIED",
+                Self::User => "USER",
+                Self::BusinessAccount => "BUSINESS_ACCOUNT",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+                "USER" => Some(Self::User),
+                "BUSINESS_ACCOUNT" => Some(Self::BusinessAccount),
+                _ => None,
+            }
+        }
+    }
+}
+/// Request message for the ListGbpAccounts method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListGbpAccountsRequest {
+    /// Required. The name of the parent resource under which the GBP accounts are
+    /// listed. Format: `accounts/{account}`.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Optional. The maximum number of `GbpAccount` resources to return. The
+    /// service returns fewer than this value if the number of gbp accounts is less
+    /// that than the `pageSize`. The default value is 50. The maximum value is
+    /// 1000; If a value higher than the maximum is specified, then the `pageSize`
+    /// will default to the maximum.
+    #[prost(int32, tag = "2")]
+    pub page_size: i32,
+    /// Optional. A page token, received from a previous `ListGbpAccounts` call.
+    /// Provide the page token to retrieve the subsequent page.
+    ///
+    /// When paginating, all other parameters provided to `ListGbpAccounts` must
+    /// match the call that provided the page token.
+    #[prost(string, tag = "3")]
+    pub page_token: ::prost::alloc::string::String,
+}
+/// Response message for the ListGbpAccounts method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListGbpAccountsResponse {
+    /// The GBP accounts from the specified merchant in the specified country.
+    #[prost(message, repeated, tag = "1")]
+    pub gbp_accounts: ::prost::alloc::vec::Vec<GbpAccount>,
+    /// A token, which can be sent as `page_token` to retrieve the next page.
+    /// If this field is omitted, there are no subsequent pages.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
+/// Request message for the LinkGbpAccount method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct LinkGbpAccountRequest {
+    /// Required. The name of the parent resource to which the GBP account is
+    /// linked. Format: `accounts/{account}`.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Required. The email address of the Business Profile account.
+    #[prost(string, tag = "2")]
+    pub gbp_email: ::prost::alloc::string::String,
+}
+/// Response message for the LinkGbpAccount method.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct LinkGbpAccountResponse {
+    /// Empty response.
+    #[prost(message, optional, tag = "1")]
+    pub response: ::core::option::Option<()>,
+}
+/// Generated client implementations.
+pub mod gbp_accounts_service_client {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value,
+    )]
+    use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
+    /// The service facilitates the management of a merchant's Google Business
+    /// Profile (GBP) account settings. This API defines the following resource
+    /// model:
+    /// - [GbpAccount][google.shopping.merchant.accounts.v1.GbpAccount]
+    #[derive(Debug, Clone)]
+    pub struct GbpAccountsServiceClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl GbpAccountsServiceClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> GbpAccountsServiceClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> GbpAccountsServiceClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+        {
+            GbpAccountsServiceClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        /// List the GBP accounts for a given merchant.
+        pub async fn list_gbp_accounts(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListGbpAccountsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListGbpAccountsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.shopping.merchant.accounts.v1beta.GbpAccountsService/ListGbpAccounts",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.shopping.merchant.accounts.v1beta.GbpAccountsService",
+                        "ListGbpAccounts",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Link the specified merchant to a GBP account for all countries.
+        pub async fn link_gbp_account(
+            &mut self,
+            request: impl tonic::IntoRequest<super::LinkGbpAccountRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::LinkGbpAccountResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.shopping.merchant.accounts.v1beta.GbpAccountsService/LinkGbpAccount",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.shopping.merchant.accounts.v1beta.GbpAccountsService",
+                        "LinkGbpAccount",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+    }
+}
 /// A store's homepage.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Homepage {
@@ -2775,10 +3410,916 @@ pub mod homepage_service_client {
         }
     }
 }
+/// Collection of information related to a Local Feed Partnership (LFP) provider.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct LfpProvider {
+    /// Identifier. The resource name of the LFP provider.
+    /// Format:
+    /// `accounts/{account}/omnichannelSettings/{omnichannel_setting}/lfpProviders/{lfp_provider}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Output only. Region code defined by [CLDR](<https://cldr.unicode.org/>).
+    #[prost(string, tag = "2")]
+    pub region_code: ::prost::alloc::string::String,
+    /// The display name of the LFP provider.
+    #[prost(string, tag = "3")]
+    pub display_name: ::prost::alloc::string::String,
+}
+/// Request message for the FindLfpProviders method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FindLfpProvidersRequest {
+    /// Required. The name of the parent resource under which the LFP providers are
+    /// found. Format:
+    /// `accounts/{account}/omnichannelSettings/{omnichannel_setting}`.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Optional. The maximum number of `LfpProvider` resources to return. The
+    /// service returns fewer than this value if the number of lfp providers is
+    /// less that than the `pageSize`. The default value is 50. The maximum value
+    /// is 1000; If a value higher than the maximum is specified, then the
+    /// `pageSize` will default to the maximum.
+    #[prost(int32, tag = "2")]
+    pub page_size: i32,
+    /// Optional. A page token, received from a previous `FindLfpProviders` call.
+    /// Provide the page token to retrieve the subsequent page.
+    ///
+    /// When paginating, all other parameters provided to `FindLfpProviders` must
+    /// match the call that provided the page token.
+    #[prost(string, tag = "3")]
+    pub page_token: ::prost::alloc::string::String,
+}
+/// Response message for the FindLfpProviders method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FindLfpProvidersResponse {
+    /// The LFP providers from the specified merchant in the specified country.
+    #[prost(message, repeated, tag = "1")]
+    pub lfp_providers: ::prost::alloc::vec::Vec<LfpProvider>,
+    /// A token, which can be sent as `page_token` to retrieve the next page.
+    /// If this field is omitted, there are no subsequent pages.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
+/// Request message for the LinkLfpProvider method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct LinkLfpProviderRequest {
+    /// Required. The name of the LFP provider resource to link.
+    /// Format:
+    /// `accounts/{account}/omnichannelSettings/{omnichannel_setting}/lfpProviders/{lfp_provider}`.
+    /// The `lfp_provider` is the LFP provider ID.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Required. The external account ID by which this merchant is known to the
+    /// LFP provider.
+    #[prost(string, tag = "2")]
+    pub external_account_id: ::prost::alloc::string::String,
+}
+/// Response message for the LinkLfpProvider method.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct LinkLfpProviderResponse {
+    /// Empty response.
+    #[prost(message, optional, tag = "1")]
+    pub response: ::core::option::Option<()>,
+}
+/// Generated client implementations.
+pub mod lfp_providers_service_client {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value,
+    )]
+    use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
+    /// The service facilitates the management of a merchant's LFP provider settings.
+    /// This API defines the following resource model:
+    /// - [LfpProvider][google.shopping.merchant.accounts.v1.LfpProvider]
+    #[derive(Debug, Clone)]
+    pub struct LfpProvidersServiceClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl LfpProvidersServiceClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> LfpProvidersServiceClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> LfpProvidersServiceClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+        {
+            LfpProvidersServiceClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        /// Find the LFP provider candidates in a given country.
+        pub async fn find_lfp_providers(
+            &mut self,
+            request: impl tonic::IntoRequest<super::FindLfpProvidersRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::FindLfpProvidersResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.shopping.merchant.accounts.v1beta.LfpProvidersService/FindLfpProviders",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.shopping.merchant.accounts.v1beta.LfpProvidersService",
+                        "FindLfpProviders",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Link the specified merchant to a LFP provider for the specified country.
+        pub async fn link_lfp_provider(
+            &mut self,
+            request: impl tonic::IntoRequest<super::LinkLfpProviderRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::LinkLfpProviderResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.shopping.merchant.accounts.v1beta.LfpProvidersService/LinkLfpProvider",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.shopping.merchant.accounts.v1beta.LfpProvidersService",
+                        "LinkLfpProvider",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+    }
+}
+/// Collection of information related to the omnichannel settings of a merchant.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OmnichannelSetting {
+    /// Identifier. The resource name of the omnichannel setting. Format:
+    /// `accounts/{account}/omnichannelSettings/{omnichannel_setting}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Required. Immutable. Region code defined by
+    /// [CLDR](<https://cldr.unicode.org/>). Must be provided in the Create method,
+    /// and is immutable.
+    #[prost(string, tag = "2")]
+    pub region_code: ::prost::alloc::string::String,
+    /// Required. The Local Store Front type for this country.
+    #[prost(enumeration = "omnichannel_setting::LsfType", tag = "12")]
+    pub lsf_type: i32,
+    /// Optional. The InStock URI and state for this country.
+    #[prost(message, optional, tag = "13")]
+    pub in_stock: ::core::option::Option<InStock>,
+    /// Optional. The Pickup URI and state for this country.
+    #[prost(message, optional, tag = "14")]
+    pub pickup: ::core::option::Option<Pickup>,
+    /// Output only. The established link to a LFP provider.
+    #[prost(message, optional, tag = "5")]
+    pub lfp_link: ::core::option::Option<LfpLink>,
+    /// Optional. The On Display to Order (ODO) policy URI and state for this
+    /// country.
+    #[prost(message, optional, tag = "6")]
+    pub odo: ::core::option::Option<OnDisplayToOrder>,
+    /// Optional. The about page URI and state for this country.
+    #[prost(message, optional, tag = "7")]
+    pub about: ::core::option::Option<About>,
+    /// Optional. The inventory verification contact and state for this country.
+    #[prost(message, optional, tag = "8")]
+    pub inventory_verification: ::core::option::Option<InventoryVerification>,
+}
+/// Nested message and enum types in `OmnichannelSetting`.
+pub mod omnichannel_setting {
+    /// The product page experience type, which is also called the Local Store
+    /// Front (LSF) type. Check the [HC
+    /// article](<https://support.google.com/merchants/answer/7178526>) for more
+    /// details.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum LsfType {
+        /// Default value. This value is unused.
+        Unspecified = 0,
+        /// Google-Hosted Local Store Front. Check the [HC
+        /// article](<https://support.google.com/merchants/answer/14869424>) for more
+        /// details.
+        Ghlsf = 1,
+        /// Merchant-Hosted Local Store Front Basic. Check the [HC
+        /// article](<https://support.google.com/merchants/answer/14615867>) for more
+        /// details.
+        MhlsfBasic = 2,
+        /// Merchant-Hosted Local Store Front Full. Check the [HC
+        /// article](<https://support.google.com/merchants/answer/14617076>) for more
+        /// details.
+        MhlsfFull = 3,
+    }
+    impl LsfType {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "LSF_TYPE_UNSPECIFIED",
+                Self::Ghlsf => "GHLSF",
+                Self::MhlsfBasic => "MHLSF_BASIC",
+                Self::MhlsfFull => "MHLSF_FULL",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "LSF_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+                "GHLSF" => Some(Self::Ghlsf),
+                "MHLSF_BASIC" => Some(Self::MhlsfBasic),
+                "MHLSF_FULL" => Some(Self::MhlsfFull),
+                _ => None,
+            }
+        }
+    }
+}
+/// The state of a omnichannel setting related review process.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct ReviewState {}
+/// Nested message and enum types in `ReviewState`.
+pub mod review_state {
+    /// The state of the review process.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum State {
+        /// Default value. This value is unused.
+        Unspecified = 0,
+        /// The review process has concluded successfully. The reviewed item is
+        /// active.
+        Active = 1,
+        /// The review process failed.
+        Failed = 2,
+        /// The review process is running.
+        Running = 3,
+        /// The review process is waiting for the merchant to take action.
+        ActionRequired = 4,
+    }
+    impl State {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "STATE_UNSPECIFIED",
+                Self::Active => "ACTIVE",
+                Self::Failed => "FAILED",
+                Self::Running => "RUNNING",
+                Self::ActionRequired => "ACTION_REQUIRED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "STATE_UNSPECIFIED" => Some(Self::Unspecified),
+                "ACTIVE" => Some(Self::Active),
+                "FAILED" => Some(Self::Failed),
+                "RUNNING" => Some(Self::Running),
+                "ACTION_REQUIRED" => Some(Self::ActionRequired),
+                _ => None,
+            }
+        }
+    }
+}
+/// Collection of information related to InStock.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct InStock {
+    /// Optional. Product landing page URI. It is only used for the review of MHLSF
+    /// in-stock serving. This URI domain should match with the business's
+    /// homepage. Required to be empty if the lsf_type is GHLSF, and required when
+    /// the lsf_type is MHLSF_FULL or MHLSF_BASIC.
+    #[prost(string, tag = "1")]
+    pub uri: ::prost::alloc::string::String,
+    /// Output only. The state of the in-stock serving.
+    #[prost(enumeration = "review_state::State", tag = "2")]
+    pub state: i32,
+}
+/// Collection of information related to Pickup.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Pickup {
+    /// Required. Pickup product page URI. It is only used for the review of pickup
+    /// serving. This URI domain should match with the business's homepage.
+    #[prost(string, tag = "1")]
+    pub uri: ::prost::alloc::string::String,
+    /// Output only. The state of the pickup serving.
+    #[prost(enumeration = "review_state::State", tag = "2")]
+    pub state: i32,
+}
+/// Collection of information related to the LFP link.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct LfpLink {
+    /// Required. The resource name of the LFP provider.
+    /// Format: `lfpProviders/{lfp_provider}`
+    #[prost(string, tag = "1")]
+    pub lfp_provider: ::prost::alloc::string::String,
+    /// Required. The account ID by which this merchant is known to the LFP
+    /// provider.
+    #[prost(string, tag = "2")]
+    pub external_account_id: ::prost::alloc::string::String,
+    /// Output only. The state of the LFP link.
+    #[prost(enumeration = "review_state::State", tag = "3")]
+    pub state: i32,
+}
+/// Collection of information related to the on display to order
+/// ([ODO](<https://support.google.com/merchants/answer/14615056?hl=en&ref_topic=15145747&sjid=6892280366904591178-NC>)).
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OnDisplayToOrder {
+    /// Required. The on display to order (ODO) policy URI.
+    #[prost(string, tag = "1")]
+    pub uri: ::prost::alloc::string::String,
+    /// Output only. The state of the URI.
+    #[prost(enumeration = "review_state::State", tag = "2")]
+    pub state: i32,
+}
+/// Collection of information related to the about page
+/// ([impressum](<https://support.google.com/merchants/answer/14675634?hl=en&ref_topic=15145634&sjid=6892280366904591178-NC>)).
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct About {
+    /// Required. The about page URI.
+    #[prost(string, tag = "1")]
+    pub uri: ::prost::alloc::string::String,
+    /// Output only. The state of the URI.
+    #[prost(enumeration = "review_state::State", tag = "2")]
+    pub state: i32,
+}
+/// Collection of information related to [inventory
+/// verification](<https://support.google.com/merchants/answer/14684499?hl=en&ref_topic=15145634&sjid=6892280366904591178-NC>).
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct InventoryVerification {
+    /// Output only. The state of the inventory verification process.
+    #[prost(enumeration = "inventory_verification::State", tag = "1")]
+    pub state: i32,
+    /// Required. The name of the contact for the inventory verification process.
+    #[prost(string, tag = "2")]
+    pub contact: ::prost::alloc::string::String,
+    /// Required. The email address of the contact for the inventory verification
+    /// process.
+    #[prost(string, tag = "3")]
+    pub contact_email: ::prost::alloc::string::String,
+    /// Output only. The state of the contact verification.
+    #[prost(enumeration = "review_state::State", tag = "4")]
+    pub contact_state: i32,
+}
+/// Nested message and enum types in `InventoryVerification`.
+pub mod inventory_verification {
+    /// The state of the [inventory
+    /// verification](<https://support.google.com/merchants/answer/14684499?hl=en&ref_topic=15145634&sjid=6892280366904591178-NC>)
+    /// process.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum State {
+        /// Default value. This value is unused.
+        Unspecified = 0,
+        /// When the merchant needs to initiate the inventory
+        /// verification process. The next state is INACTIVE.
+        ActionRequired = 1,
+        /// When the merchant is ready to request inventory verification.
+        Inactive = 5,
+        /// The inventory verification process is running. If the merchant is
+        /// rejected, the next state is INACTIVE.
+        Running = 2,
+        /// The inventory verification process succeeded.
+        Succeeded = 3,
+        /// When merchant fails the inventory verification process and all attempts
+        /// are exhausted.
+        Suspended = 4,
+    }
+    impl State {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "STATE_UNSPECIFIED",
+                Self::ActionRequired => "ACTION_REQUIRED",
+                Self::Inactive => "INACTIVE",
+                Self::Running => "RUNNING",
+                Self::Succeeded => "SUCCEEDED",
+                Self::Suspended => "SUSPENDED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "STATE_UNSPECIFIED" => Some(Self::Unspecified),
+                "ACTION_REQUIRED" => Some(Self::ActionRequired),
+                "INACTIVE" => Some(Self::Inactive),
+                "RUNNING" => Some(Self::Running),
+                "SUCCEEDED" => Some(Self::Succeeded),
+                "SUSPENDED" => Some(Self::Suspended),
+                _ => None,
+            }
+        }
+    }
+}
+/// Request message for the GetOmnichannelSettings method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetOmnichannelSettingRequest {
+    /// Required. The name of the omnichannel setting to retrieve.
+    /// Format: `accounts/{account}/omnichannelSettings/{omnichannel_setting}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Request message for the ListOmnichannelSettings method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListOmnichannelSettingsRequest {
+    /// Required. The parent, which owns this collection of omnichannel settings.
+    /// Format: `accounts/{account}`
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Optional. The maximum number of omnichannel settings to return. The service
+    /// may return fewer than this value. If unspecified, at most 50 omnichannel
+    /// settings will be returned. The maximum value is 1000; values above 1000
+    /// will be coerced to 1000.
+    #[prost(int32, tag = "2")]
+    pub page_size: i32,
+    /// Optional. A page token, received from a previous `ListOmnichannelSettings`
+    /// call. Provide this to retrieve the subsequent page.
+    ///
+    /// When paginating, all other parameters provided to `ListOmnichannelSettings`
+    /// must match the call that provided the page token.
+    #[prost(string, tag = "3")]
+    pub page_token: ::prost::alloc::string::String,
+}
+/// Response message for the ListOmnichannelSettings method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListOmnichannelSettingsResponse {
+    /// The omnichannel settings from the specified merchant.
+    #[prost(message, repeated, tag = "1")]
+    pub omnichannel_settings: ::prost::alloc::vec::Vec<OmnichannelSetting>,
+    /// A token, which can be sent as `page_token` to retrieve the next page.
+    /// If this field is omitted, there are no subsequent pages.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
+/// Request message for the CreateOmnichannelSetting method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateOmnichannelSettingRequest {
+    /// Required. The parent resource where this omnichannel setting will be
+    /// created. Format: `accounts/{account}`
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Required. The omnichannel setting to create.
+    #[prost(message, optional, tag = "2")]
+    pub omnichannel_setting: ::core::option::Option<OmnichannelSetting>,
+}
+/// Request message for the UpdateOmnichannelSetting method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateOmnichannelSettingRequest {
+    /// Required. The omnichannel setting to update.
+    ///
+    /// The omnichannel setting's `name` field is used to identify the
+    /// omnichannel setting to be updated.
+    #[prost(message, optional, tag = "1")]
+    pub omnichannel_setting: ::core::option::Option<OmnichannelSetting>,
+    /// Required. The list of fields to be updated.
+    ///
+    /// The following fields are supported in snake_case only:
+    /// - `lsf_type`
+    /// - `in_stock`
+    /// - `pickup`
+    /// - `odo`
+    /// - `about`
+    /// - `inventory_verification`
+    ///
+    /// Full replacement with wildcard `*`is supported, while empty/implied update
+    /// mask is not.
+    #[prost(message, optional, tag = "2")]
+    pub update_mask: ::core::option::Option<::prost_types::FieldMask>,
+}
+/// Request message for the RequestInventoryVerification method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RequestInventoryVerificationRequest {
+    /// Required. The name of the omnichannel setting to request inventory
+    /// verification. Format:
+    /// `accounts/{account}/omnichannelSettings/{omnichannel_setting}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Response message for the RequestInventoryVerification method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RequestInventoryVerificationResponse {
+    /// The omnichannel setting that was updated.
+    #[prost(message, optional, tag = "1")]
+    pub omnichannel_setting: ::core::option::Option<OmnichannelSetting>,
+}
+/// Generated client implementations.
+pub mod omnichannel_settings_service_client {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value,
+    )]
+    use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
+    /// The service facilitates the management of a merchant's omnichannel settings.
+    /// ## This API defines the following resource model:
+    ///
+    /// [OmnichannelSetting][google.shopping.merchant.accounts.v1.OmnichannelSetting]
+    #[derive(Debug, Clone)]
+    pub struct OmnichannelSettingsServiceClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl OmnichannelSettingsServiceClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> OmnichannelSettingsServiceClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> OmnichannelSettingsServiceClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+        {
+            OmnichannelSettingsServiceClient::new(
+                InterceptedService::new(inner, interceptor),
+            )
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        /// Get the omnichannel settings for a given merchant.
+        pub async fn get_omnichannel_setting(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetOmnichannelSettingRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::OmnichannelSetting>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.shopping.merchant.accounts.v1beta.OmnichannelSettingsService/GetOmnichannelSetting",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.shopping.merchant.accounts.v1beta.OmnichannelSettingsService",
+                        "GetOmnichannelSetting",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// List all the omnichannel settings for a given merchant.
+        pub async fn list_omnichannel_settings(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListOmnichannelSettingsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListOmnichannelSettingsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.shopping.merchant.accounts.v1beta.OmnichannelSettingsService/ListOmnichannelSettings",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.shopping.merchant.accounts.v1beta.OmnichannelSettingsService",
+                        "ListOmnichannelSettings",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Create the omnichannel settings for a given merchant.
+        pub async fn create_omnichannel_setting(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateOmnichannelSettingRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::OmnichannelSetting>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.shopping.merchant.accounts.v1beta.OmnichannelSettingsService/CreateOmnichannelSetting",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.shopping.merchant.accounts.v1beta.OmnichannelSettingsService",
+                        "CreateOmnichannelSetting",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Update the omnichannel setting for a given merchant in a given country.
+        pub async fn update_omnichannel_setting(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateOmnichannelSettingRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::OmnichannelSetting>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.shopping.merchant.accounts.v1beta.OmnichannelSettingsService/UpdateOmnichannelSetting",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.shopping.merchant.accounts.v1beta.OmnichannelSettingsService",
+                        "UpdateOmnichannelSetting",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Requests inventory verification for a given merchant in a given country.
+        pub async fn request_inventory_verification(
+            &mut self,
+            request: impl tonic::IntoRequest<super::RequestInventoryVerificationRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::RequestInventoryVerificationResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.shopping.merchant.accounts.v1beta.OmnichannelSettingsService/RequestInventoryVerification",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.shopping.merchant.accounts.v1beta.OmnichannelSettingsService",
+                        "RequestInventoryVerification",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+    }
+}
 /// Request message for the `GetOnlineReturnPolicy` method.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetOnlineReturnPolicyRequest {
     /// Required. The name of the return policy to retrieve.
+    /// Format: `accounts/{account}/onlineReturnPolicies/{return_policy}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Request message for the `CreateOnlineReturnPolicy` method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateOnlineReturnPolicyRequest {
+    /// Required. The merchant account for which the return policy will be created.
+    /// Format: `accounts/{account}`
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Required. The return policy object to create.
+    #[prost(message, optional, tag = "2")]
+    pub online_return_policy: ::core::option::Option<OnlineReturnPolicy>,
+}
+/// Request message for the `UpdateOnlineReturnPolicy` method. The method
+/// supports field masks and when the mask is provided, only the fields specified
+/// in the mask are updated.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateOnlineReturnPolicyRequest {
+    /// Required. The online return policy to update.
+    /// The online return policy's `name` field is used to identify the
+    /// online return policy to be updated.
+    #[prost(message, optional, tag = "1")]
+    pub online_return_policy: ::core::option::Option<OnlineReturnPolicy>,
+    /// Optional. List of fields being updated.
+    ///
+    /// The following fields are supported (in both `snake_case` and
+    /// `lowerCamelCase`):
+    ///
+    /// - `accept_defective_only`
+    /// - `accept_exchange`
+    /// - `item_conditions`
+    /// - `policy`
+    /// - `process_refund_days`
+    /// - `restocking_fee`
+    /// - `return_methods`
+    /// - `return_policy_uri`
+    /// - `return_shipping_fee`
+    #[prost(message, optional, tag = "2")]
+    pub update_mask: ::core::option::Option<::prost_types::FieldMask>,
+}
+/// Request message for the `DeleteOnlineReturnPolicy` method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteOnlineReturnPolicyRequest {
+    /// Required. The name of the return policy to delete.
     /// Format: `accounts/{account}/onlineReturnPolicies/{return_policy}`
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
@@ -2831,57 +4372,82 @@ pub struct OnlineReturnPolicy {
     /// Output only. Return policy ID generated by Google.
     #[prost(string, tag = "2")]
     pub return_policy_id: ::prost::alloc::string::String,
-    /// This field represents the unique user-defined label of the return policy.
-    /// It is important to note that the same label cannot be used in different
-    /// return policies for the same country. Unless a product specifies a specific
-    /// label attribute, policies will be automatically labeled as 'default'.
-    /// To assign a custom return policy to certain product groups, follow the
-    /// instructions provided in the \[Return policy label\]
+    /// Required. Immutable. This field represents the unique user-defined label of
+    /// the return policy. It is important to note that the same label cannot be
+    /// used in different return policies for the same country. Unless a product
+    /// specifies a specific label attribute, policies will be automatically
+    /// labeled as 'default'. To assign a custom return policy to certain product
+    /// groups, follow the instructions provided in the \[Return policy label\]
     /// (<https://support.google.com/merchants/answer/9445425>).
     /// The label can contain up to 50 characters.
     #[prost(string, tag = "3")]
     pub label: ::prost::alloc::string::String,
-    /// The countries of sale where the return policy applies. The values
-    /// must be a valid 2 letter ISO 3166 code.
+    /// Required. Immutable. The countries of sale where the return policy applies.
+    /// The values must be a valid 2 letter ISO 3166 code.
     #[prost(string, repeated, tag = "4")]
     pub countries: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    /// The return policy.
+    /// Optional. The return policy.
     #[prost(message, optional, tag = "5")]
     pub policy: ::core::option::Option<online_return_policy::Policy>,
-    /// The restocking fee that applies to all return reason categories. This would
-    /// be treated as a free restocking fee if the value is not set.
+    /// Optional. Overrides to the general policy for orders placed during a
+    /// specific set of time intervals.
+    #[prost(message, repeated, tag = "14")]
+    pub seasonal_overrides: ::prost::alloc::vec::Vec<
+        online_return_policy::SeasonalOverride,
+    >,
+    /// Optional. The restocking fee that applies to all return reason categories.
+    /// This would be treated as a free restocking fee if the value is not set.
     #[prost(message, optional, tag = "6")]
     pub restocking_fee: ::core::option::Option<online_return_policy::RestockingFee>,
-    /// The return methods of how customers can return an item. This value is
-    /// required to not be empty unless the type of return policy is noReturns.
-    #[prost(enumeration = "online_return_policy::ReturnMethod", repeated, tag = "7")]
+    /// Optional. The return methods of how customers can return an item. This
+    /// value is required to not be empty unless the type of return policy is
+    /// noReturns.
+    #[prost(
+        enumeration = "online_return_policy::ReturnMethod",
+        repeated,
+        packed = "false",
+        tag = "7"
+    )]
     pub return_methods: ::prost::alloc::vec::Vec<i32>,
-    /// The item conditions accepted for returns must not be empty unless the type
-    /// of return policy is 'noReturns'.
-    #[prost(enumeration = "online_return_policy::ItemCondition", repeated, tag = "8")]
+    /// Optional. The item conditions accepted for returns must not be empty unless
+    /// the type of return policy is 'noReturns'.
+    #[prost(
+        enumeration = "online_return_policy::ItemCondition",
+        repeated,
+        packed = "false",
+        tag = "8"
+    )]
     pub item_conditions: ::prost::alloc::vec::Vec<i32>,
-    /// The return shipping fee. Should be set only when customer need to download
-    /// and print the return label.
+    /// Optional. The return shipping fee. Should be set only when customer need to
+    /// download and print the return label.
     #[prost(message, optional, tag = "9")]
     pub return_shipping_fee: ::core::option::Option<
         online_return_policy::ReturnShippingFee,
     >,
-    /// The return policy uri. This can used by Google to do a sanity check for the
-    /// policy. It must be a valid URL.
+    /// Required. The return policy uri. This can used by Google to do a sanity
+    /// check for the policy. It must be a valid URL.
     #[prost(string, tag = "10")]
     pub return_policy_uri: ::prost::alloc::string::String,
-    /// This field specifies if merchant only accepts defective products for
-    /// returns, and this field is required.
+    /// Optional. This field specifies if merchant
+    /// only accepts defective products for returns.
     #[prost(bool, optional, tag = "11")]
     pub accept_defective_only: ::core::option::Option<bool>,
-    /// The field specifies the number of days it takes for merchants to process
-    /// refunds, field is optional.
+    /// Optional. The field specifies the number of
+    /// days it takes for merchants to process refunds.
     #[prost(int32, optional, tag = "12")]
     pub process_refund_days: ::core::option::Option<i32>,
-    /// This field specifies if merchant allows customers to exchange products,
-    /// this field is required.
+    /// Optional. This field specifies if merchant
+    /// allows customers to exchange products.
     #[prost(bool, optional, tag = "13")]
     pub accept_exchange: ::core::option::Option<bool>,
+    /// Optional. The field specifies the return
+    /// label source.
+    #[prost(
+        enumeration = "online_return_policy::ReturnLabelSource",
+        optional,
+        tag = "15"
+    )]
+    pub return_label_source: ::core::option::Option<i32>,
 }
 /// Nested message and enum types in `OnlineReturnPolicy`.
 pub mod online_return_policy {
@@ -2889,7 +4455,7 @@ pub mod online_return_policy {
     /// indicate that the customer pays the actual shipping cost.
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct ReturnShippingFee {
-        /// Type of return shipping fee.
+        /// Required. Type of return shipping fee.
         #[prost(enumeration = "return_shipping_fee::Type", tag = "1")]
         pub r#type: i32,
         /// Fixed return shipping fee amount. This value is only applicable when type
@@ -3027,6 +4593,45 @@ pub mod online_return_policy {
             }
         }
     }
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct SeasonalOverride {
+        /// Required. Display name of this seasonal override in Merchant Center.
+        #[prost(string, tag = "1")]
+        pub label: ::prost::alloc::string::String,
+        /// Required. Defines the date range when this seasonal override applies.
+        /// Both start_date and end_date are inclusive.
+        /// The dates of the seasonal overrides should not overlap.
+        #[prost(message, optional, tag = "2")]
+        pub start_date: ::core::option::Option<
+            super::super::super::super::super::r#type::Date,
+        >,
+        /// Required. seasonal override end date (inclusive).
+        #[prost(message, optional, tag = "3")]
+        pub end_date: ::core::option::Option<
+            super::super::super::super::super::r#type::Date,
+        >,
+        /// ReturnWindow: Specifies either a fixed return date or the number of
+        /// days (from the delivery date) until which a product can be returned.
+        /// [Merchant Return Days](<https://schema.org/merchantReturnDays>)
+        #[prost(oneof = "seasonal_override::ReturnWindow", tags = "5, 6")]
+        pub return_window: ::core::option::Option<seasonal_override::ReturnWindow>,
+    }
+    /// Nested message and enum types in `SeasonalOverride`.
+    pub mod seasonal_override {
+        /// ReturnWindow: Specifies either a fixed return date or the number of
+        /// days (from the delivery date) until which a product can be returned.
+        /// [Merchant Return Days](<https://schema.org/merchantReturnDays>)
+        #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
+        pub enum ReturnWindow {
+            /// Number of days (from the delivery date) that the product can be
+            /// returned.
+            #[prost(int32, tag = "5")]
+            ReturnDays(i32),
+            /// Fixed end date until which the product can be returned.
+            #[prost(message, tag = "6")]
+            ReturnUntilDate(super::super::super::super::super::super::r#type::Date),
+        }
+    }
     /// The available return methods.
     #[derive(
         Clone,
@@ -3117,6 +4722,53 @@ pub mod online_return_policy {
             }
         }
     }
+    /// The available return label sources.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum ReturnLabelSource {
+        /// Default value. This value is unused.
+        Unspecified = 0,
+        /// Download and print.
+        DownloadAndPrint = 1,
+        /// Label include in the package.
+        InThePackage = 2,
+        /// Customer to provide.
+        CustomerResponsibility = 3,
+    }
+    impl ReturnLabelSource {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "RETURN_LABEL_SOURCE_UNSPECIFIED",
+                Self::DownloadAndPrint => "DOWNLOAD_AND_PRINT",
+                Self::InThePackage => "IN_THE_PACKAGE",
+                Self::CustomerResponsibility => "CUSTOMER_RESPONSIBILITY",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "RETURN_LABEL_SOURCE_UNSPECIFIED" => Some(Self::Unspecified),
+                "DOWNLOAD_AND_PRINT" => Some(Self::DownloadAndPrint),
+                "IN_THE_PACKAGE" => Some(Self::InThePackage),
+                "CUSTOMER_RESPONSIBILITY" => Some(Self::CustomerResponsibility),
+                _ => None,
+            }
+        }
+    }
 }
 /// Generated client implementations.
 pub mod online_return_policy_service_client {
@@ -3133,7 +4785,7 @@ pub mod online_return_policy_service_client {
     /// configuration, encompassing return policies for both ads and free listings
     /// ## programs. This API defines the following resource model:
     ///
-    /// [OnlineReturnPolicy][google.shopping.merchant.accounts.v1.OnlineReturnPolicy]
+    /// [OnlineReturnPolicy](/merchant/api/reference/rpc/google.shopping.merchant.accounts.v1beta#google.shopping.merchant.accounts.v1beta.OnlineReturnPolicy)
     #[derive(Debug, Clone)]
     pub struct OnlineReturnPolicyServiceClient<T> {
         inner: tonic::client::Grpc<T>,
@@ -3216,7 +4868,7 @@ pub mod online_return_policy_service_client {
             self.inner = self.inner.max_encoding_message_size(limit);
             self
         }
-        /// Gets an existing return policy.
+        /// Gets an existing return policy for a given merchant.
         pub async fn get_online_return_policy(
             &mut self,
             request: impl tonic::IntoRequest<super::GetOnlineReturnPolicyRequest>,
@@ -3246,7 +4898,7 @@ pub mod online_return_policy_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
-        /// Lists all existing return policies.
+        /// Lists all existing return policies for a given merchant.
         pub async fn list_online_return_policies(
             &mut self,
             request: impl tonic::IntoRequest<super::ListOnlineReturnPoliciesRequest>,
@@ -3272,6 +4924,93 @@ pub mod online_return_policy_service_client {
                     GrpcMethod::new(
                         "google.shopping.merchant.accounts.v1beta.OnlineReturnPolicyService",
                         "ListOnlineReturnPolicies",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Creates a new return policy for a given merchant.
+        pub async fn create_online_return_policy(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateOnlineReturnPolicyRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::OnlineReturnPolicy>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.shopping.merchant.accounts.v1beta.OnlineReturnPolicyService/CreateOnlineReturnPolicy",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.shopping.merchant.accounts.v1beta.OnlineReturnPolicyService",
+                        "CreateOnlineReturnPolicy",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Updates an existing return policy for a given merchant.
+        pub async fn update_online_return_policy(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateOnlineReturnPolicyRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::OnlineReturnPolicy>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.shopping.merchant.accounts.v1beta.OnlineReturnPolicyService/UpdateOnlineReturnPolicy",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.shopping.merchant.accounts.v1beta.OnlineReturnPolicyService",
+                        "UpdateOnlineReturnPolicy",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Deletes an existing return policy.
+        pub async fn delete_online_return_policy(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteOnlineReturnPolicyRequest>,
+        ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.shopping.merchant.accounts.v1beta.OnlineReturnPolicyService/DeleteOnlineReturnPolicy",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.shopping.merchant.accounts.v1beta.OnlineReturnPolicyService",
+                        "DeleteOnlineReturnPolicy",
                     ),
                 );
             self.inner.unary(req, path, codec).await

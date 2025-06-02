@@ -42,11 +42,11 @@ pub struct AutonomousDatabase {
         ::prost::alloc::string::String,
         ::prost::alloc::string::String,
     >,
-    /// Required. The name of the VPC network used by the Autonomous Database in
+    /// Optional. The name of the VPC network used by the Autonomous Database in
     /// the following format: projects/{project}/global/networks/{network}
     #[prost(string, tag = "9")]
     pub network: ::prost::alloc::string::String,
-    /// Required. The subnet CIDR range for the Autonmous Database.
+    /// Optional. The subnet CIDR range for the Autonmous Database.
     #[prost(string, tag = "10")]
     pub cidr: ::prost::alloc::string::String,
     /// Output only. The date and time that the Autonomous Database was created.
@@ -2081,6 +2081,10 @@ pub mod entitlement {
         AccountNotActive = 2,
         /// Entitlement and Account are active.
         Active = 3,
+        /// Account is suspended.
+        AccountSuspended = 4,
+        /// Entitlement is not approved in private marketplace.
+        NotApprovedInPrivateMarketplace = 5,
     }
     impl State {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -2093,6 +2097,10 @@ pub mod entitlement {
                 Self::AccountNotLinked => "ACCOUNT_NOT_LINKED",
                 Self::AccountNotActive => "ACCOUNT_NOT_ACTIVE",
                 Self::Active => "ACTIVE",
+                Self::AccountSuspended => "ACCOUNT_SUSPENDED",
+                Self::NotApprovedInPrivateMarketplace => {
+                    "NOT_APPROVED_IN_PRIVATE_MARKETPLACE"
+                }
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -2102,6 +2110,10 @@ pub mod entitlement {
                 "ACCOUNT_NOT_LINKED" => Some(Self::AccountNotLinked),
                 "ACCOUNT_NOT_ACTIVE" => Some(Self::AccountNotActive),
                 "ACTIVE" => Some(Self::Active),
+                "ACCOUNT_SUSPENDED" => Some(Self::AccountSuspended),
+                "NOT_APPROVED_IN_PRIVATE_MARKETPLACE" => {
+                    Some(Self::NotApprovedInPrivateMarketplace)
+                }
                 _ => None,
             }
         }
@@ -2192,19 +2204,19 @@ pub struct CloudExadataInfrastructureProperties {
     /// Output only. Deep link to the OCI console to view this resource.
     #[prost(string, tag = "9")]
     pub oci_url: ::prost::alloc::string::String,
-    /// Optional. The number of enabled CPU cores.
+    /// Output only. The number of enabled CPU cores.
     #[prost(int32, tag = "10")]
     pub cpu_count: i32,
     /// Output only. The total number of CPU cores available.
     #[prost(int32, tag = "11")]
     pub max_cpu_count: i32,
-    /// Optional. The memory allocated in GBs.
+    /// Output only. The memory allocated in GBs.
     #[prost(int32, tag = "12")]
     pub memory_size_gb: i32,
     /// Output only. The total memory available in GBs.
     #[prost(int32, tag = "13")]
     pub max_memory_gb: i32,
-    /// Optional. The local node storage allocated in GBs.
+    /// Output only. The local node storage allocated in GBs.
     #[prost(int32, tag = "14")]
     pub db_node_storage_size_gb: i32,
     /// Output only. The total local node storage available in GBs.
@@ -2365,8 +2377,7 @@ pub struct MaintenanceWindow {
     #[prost(int32, tag = "6")]
     pub lead_time_week: i32,
     /// Optional. Cloud CloudExadataInfrastructure node patching method, either
-    /// "ROLLING"
-    ///   or "NONROLLING". Default value is ROLLING.
+    /// "ROLLING" or "NONROLLING". Default value is ROLLING.
     #[prost(enumeration = "maintenance_window::PatchingMode", tag = "7")]
     pub patching_mode: i32,
     /// Optional. Determines the amount of time the system will wait before the
@@ -2613,7 +2624,7 @@ pub struct CloudVmClusterProperties {
     /// Required. Number of enabled CPU cores.
     #[prost(int32, tag = "26")]
     pub cpu_core_count: i32,
-    /// Output only. Operating system version of the image.
+    /// Optional. Operating system version of the image.
     #[prost(string, tag = "27")]
     pub system_version: ::prost::alloc::string::String,
     /// Output only. OCIDs of scan IPs.
@@ -3239,6 +3250,30 @@ pub struct RestoreAutonomousDatabaseRequest {
     /// Required. The time and date to restore the database to.
     #[prost(message, optional, tag = "2")]
     pub restore_time: ::core::option::Option<::prost_types::Timestamp>,
+}
+/// The request for `AutonomousDatabase.Stop`.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct StopAutonomousDatabaseRequest {
+    /// Required. The name of the Autonomous Database in the following format:
+    /// projects/{project}/locations/{location}/autonomousDatabases/{autonomous_database}.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// The request for `AutonomousDatabase.Start`.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct StartAutonomousDatabaseRequest {
+    /// Required. The name of the Autonomous Database in the following format:
+    /// projects/{project}/locations/{location}/autonomousDatabases/{autonomous_database}.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// The request for `AutonomousDatabase.Restart`.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RestartAutonomousDatabaseRequest {
+    /// Required. The name of the Autonomous Database in the following format:
+    /// projects/{project}/locations/{location}/autonomousDatabases/{autonomous_database}.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
 }
 /// The request for `AutonomousDatabase.GenerateWallet`.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -4119,6 +4154,96 @@ pub mod oracle_database_client {
                     GrpcMethod::new(
                         "google.cloud.oracledatabase.v1.OracleDatabase",
                         "ListAutonomousDatabaseBackups",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Stops an Autonomous Database.
+        pub async fn stop_autonomous_database(
+            &mut self,
+            request: impl tonic::IntoRequest<super::StopAutonomousDatabaseRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.oracledatabase.v1.OracleDatabase/StopAutonomousDatabase",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.oracledatabase.v1.OracleDatabase",
+                        "StopAutonomousDatabase",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Starts an Autonomous Database.
+        pub async fn start_autonomous_database(
+            &mut self,
+            request: impl tonic::IntoRequest<super::StartAutonomousDatabaseRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.oracledatabase.v1.OracleDatabase/StartAutonomousDatabase",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.oracledatabase.v1.OracleDatabase",
+                        "StartAutonomousDatabase",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Restarts an Autonomous Database.
+        pub async fn restart_autonomous_database(
+            &mut self,
+            request: impl tonic::IntoRequest<super::RestartAutonomousDatabaseRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.oracledatabase.v1.OracleDatabase/RestartAutonomousDatabase",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.oracledatabase.v1.OracleDatabase",
+                        "RestartAutonomousDatabase",
                     ),
                 );
             self.inner.unary(req, path, codec).await
