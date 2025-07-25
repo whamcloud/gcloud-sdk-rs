@@ -55,6 +55,8 @@ pub enum Type {
     SuspendResumeCompatible,
     #[serde(rename = "TDX_CAPABLE")]
     TdxCapable,
+    #[serde(rename = "SNP_SVSM_CAPABLE")]
+    SnpSvsmCapable,
 }
 
 impl Default for Type {
