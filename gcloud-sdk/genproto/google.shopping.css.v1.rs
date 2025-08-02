@@ -15,8 +15,8 @@ pub struct ListChildAccountsRequest {
     pub full_name: ::core::option::Option<::prost::alloc::string::String>,
     /// Optional. The maximum number of accounts to return. The service may return
     /// fewer than this value. If unspecified, at most 50 accounts will be
-    /// returned. The maximum value is 1000; values above 1000 will be coerced to
-    /// 1000.
+    /// returned. The maximum value is 100; values above 100 will be coerced to
+    /// 100.
     #[prost(int32, tag = "4")]
     pub page_size: i32,
     /// Optional. A page token, received from a previous `ListChildAccounts` call.
@@ -87,6 +87,9 @@ pub struct Account {
     /// The CSS/MC account's parent resource. CSS group for CSS domains; CSS
     /// domain for MC accounts. Returned only if the user has access to the
     /// parent account.
+    /// Note: For MC sub-accounts, this is also the CSS domain that is the parent
+    /// resource of the MCA account, since we are effectively flattening the
+    /// hierarchy."
     #[prost(string, optional, tag = "5")]
     pub parent: ::core::option::Option<::prost::alloc::string::String>,
     /// Manually created label IDs assigned to the CSS/MC account by a CSS parent
@@ -569,7 +572,7 @@ pub mod account_labels_service_client {
             self.inner = self.inner.max_encoding_message_size(limit);
             self
         }
-        /// Lists the labels assigned to an account.
+        /// Lists the labels owned by an account.
         pub async fn list_account_labels(
             &mut self,
             request: impl tonic::IntoRequest<super::ListAccountLabelsRequest>,
@@ -695,19 +698,19 @@ pub struct Attributes {
     /// within the context of Product Ads.
     #[prost(string, optional, tag = "42")]
     pub cpp_ads_redirect: ::core::option::Option<::prost::alloc::string::String>,
-    /// Low Price of the aggregate offer.
+    /// Low Price of the CSS Product.
     #[prost(message, optional, tag = "3")]
     pub low_price: ::core::option::Option<super::super::r#type::Price>,
-    /// High Price of the aggregate offer.
+    /// High Price of the CSS Product.
     #[prost(message, optional, tag = "4")]
     pub high_price: ::core::option::Option<super::super::r#type::Price>,
-    /// The number of aggregate offers.
+    /// The number of CSS Products.
     #[prost(int64, optional, tag = "5")]
     pub number_of_offers: ::core::option::Option<i64>,
     /// Condition of the headline offer.
     #[prost(string, optional, tag = "6")]
     pub headline_offer_condition: ::core::option::Option<::prost::alloc::string::String>,
-    /// Headline Price of the aggregate offer.
+    /// Headline Price of the CSS Product.
     #[prost(message, optional, tag = "7")]
     pub headline_offer_price: ::core::option::Option<super::super::r#type::Price>,
     /// Link to the headline offer.
@@ -718,7 +721,7 @@ pub struct Attributes {
     pub headline_offer_mobile_link: ::core::option::Option<
         ::prost::alloc::string::String,
     >,
-    /// Headline Price of the aggregate offer.
+    /// Headline Price of the CSS Product.
     #[prost(message, optional, tag = "41")]
     pub headline_offer_shipping_price: ::core::option::Option<
         super::super::r#type::Price,
@@ -971,15 +974,15 @@ pub mod css_product_status {
         /// The name of the destination
         #[prost(string, tag = "1")]
         pub destination: ::prost::alloc::string::String,
-        /// List of country codes (ISO 3166-1 alpha-2) where the aggregate offer is
+        /// List of country codes (ISO 3166-1 alpha-2) where the CSS Product is
         /// approved.
         #[prost(string, repeated, tag = "2")]
         pub approved_countries: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-        /// List of country codes (ISO 3166-1 alpha-2) where the aggregate offer is
+        /// List of country codes (ISO 3166-1 alpha-2) where the CSS Product is
         /// pending approval.
         #[prost(string, repeated, tag = "3")]
         pub pending_countries: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-        /// List of country codes (ISO 3166-1 alpha-2) where the aggregate offer is
+        /// List of country codes (ISO 3166-1 alpha-2) where the CSS Product is
         /// disapproved.
         #[prost(string, repeated, tag = "4")]
         pub disapproved_countries: ::prost::alloc::vec::Vec<
@@ -992,7 +995,7 @@ pub mod css_product_status {
         /// The error code of the issue.
         #[prost(string, tag = "1")]
         pub code: ::prost::alloc::string::String,
-        /// How this issue affects serving of the aggregate offer.
+        /// How this issue affects serving of the CSS Product.
         #[prost(string, tag = "2")]
         pub servability: ::prost::alloc::string::String,
         /// Whether the issue can be resolved by the merchant.
@@ -1014,7 +1017,7 @@ pub mod css_product_status {
         #[prost(string, tag = "8")]
         pub documentation: ::prost::alloc::string::String,
         /// List of country codes (ISO 3166-1 alpha-2) where issue applies to the
-        /// aggregate offer.
+        /// CSS Product.
         #[prost(string, repeated, tag = "9")]
         pub applicable_countries: ::prost::alloc::vec::Vec<
             ::prost::alloc::string::String,
@@ -1090,7 +1093,10 @@ impl SubscriptionPeriod {
 pub struct CssProductInput {
     /// The name of the CSS Product input.
     /// Format:
-    /// `accounts/{account}/cssProductInputs/{css_product_input}`
+    /// `accounts/{account}/cssProductInputs/{css_product_input}`, where the
+    /// last section `css_product_input` consists of 3 parts:
+    /// contentLanguage~feedLabel~offerId. Example:
+    /// accounts/123/cssProductInputs/de~DE~rawProvidedId123
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
     /// Output only. The name of the processed CSS Product.
@@ -1118,6 +1124,7 @@ pub struct CssProductInput {
     /// valid region code. For example: 'DE' for Germany, 'FR' for France.
     #[prost(string, tag = "5")]
     pub feed_label: ::prost::alloc::string::String,
+    /// DEPRECATED. Use expiration_date instead.
     /// Represents the existing version (freshness) of the CSS Product, which
     /// can be used to preserve the right order when multiple updates are done at
     /// the same time.
@@ -1135,6 +1142,7 @@ pub struct CssProductInput {
     ///
     /// If the operation is prevented, the aborted exception will be
     /// thrown.
+    #[deprecated]
     #[prost(message, optional, tag = "6")]
     pub freshness_time: ::core::option::Option<::prost_types::Timestamp>,
     /// A list of CSS Product attributes.
@@ -1161,19 +1169,51 @@ pub struct InsertCssProductInputRequest {
     /// Required. The CSS Product Input to insert.
     #[prost(message, optional, tag = "2")]
     pub css_product_input: ::core::option::Option<CssProductInput>,
-    /// Required. The primary or supplemental feed id. If CSS Product already
-    /// exists and feed id provided is different, then the CSS Product will be
-    /// moved to a new feed. Note: For now, CSSs do not need to provide feed ids as
-    /// we create feeds on the fly. We do not have supplemental feed support for
-    /// CSS Products yet.
+    /// Optional. DEPRECATED. Feed id is not required for CSS Products.
+    /// The primary or supplemental feed id. If CSS Product already exists and
+    /// feed id provided is different, then the CSS Product will be moved to a
+    /// new feed.
+    /// Note: For now, CSSs do not need to provide feed ids as we create
+    /// feeds on the fly.
+    /// We do not have supplemental feed support for CSS Products yet.
+    #[deprecated]
     #[prost(int64, tag = "3")]
     pub feed_id: i64,
+}
+/// Request message for the UpdateCssProductInput method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateCssProductInputRequest {
+    /// Required. The CSS product input resource to update. Information you submit
+    /// will be applied to the processed CSS product as well.
+    #[prost(message, optional, tag = "1")]
+    pub css_product_input: ::core::option::Option<CssProductInput>,
+    /// The list of CSS product attributes to be updated.
+    ///
+    /// If the update mask is omitted, then it is treated as implied field mask
+    /// equivalent to all fields that are populated (have a non-empty value).
+    ///
+    /// Attributes specified in the update mask without a value specified in the
+    /// body will be deleted from the CSS product.
+    ///
+    /// Update mask can only be specified for top level fields in
+    /// attributes and custom attributes.
+    ///
+    /// To specify the update mask for custom attributes you need to add the
+    /// `custom_attribute.` prefix.
+    ///
+    /// Providing special "*" value for full CSS product replacement is not
+    /// supported.
+    #[prost(message, optional, tag = "2")]
+    pub update_mask: ::core::option::Option<::prost_types::FieldMask>,
 }
 /// Request message for the DeleteCssProductInput method.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeleteCssProductInputRequest {
     /// Required. The name of the CSS product input resource to delete.
-    /// Format: accounts/{account}/cssProductInputs/{css_product_input}
+    /// Format: accounts/{account}/cssProductInputs/{css_product_input}, where the
+    /// last section `css_product_input` consists of 3 parts:
+    /// contentLanguage~feedLabel~offerId. Example:
+    /// accounts/123/cssProductInputs/de~DE~rawProvidedId123
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
     /// The Content API Supplemental Feed ID.
@@ -1313,6 +1353,39 @@ pub mod css_product_inputs_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        /// Updates the existing Css Product input in your CSS Center account.
+        ///
+        /// After inserting, updating, or deleting a CSS Product input, it may take
+        /// several minutes before the processed Css Product can be retrieved.
+        pub async fn update_css_product_input(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateCssProductInputRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::CssProductInput>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.shopping.css.v1.CssProductInputsService/UpdateCssProductInput",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.shopping.css.v1.CssProductInputsService",
+                        "UpdateCssProductInput",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
         /// Deletes a CSS Product input from your CSS Center account.
         ///
         /// After a delete it may take several minutes until the input is no longer
@@ -1352,7 +1425,7 @@ pub struct GetCssProductRequest {
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
 }
-/// The processed CSS Product(a.k.a Aggregate Offer internally).
+/// The processed CSS Product.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CssProduct {
     /// The name of the CSS Product.
@@ -1576,6 +1649,206 @@ pub mod css_products_service_client {
                     GrpcMethod::new(
                         "google.shopping.css.v1.CssProductsService",
                         "ListCssProducts",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+    }
+}
+/// The group information for methods in the CSS API. The quota is shared
+/// between all methods in the group. Even if none of the methods within the
+/// group have usage the information for the group is returned.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QuotaGroup {
+    /// Identifier. The resource name of the quota group.
+    /// Format: accounts/{account}/quotas/{group}
+    /// Example: `accounts/12345678/quotas/css-products-insert`
+    /// Note: The {group} part is not guaranteed to follow a specific pattern.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Output only. The current quota usage, meaning the number of calls already
+    /// made on a given day to the methods in the group. The daily quota limits
+    /// reset at at 12:00 PM midday UTC.
+    #[prost(int64, tag = "2")]
+    pub quota_usage: i64,
+    /// Output only. The maximum number of calls allowed per day for the group.
+    #[prost(int64, tag = "3")]
+    pub quota_limit: i64,
+    /// Output only. The maximum number of calls allowed per minute for the group.
+    #[prost(int64, tag = "5")]
+    pub quota_minute_limit: i64,
+    /// Output only. List of all methods group quota applies to.
+    #[prost(message, repeated, tag = "4")]
+    pub method_details: ::prost::alloc::vec::Vec<MethodDetails>,
+}
+/// The method details per method in the CSS API.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MethodDetails {
+    /// Output only. The name of the method for example
+    /// `cssproductsservice.listcssproducts`.
+    #[prost(string, tag = "1")]
+    pub method: ::prost::alloc::string::String,
+    /// Output only. The API version that the method belongs to.
+    #[prost(string, tag = "2")]
+    pub version: ::prost::alloc::string::String,
+    /// Output only. The sub-API that the method belongs to. In the CSS API, this
+    /// is always `css`.
+    #[prost(string, tag = "3")]
+    pub subapi: ::prost::alloc::string::String,
+    /// Output only. The path for the method such as
+    /// `v1/cssproductsservice.listcssproducts`.
+    #[prost(string, tag = "4")]
+    pub path: ::prost::alloc::string::String,
+}
+/// Request message for the ListQuotaGroups method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListQuotaGroupsRequest {
+    /// Required. The CSS account that owns the collection of method quotas and
+    /// resources. In most cases, this is the CSS domain. Format:
+    /// accounts/{account}
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Optional. The maximum number of quotas to return in the response, used
+    /// for paging. Defaults to 500; values above 1000 will be coerced to 1000.
+    #[prost(int32, tag = "2")]
+    pub page_size: i32,
+    /// Optional. Token (if provided) to retrieve the subsequent page. All other
+    /// parameters must match the original call that provided the page token.
+    #[prost(string, tag = "3")]
+    pub page_token: ::prost::alloc::string::String,
+}
+/// Response message for the ListMethodGroups method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListQuotaGroupsResponse {
+    /// The methods, current quota usage and limits per each group. The quota is
+    /// shared between all methods in the group. The groups are sorted in
+    /// descending order based on
+    /// [quota_usage][google.shopping.css.v1.QuotaGroup.quota_usage].
+    #[prost(message, repeated, tag = "1")]
+    pub quota_groups: ::prost::alloc::vec::Vec<QuotaGroup>,
+    /// A token, which can be sent as `page_token` to retrieve the next page.
+    /// If this field is omitted, there are no subsequent pages.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
+/// Generated client implementations.
+pub mod quota_service_client {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value,
+    )]
+    use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
+    /// Service to get method call quota information per CSS API method.
+    #[derive(Debug, Clone)]
+    pub struct QuotaServiceClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl QuotaServiceClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> QuotaServiceClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> QuotaServiceClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+        {
+            QuotaServiceClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        /// Lists the daily call quota and usage per group for your CSS Center account.
+        pub async fn list_quota_groups(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListQuotaGroupsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListQuotaGroupsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.shopping.css.v1.QuotaService/ListQuotaGroups",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.shopping.css.v1.QuotaService",
+                        "ListQuotaGroups",
                     ),
                 );
             self.inner.unary(req, path, codec).await
