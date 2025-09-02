@@ -252,7 +252,7 @@ pub struct StorageLayout {
 pub mod storage_layout {
     /// Configuration for Custom Dual Regions.  It should specify precisely two
     /// eligible regions within the same Multiregion. More information on regions
-    /// may be found [<https://cloud.google.com/storage/docs/locations][here].>
+    /// may be found [here](<https://cloud.google.com/storage/docs/locations>).
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct CustomPlacementConfig {
         /// List of locations to use for data placement.
@@ -405,6 +405,570 @@ pub struct ListManagedFoldersResponse {
     /// this value in a subsequent request to return the next page of results.
     #[prost(string, tag = "2")]
     pub next_page_token: ::prost::alloc::string::String,
+}
+/// Message returned in the metadata field of the Operation resource for
+/// CreateAnywhereCache operations.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateAnywhereCacheMetadata {
+    /// Generic metadata for the long running operation.
+    #[prost(message, optional, tag = "1")]
+    pub common_metadata: ::core::option::Option<CommonLongRunningOperationMetadata>,
+    /// Anywhere Cache ID.
+    #[prost(string, optional, tag = "2")]
+    pub anywhere_cache_id: ::core::option::Option<::prost::alloc::string::String>,
+    /// The zone in which the cache instance is running. For example,
+    /// us-central1-a.
+    #[prost(string, optional, tag = "6")]
+    pub zone: ::core::option::Option<::prost::alloc::string::String>,
+    /// Anywhere Cache entry's TTL. A cache-level config that is applied to all new
+    /// cache entries on admission. Default ttl value (24hrs) is applied if not
+    /// specified in the create request.
+    #[prost(message, optional, tag = "3")]
+    pub ttl: ::core::option::Option<::prost_types::Duration>,
+    /// Anywhere Cache entry Admission Policy in kebab-case (e.g.,
+    /// "admit-on-first-miss"). Default admission policy (admit-on-first-miss) is
+    /// applied if not specified in the create request.
+    #[prost(string, optional, tag = "5")]
+    pub admission_policy: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// Message returned in the metadata field of the Operation resource for
+/// UpdateAnywhereCache operation.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateAnywhereCacheMetadata {
+    /// Generic metadata for the long running operation.
+    #[prost(message, optional, tag = "1")]
+    pub common_metadata: ::core::option::Option<CommonLongRunningOperationMetadata>,
+    /// Anywhere Cache ID.
+    #[prost(string, optional, tag = "2")]
+    pub anywhere_cache_id: ::core::option::Option<::prost::alloc::string::String>,
+    /// The zone in which the cache instance is running. For example,
+    /// us-central1-a.
+    #[prost(string, optional, tag = "5")]
+    pub zone: ::core::option::Option<::prost::alloc::string::String>,
+    /// Anywhere Cache entry's TTL between 1h and 7days. A cache-level config that
+    /// is applied to all new cache entries on admission. If `ttl` is pending
+    /// update, this field equals to the new value specified in the Update request.
+    #[prost(message, optional, tag = "3")]
+    pub ttl: ::core::option::Option<::prost_types::Duration>,
+    /// L4 Cache entry Admission Policy in kebab-case (e.g.,
+    /// "admit-on-first-miss"). If `admission_policy` is pending
+    /// update, this field equals to the new value specified in the Update request.
+    #[prost(string, optional, tag = "4")]
+    pub admission_policy: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// An Anywhere Cache Instance.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AnywhereCache {
+    /// Immutable. The resource name of this AnywhereCache.
+    /// Format:
+    /// `projects/{project}/buckets/{bucket}/anywhereCaches/{anywhere_cache}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Immutable. The zone in which the cache instance is running. For example,
+    /// us-central1-a.
+    #[prost(string, tag = "10")]
+    pub zone: ::prost::alloc::string::String,
+    /// Cache entry TTL (ranges between 1h to 7d). This is a cache-level config
+    /// that defines how long a cache entry can live. Default ttl value (24hrs)
+    /// is applied if not specified in the create request. TTL must be in whole
+    /// seconds.
+    #[prost(message, optional, tag = "3")]
+    pub ttl: ::core::option::Option<::prost_types::Duration>,
+    /// Cache admission policy. Valid policies includes:
+    /// `admit-on-first-miss` and `admit-on-second-miss`. Defaults to
+    /// `admit-on-first-miss`. Default value is applied if not specified in the
+    /// create request.
+    #[prost(string, tag = "9")]
+    pub admission_policy: ::prost::alloc::string::String,
+    /// Output only. Cache state including RUNNING, CREATING, DISABLED and PAUSED.
+    #[prost(string, tag = "5")]
+    pub state: ::prost::alloc::string::String,
+    /// Output only. Time when Anywhere cache instance is allocated.
+    #[prost(message, optional, tag = "6")]
+    pub create_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. Time when Anywhere cache instance is last updated, including
+    /// creation.
+    #[prost(message, optional, tag = "7")]
+    pub update_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. True if there is an active update operation against this cache
+    /// instance. Subsequential update requests will be rejected if this field is
+    /// true. Output only.
+    #[prost(bool, tag = "8")]
+    pub pending_update: bool,
+}
+/// Request message for CreateAnywhereCache.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateAnywhereCacheRequest {
+    /// Required. The bucket to which this cache belongs.
+    /// Format: `projects/{project}/buckets/{bucket}`
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Required. Properties of the Anywhere Cache instance being created.
+    /// The parent bucket name is specified in the `parent` field. Server uses the
+    /// default value of `ttl` or `admission_policy` if not specified in
+    /// request.
+    #[prost(message, optional, tag = "3")]
+    pub anywhere_cache: ::core::option::Option<AnywhereCache>,
+    /// Optional. A unique identifier for this request. UUID is the recommended
+    /// format, but other formats are still accepted. This request is only
+    /// idempotent if a `request_id` is provided.
+    #[prost(string, tag = "4")]
+    pub request_id: ::prost::alloc::string::String,
+}
+/// Request message for UpdateAnywhereCache.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateAnywhereCacheRequest {
+    /// Required. The Anywhere Cache instance to be updated.
+    #[prost(message, optional, tag = "1")]
+    pub anywhere_cache: ::core::option::Option<AnywhereCache>,
+    /// Required. List of fields to be updated. Mutable fields of AnywhereCache
+    /// include `ttl` and `admission_policy`.
+    ///
+    /// To specify ALL fields, specify a single field with the value `*`. Note: We
+    /// recommend against doing this. If a new field is introduced at a later time,
+    /// an older client updating with the `*` may accidentally reset the new
+    /// field's value.
+    ///
+    /// Not specifying any fields is an error.
+    #[prost(message, optional, tag = "2")]
+    pub update_mask: ::core::option::Option<::prost_types::FieldMask>,
+    /// Optional. A unique identifier for this request. UUID is the recommended
+    /// format, but other formats are still accepted. This request is only
+    /// idempotent if a `request_id` is provided.
+    #[prost(string, tag = "3")]
+    pub request_id: ::prost::alloc::string::String,
+}
+/// Request message for DisableAnywhereCache.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DisableAnywhereCacheRequest {
+    /// Required. The name field in the request should be:
+    /// `projects/{project}/buckets/{bucket}/anywhereCaches/{anywhere_cache}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Optional. A unique identifier for this request. UUID is the recommended
+    /// format, but other formats are still accepted. This request is only
+    /// idempotent if a `request_id` is provided.
+    #[prost(string, tag = "2")]
+    pub request_id: ::prost::alloc::string::String,
+}
+/// Request message for PauseAnywhereCache.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PauseAnywhereCacheRequest {
+    /// Required. The name field in the request should be:
+    /// `projects/{project}/buckets/{bucket}/anywhereCaches/{anywhere_cache}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Optional. A unique identifier for this request. UUID is the recommended
+    /// format, but other formats are still accepted. This request is only
+    /// idempotent if a `request_id` is provided.
+    #[prost(string, tag = "2")]
+    pub request_id: ::prost::alloc::string::String,
+}
+/// Request message for ResumeAnywhereCache.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ResumeAnywhereCacheRequest {
+    /// Required. The name field in the request should be:
+    /// `projects/{project}/buckets/{bucket}/anywhereCaches/{anywhere_cache}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Optional. A unique identifier for this request. UUID is the recommended
+    /// format, but other formats are still accepted. This request is only
+    /// idempotent if a `request_id` is provided.
+    #[prost(string, tag = "2")]
+    pub request_id: ::prost::alloc::string::String,
+}
+/// Request message for GetAnywhereCache.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetAnywhereCacheRequest {
+    /// Required. The name field in the request should be:
+    /// `projects/{project}/buckets/{bucket}/anywhereCaches/{anywhere_cache}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Optional. A unique identifier for this request. UUID is the recommended
+    /// format, but other formats are still accepted.
+    #[prost(string, tag = "2")]
+    pub request_id: ::prost::alloc::string::String,
+}
+/// Request message for ListAnywhereCaches.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListAnywhereCachesRequest {
+    /// Required. The bucket to which this cache belongs.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Maximum number of caches to return in a single response.
+    /// The service will use this parameter or 1,000 items, whichever is smaller.
+    #[prost(int32, tag = "2")]
+    pub page_size: i32,
+    /// A previously-returned page token representing part of the larger set of
+    /// results to view.
+    #[prost(string, tag = "3")]
+    pub page_token: ::prost::alloc::string::String,
+    /// Optional. A unique identifier for this request. UUID is the recommended
+    /// format, but other formats are still accepted.
+    #[prost(string, tag = "4")]
+    pub request_id: ::prost::alloc::string::String,
+}
+/// Response message for ListAnywhereCaches.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListAnywhereCachesResponse {
+    /// The list of items.
+    #[prost(message, repeated, tag = "1")]
+    pub anywhere_caches: ::prost::alloc::vec::Vec<AnywhereCache>,
+    /// A token, which can be sent as `page_token` to retrieve the next page.
+    /// If this field is omitted, there are no subsequent pages.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
+/// The `IntelligenceConfig` resource associated with your organization, folder,
+/// or project.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct IntelligenceConfig {
+    /// Identifier. The name of the `IntelligenceConfig` resource associated with
+    /// your organization, folder, or project.
+    ///
+    /// The name format varies based on the GCP resource hierarchy as follows:
+    ///
+    /// * For project:
+    /// `projects/{project_number}/locations/global/intelligenceConfig`
+    /// * For organization:
+    /// `organizations/{org_id}/locations/global/intelligenceConfig`
+    /// * For folder: `folders/{folder_id}/locations/global/intelligenceConfig`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Optional. The edition configuration of the `IntelligenceConfig` resource.
+    #[prost(enumeration = "intelligence_config::EditionConfig", tag = "2")]
+    pub edition_config: i32,
+    /// Output only. The time at which the `IntelligenceConfig` resource is last
+    /// updated.
+    #[prost(message, optional, tag = "3")]
+    pub update_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Optional. Filter over location and bucket.
+    #[prost(message, optional, tag = "4")]
+    pub filter: ::core::option::Option<intelligence_config::Filter>,
+    /// Output only. The `IntelligenceConfig` resource that is applicable for the
+    /// resource.
+    #[prost(message, optional, tag = "5")]
+    pub effective_intelligence_config: ::core::option::Option<
+        intelligence_config::EffectiveIntelligenceConfig,
+    >,
+    /// The trial configuration of the `IntelligenceConfig` resource.
+    #[prost(message, optional, tag = "7")]
+    pub trial_config: ::core::option::Option<intelligence_config::TrialConfig>,
+}
+/// Nested message and enum types in `IntelligenceConfig`.
+pub mod intelligence_config {
+    /// Filter over location and bucket using include or exclude semantics.
+    /// Resources that match the include or exclude filter are exclusively included
+    /// or excluded from the Storage Intelligence plan.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Filter {
+        /// Bucket locations to include or exclude.
+        #[prost(oneof = "filter::CloudStorageLocations", tags = "1, 2")]
+        pub cloud_storage_locations: ::core::option::Option<
+            filter::CloudStorageLocations,
+        >,
+        /// Buckets to include or exclude.
+        #[prost(oneof = "filter::CloudStorageBuckets", tags = "3, 4")]
+        pub cloud_storage_buckets: ::core::option::Option<filter::CloudStorageBuckets>,
+    }
+    /// Nested message and enum types in `Filter`.
+    pub mod filter {
+        /// Collection of bucket locations.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct CloudStorageLocations {
+            /// Optional. Bucket locations. Location can be any of the Cloud Storage
+            /// regions specified in lower case format. For example, `us-east1`,
+            /// `us-west1`.
+            #[prost(string, repeated, tag = "1")]
+            pub locations: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+        }
+        /// Collection of buckets.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct CloudStorageBuckets {
+            /// Optional. A regex pattern for matching bucket names. Regex should
+            /// follow the syntax specified in
+            /// [google/re2](<https://github.com/google/re2>). For example,
+            /// `^sample_.*` matches all buckets of the form
+            /// `gs://sample_bucket-1`, `gs://sample_bucket-2`,
+            /// `gs://sample_bucket-n` but not `gs://test_sample_bucket`.
+            /// If you want to match a single bucket, say `gs://sample_bucket`,
+            /// use `sample_bucket`.
+            #[prost(string, repeated, tag = "1")]
+            pub bucket_id_regexes: ::prost::alloc::vec::Vec<
+                ::prost::alloc::string::String,
+            >,
+        }
+        /// Bucket locations to include or exclude.
+        #[derive(Clone, PartialEq, ::prost::Oneof)]
+        pub enum CloudStorageLocations {
+            /// Bucket locations to include.
+            #[prost(message, tag = "1")]
+            IncludedCloudStorageLocations(CloudStorageLocations),
+            /// Bucket locations to exclude.
+            #[prost(message, tag = "2")]
+            ExcludedCloudStorageLocations(CloudStorageLocations),
+        }
+        /// Buckets to include or exclude.
+        #[derive(Clone, PartialEq, ::prost::Oneof)]
+        pub enum CloudStorageBuckets {
+            /// Buckets to include.
+            #[prost(message, tag = "3")]
+            IncludedCloudStorageBuckets(CloudStorageBuckets),
+            /// Buckets to exclude.
+            #[prost(message, tag = "4")]
+            ExcludedCloudStorageBuckets(CloudStorageBuckets),
+        }
+    }
+    /// The effective `IntelligenceConfig` for the resource.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct EffectiveIntelligenceConfig {
+        /// Output only. The `IntelligenceConfig` edition that is applicable for the
+        /// resource.
+        #[prost(
+            enumeration = "effective_intelligence_config::EffectiveEdition",
+            tag = "1"
+        )]
+        pub effective_edition: i32,
+        /// Output only. The `IntelligenceConfig` resource that is applied for the
+        /// target resource. Format:
+        /// `{organizations|folders|projects}/{id}/locations/{location}/intelligenceConfig`
+        #[prost(string, tag = "2")]
+        pub intelligence_config: ::prost::alloc::string::String,
+    }
+    /// Nested message and enum types in `EffectiveIntelligenceConfig`.
+    pub mod effective_intelligence_config {
+        /// The effective edition of the `IntelligenceConfig` resource.
+        #[derive(
+            Clone,
+            Copy,
+            Debug,
+            PartialEq,
+            Eq,
+            Hash,
+            PartialOrd,
+            Ord,
+            ::prost::Enumeration
+        )]
+        #[repr(i32)]
+        pub enum EffectiveEdition {
+            /// This is an unknown edition of the resource.
+            Unspecified = 0,
+            /// No edition.
+            None = 1,
+            /// The `IntelligenceConfig` resource is of STANDARD edition.
+            Standard = 2,
+        }
+        impl EffectiveEdition {
+            /// String value of the enum field names used in the ProtoBuf definition.
+            ///
+            /// The values are not transformed in any way and thus are considered stable
+            /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+            pub fn as_str_name(&self) -> &'static str {
+                match self {
+                    Self::Unspecified => "EFFECTIVE_EDITION_UNSPECIFIED",
+                    Self::None => "NONE",
+                    Self::Standard => "STANDARD",
+                }
+            }
+            /// Creates an enum from field names used in the ProtoBuf definition.
+            pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+                match value {
+                    "EFFECTIVE_EDITION_UNSPECIFIED" => Some(Self::Unspecified),
+                    "NONE" => Some(Self::None),
+                    "STANDARD" => Some(Self::Standard),
+                    _ => None,
+                }
+            }
+        }
+    }
+    /// The trial configuration of the `IntelligenceConfig` resource.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct TrialConfig {
+        /// Output only. The time at which the trial expires.
+        #[prost(message, optional, tag = "3")]
+        pub expire_time: ::core::option::Option<::prost_types::Timestamp>,
+    }
+    /// The edition configuration of the `IntelligenceConfig` resource. This
+    /// signifies the edition used for configuring the `IntelligenceConfig`
+    /// resource and can only take the following values:
+    /// `EDITION_CONFIG_UNSPECIFIED`, `INHERIT`, `DISABLED`, `STANDARD` and
+    /// `TRIAL`.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum EditionConfig {
+        /// This is an unknown edition of the resource.
+        Unspecified = 0,
+        /// The inherited edition from the parent and filters. This is the default
+        /// edition when there is no `IntelligenceConfig` setup for a GCP resource.
+        Inherit = 1,
+        /// The edition configuration is disabled for the `IntelligenceConfig`
+        /// resource and its children. Filters are not applicable.
+        Disabled = 2,
+        /// The `IntelligenceConfig` resource is of STANDARD edition.
+        Standard = 3,
+        /// The `IntelligenceConfig` resource is available in `TRIAL` edition. During
+        /// the trial period, Cloud Storage does not charge for Storage Intelligence
+        /// usage. You can specify the buckets to include in the trial period by
+        /// using filters. At the end of the trial period, the `IntelligenceConfig`
+        /// resource is upgraded to `STANDARD` edition.
+        Trial = 5,
+    }
+    impl EditionConfig {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "EDITION_CONFIG_UNSPECIFIED",
+                Self::Inherit => "INHERIT",
+                Self::Disabled => "DISABLED",
+                Self::Standard => "STANDARD",
+                Self::Trial => "TRIAL",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "EDITION_CONFIG_UNSPECIFIED" => Some(Self::Unspecified),
+                "INHERIT" => Some(Self::Inherit),
+                "DISABLED" => Some(Self::Disabled),
+                "STANDARD" => Some(Self::Standard),
+                "TRIAL" => Some(Self::Trial),
+                _ => None,
+            }
+        }
+    }
+}
+/// Request message to update the `IntelligenceConfig` resource associated with
+/// your organization.
+///
+/// **IAM Permissions**:
+///
+/// Requires `storage.intelligenceConfigs.update`
+/// [IAM](<https://cloud.google.com/iam/docs/overview#permissions>) permission on
+/// the organization.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateOrganizationIntelligenceConfigRequest {
+    /// Required. The `IntelligenceConfig` resource to be updated.
+    #[prost(message, optional, tag = "1")]
+    pub intelligence_config: ::core::option::Option<IntelligenceConfig>,
+    /// Required. The `update_mask` that specifies the fields within the
+    /// `IntelligenceConfig` resource that should be modified by this update. Only
+    /// the listed fields are updated.
+    #[prost(message, optional, tag = "2")]
+    pub update_mask: ::core::option::Option<::prost_types::FieldMask>,
+    /// Optional. The ID that uniquely identifies the request, preventing duplicate
+    /// processing.
+    #[prost(string, tag = "3")]
+    pub request_id: ::prost::alloc::string::String,
+}
+/// Request message to update the `IntelligenceConfig` resource associated with
+/// your folder.
+///
+/// **IAM Permissions**:
+///
+/// Requires `storage.intelligenceConfigs.update`
+/// [IAM](<https://cloud.google.com/iam/docs/overview#permissions>) permission on
+/// the folder.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateFolderIntelligenceConfigRequest {
+    /// Required. The `IntelligenceConfig` resource to be updated.
+    #[prost(message, optional, tag = "1")]
+    pub intelligence_config: ::core::option::Option<IntelligenceConfig>,
+    /// Required. The `update_mask` that specifies the fields within the
+    /// `IntelligenceConfig` resource that should be modified by this update. Only
+    /// the listed fields are updated.
+    #[prost(message, optional, tag = "2")]
+    pub update_mask: ::core::option::Option<::prost_types::FieldMask>,
+    /// Optional. The ID that uniquely identifies the request, preventing duplicate
+    /// processing.
+    #[prost(string, tag = "3")]
+    pub request_id: ::prost::alloc::string::String,
+}
+/// Request message to update the `IntelligenceConfig` resource associated with
+/// your project.
+///
+/// **IAM Permissions**:
+///
+/// Requires `storage.intelligenceConfigs.update`
+/// [IAM](<https://cloud.google.com/iam/docs/overview#permissions>) permission on
+/// the folder.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateProjectIntelligenceConfigRequest {
+    /// Required. The `IntelligenceConfig` resource to be updated.
+    #[prost(message, optional, tag = "1")]
+    pub intelligence_config: ::core::option::Option<IntelligenceConfig>,
+    /// Required. The `update_mask` that specifies the fields within the
+    /// `IntelligenceConfig` resource that should be modified by this update. Only
+    /// the listed fields are updated.
+    #[prost(message, optional, tag = "2")]
+    pub update_mask: ::core::option::Option<::prost_types::FieldMask>,
+    /// Optional. The ID that uniquely identifies the request, preventing duplicate
+    /// processing.
+    #[prost(string, tag = "3")]
+    pub request_id: ::prost::alloc::string::String,
+}
+/// Request message to get the `IntelligenceConfig` resource associated with your
+/// organization.
+///
+/// **IAM Permissions**
+///
+/// Requires `storage.intelligenceConfigs.get`
+/// [IAM](<https://cloud.google.com/iam/docs/overview#permissions>) permission on
+/// the organization.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetOrganizationIntelligenceConfigRequest {
+    /// Required. The name of the `IntelligenceConfig` resource associated with
+    /// your organization.
+    ///
+    /// Format: `organizations/{org_id}/locations/global/intelligenceConfig`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Request message to get the `IntelligenceConfig` resource associated with your
+/// folder.
+///
+/// **IAM Permissions**
+///
+/// Requires `storage.intelligenceConfigs.get`
+/// [IAM](<https://cloud.google.com/iam/docs/overview#permissions>) permission on
+/// the folder.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetFolderIntelligenceConfigRequest {
+    /// Required. The name of the `IntelligenceConfig` resource associated with
+    /// your folder.
+    ///
+    /// Format: `folders/{id}/locations/global/intelligenceConfig`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Request message to get the `IntelligenceConfig` resource associated with your
+/// project.
+///
+/// **IAM Permissions**:
+///
+/// Requires `storage.intelligenceConfigs.get`
+/// [IAM](<https://cloud.google.com/iam/docs/overview#permissions>) permission
+/// on the project.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetProjectIntelligenceConfigRequest {
+    /// Required. The name of the `IntelligenceConfig` resource associated with
+    /// your project.
+    ///
+    /// Format: `projects/{id}/locations/global/intelligenceConfig`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
 }
 /// Generated client implementations.
 pub mod storage_control_client {
@@ -780,6 +1344,396 @@ pub mod storage_control_client {
                     GrpcMethod::new(
                         "google.storage.control.v2.StorageControl",
                         "ListManagedFolders",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Creates an Anywhere Cache instance.
+        pub async fn create_anywhere_cache(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateAnywhereCacheRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.storage.control.v2.StorageControl/CreateAnywhereCache",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.storage.control.v2.StorageControl",
+                        "CreateAnywhereCache",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Updates an Anywhere Cache instance. Mutable fields include `ttl` and
+        /// `admission_policy`.
+        pub async fn update_anywhere_cache(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateAnywhereCacheRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.storage.control.v2.StorageControl/UpdateAnywhereCache",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.storage.control.v2.StorageControl",
+                        "UpdateAnywhereCache",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Disables an Anywhere Cache instance. A disabled instance is read-only. The
+        /// disablement could be revoked by calling ResumeAnywhereCache. The cache
+        /// instance will be deleted automatically if it remains in the disabled state
+        /// for at least one hour.
+        pub async fn disable_anywhere_cache(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DisableAnywhereCacheRequest>,
+        ) -> std::result::Result<tonic::Response<super::AnywhereCache>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.storage.control.v2.StorageControl/DisableAnywhereCache",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.storage.control.v2.StorageControl",
+                        "DisableAnywhereCache",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Pauses an Anywhere Cache instance.
+        pub async fn pause_anywhere_cache(
+            &mut self,
+            request: impl tonic::IntoRequest<super::PauseAnywhereCacheRequest>,
+        ) -> std::result::Result<tonic::Response<super::AnywhereCache>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.storage.control.v2.StorageControl/PauseAnywhereCache",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.storage.control.v2.StorageControl",
+                        "PauseAnywhereCache",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Resumes a disabled or paused Anywhere Cache instance.
+        pub async fn resume_anywhere_cache(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ResumeAnywhereCacheRequest>,
+        ) -> std::result::Result<tonic::Response<super::AnywhereCache>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.storage.control.v2.StorageControl/ResumeAnywhereCache",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.storage.control.v2.StorageControl",
+                        "ResumeAnywhereCache",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Gets an Anywhere Cache instance.
+        pub async fn get_anywhere_cache(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetAnywhereCacheRequest>,
+        ) -> std::result::Result<tonic::Response<super::AnywhereCache>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.storage.control.v2.StorageControl/GetAnywhereCache",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.storage.control.v2.StorageControl",
+                        "GetAnywhereCache",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Lists Anywhere Cache instances for a given bucket.
+        pub async fn list_anywhere_caches(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListAnywhereCachesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListAnywhereCachesResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.storage.control.v2.StorageControl/ListAnywhereCaches",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.storage.control.v2.StorageControl",
+                        "ListAnywhereCaches",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Returns the Project scoped singleton IntelligenceConfig resource.
+        pub async fn get_project_intelligence_config(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetProjectIntelligenceConfigRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::IntelligenceConfig>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.storage.control.v2.StorageControl/GetProjectIntelligenceConfig",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.storage.control.v2.StorageControl",
+                        "GetProjectIntelligenceConfig",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Updates the Project scoped singleton IntelligenceConfig resource.
+        pub async fn update_project_intelligence_config(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::UpdateProjectIntelligenceConfigRequest,
+            >,
+        ) -> std::result::Result<
+            tonic::Response<super::IntelligenceConfig>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.storage.control.v2.StorageControl/UpdateProjectIntelligenceConfig",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.storage.control.v2.StorageControl",
+                        "UpdateProjectIntelligenceConfig",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Returns the Folder scoped singleton IntelligenceConfig resource.
+        pub async fn get_folder_intelligence_config(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetFolderIntelligenceConfigRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::IntelligenceConfig>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.storage.control.v2.StorageControl/GetFolderIntelligenceConfig",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.storage.control.v2.StorageControl",
+                        "GetFolderIntelligenceConfig",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Updates the Folder scoped singleton IntelligenceConfig resource.
+        pub async fn update_folder_intelligence_config(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::UpdateFolderIntelligenceConfigRequest,
+            >,
+        ) -> std::result::Result<
+            tonic::Response<super::IntelligenceConfig>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.storage.control.v2.StorageControl/UpdateFolderIntelligenceConfig",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.storage.control.v2.StorageControl",
+                        "UpdateFolderIntelligenceConfig",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Returns the Organization scoped singleton IntelligenceConfig resource.
+        pub async fn get_organization_intelligence_config(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::GetOrganizationIntelligenceConfigRequest,
+            >,
+        ) -> std::result::Result<
+            tonic::Response<super::IntelligenceConfig>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.storage.control.v2.StorageControl/GetOrganizationIntelligenceConfig",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.storage.control.v2.StorageControl",
+                        "GetOrganizationIntelligenceConfig",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Updates the Organization scoped singleton IntelligenceConfig resource.
+        pub async fn update_organization_intelligence_config(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::UpdateOrganizationIntelligenceConfigRequest,
+            >,
+        ) -> std::result::Result<
+            tonic::Response<super::IntelligenceConfig>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.storage.control.v2.StorageControl/UpdateOrganizationIntelligenceConfig",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.storage.control.v2.StorageControl",
+                        "UpdateOrganizationIntelligenceConfig",
                     ),
                 );
             self.inner.unary(req, path, codec).await
