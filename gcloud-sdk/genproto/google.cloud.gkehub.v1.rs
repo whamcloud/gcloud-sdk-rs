@@ -427,11 +427,16 @@ pub struct ResourceOptions {
     /// <1.16.
     #[prost(bool, tag = "2")]
     pub v1beta1_crd: bool,
-    /// Optional. Major version of the Kubernetes cluster. This is only used to
-    /// determine which version to use for the CustomResourceDefinition resources,
-    /// `apiextensions/v1beta1` or`apiextensions/v1`.
+    /// Optional. Major and minor version of the Kubernetes cluster. This is only
+    /// used to determine which version to use for the CustomResourceDefinition
+    /// resources, `apiextensions/v1beta1` or`apiextensions/v1`.
     #[prost(string, tag = "3")]
     pub k8s_version: ::prost::alloc::string::String,
+    /// Optional. Git version of the Kubernetes cluster. This is only used to gate
+    /// the Connect Agent migration to svc.id.goog on GDC-SO 1.33.100 patch and
+    /// above.
+    #[prost(string, tag = "4")]
+    pub k8s_git_version: ::prost::alloc::string::String,
 }
 /// ResourceManifest represents a single Kubernetes resource to be applied to
 /// the cluster.
@@ -870,8 +875,8 @@ pub struct TypeMeta {
 /// Request message for `GkeHub.ListFeatures` method.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListFeaturesRequest {
-    /// Required. The parent (project and location) where the Features will be listed.
-    /// Specified in the format `projects/*/locations/*`.
+    /// Required. The parent (project and location) where the Features will be
+    /// listed. Specified in the format `projects/*/locations/*`.
     #[prost(string, tag = "1")]
     pub parent: ::prost::alloc::string::String,
     /// When requesting a 'page' of resources, `page_size` specifies number of
@@ -930,8 +935,8 @@ pub struct GetFeatureRequest {
 /// Request message for the `GkeHub.CreateFeature` method.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateFeatureRequest {
-    /// Required. The parent (project and location) where the Feature will be created.
-    /// Specified in the format `projects/*/locations/*`.
+    /// Required. The parent (project and location) where the Feature will be
+    /// created. Specified in the format `projects/*/locations/*`.
     #[prost(string, tag = "1")]
     pub parent: ::prost::alloc::string::String,
     /// The ID of the feature to create.
@@ -1040,8 +1045,9 @@ pub struct OperationMetadata {
     pub status_detail: ::prost::alloc::string::String,
     /// Output only. Identifies whether the user has requested cancellation
     /// of the operation. Operations that have successfully been cancelled
-    /// have [Operation.error][] value with a [google.rpc.Status.code][google.rpc.Status.code] of 1,
-    /// corresponding to `Code.CANCELLED`.
+    /// have [Operation.error][] value with a
+    /// [google.rpc.Status.code][google.rpc.Status.code] of 1, corresponding to
+    /// `Code.CANCELLED`.
     #[prost(bool, tag = "6")]
     pub cancel_requested: bool,
     /// Output only. API version used to start the operation.

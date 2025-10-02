@@ -941,7 +941,7 @@ pub mod record_key {
 /// `<project_id>.<dataset_id>.<table_id>`.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct BigQueryTable {
-    /// The Google Cloud Platform project ID of the project containing the table.
+    /// The Google Cloud project ID of the project containing the table.
     /// If omitted, project ID is inferred from the API call.
     #[prost(string, tag = "1")]
     pub project_id: ::prost::alloc::string::String,
@@ -962,6 +962,11 @@ pub struct TableReference {
     /// Name of the table.
     #[prost(string, tag = "2")]
     pub table_id: ::prost::alloc::string::String,
+    /// The Google Cloud project ID of the project containing the table.
+    /// If omitted, the project ID is inferred from the parent project. This field
+    /// is required if the parent resource is an organization.
+    #[prost(string, tag = "3")]
+    pub project_id: ::prost::alloc::string::String,
 }
 /// Message defining a field of a BigQuery table.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1413,6 +1418,9 @@ pub mod byte_content_item {
     /// The type of data being sent for inspection. To learn more, see
     /// [Supported file
     /// types](<https://cloud.google.com/sensitive-data-protection/docs/supported-file-types>).
+    ///
+    /// Only the first frame of each multiframe image is inspected. Metadata and
+    /// other frames aren't inspected.
     #[derive(
         Clone,
         Copy,
@@ -1460,6 +1468,8 @@ pub mod byte_content_item {
         Video = 16,
         /// Executable file types. Only used for profiling.
         Executable = 17,
+        /// AI model file types. Only used for profiling.
+        AiModel = 18,
     }
     impl BytesType {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -1485,6 +1495,7 @@ pub mod byte_content_item {
                 Self::Audio => "AUDIO",
                 Self::Video => "VIDEO",
                 Self::Executable => "EXECUTABLE",
+                Self::AiModel => "AI_MODEL",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -1507,6 +1518,7 @@ pub mod byte_content_item {
                 "AUDIO" => Some(Self::Audio),
                 "VIDEO" => Some(Self::Video),
                 "EXECUTABLE" => Some(Self::Executable),
+                "AI_MODEL" => Some(Self::AiModel),
                 _ => None,
             }
         }
@@ -2273,7 +2285,7 @@ pub mod inspect_data_source_details {
         #[prost(message, optional, tag = "3")]
         pub job_config: ::core::option::Option<super::InspectJobConfig>,
     }
-    /// All result fields mentioned below are updated while the job is processing.
+    /// All Result fields are updated while the job is processing.
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Result {
         /// Total size in bytes that were processed.
@@ -2408,6 +2420,64 @@ pub mod deidentify_data_source_details {
         >,
     }
 }
+/// Locations at which a feature can be used.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct LocationSupport {
+    /// The current scope for location on this feature. This may expand over time.
+    #[prost(enumeration = "location_support::RegionalizationScope", tag = "1")]
+    pub regionalization_scope: i32,
+    /// Specific locations where the feature may be used.
+    /// Examples: us-central1, us, asia, global
+    /// If scope is ANY_LOCATION, no regions will be listed.
+    #[prost(string, repeated, tag = "2")]
+    pub locations: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+/// Nested message and enum types in `LocationSupport`.
+pub mod location_support {
+    /// The location scope for a feature.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum RegionalizationScope {
+        /// Invalid.
+        Unspecified = 0,
+        /// Feature may be used with one or more regions. See locations for details.
+        Regional = 1,
+        /// Feature may be used anywhere. Default value.
+        AnyLocation = 2,
+    }
+    impl RegionalizationScope {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "REGIONALIZATION_SCOPE_UNSPECIFIED",
+                Self::Regional => "REGIONAL",
+                Self::AnyLocation => "ANY_LOCATION",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "REGIONALIZATION_SCOPE_UNSPECIFIED" => Some(Self::Unspecified),
+                "REGIONAL" => Some(Self::Regional),
+                "ANY_LOCATION" => Some(Self::AnyLocation),
+                _ => None,
+            }
+        }
+    }
+}
 /// InfoType description.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct InfoTypeDescription {
@@ -2424,6 +2494,12 @@ pub struct InfoTypeDescription {
     /// request.
     #[prost(string, tag = "4")]
     pub description: ::prost::alloc::string::String,
+    /// Locations at which this feature can be used. May change over time.
+    #[prost(message, optional, tag = "6")]
+    pub location_support: ::core::option::Option<LocationSupport>,
+    /// A sample that is a true positive for this infoType.
+    #[prost(string, tag = "8")]
+    pub example: ::prost::alloc::string::String,
     /// A list of available versions for the infotype.
     #[prost(message, repeated, tag = "9")]
     pub versions: ::prost::alloc::vec::Vec<VersionDescription>,
@@ -2433,6 +2509,13 @@ pub struct InfoTypeDescription {
     /// The default sensitivity of the infoType.
     #[prost(message, optional, tag = "11")]
     pub sensitivity_score: ::core::option::Option<SensitivityScore>,
+    /// If this field is set, this infoType is a general infoType and these
+    /// specific infoTypes are contained within it.
+    /// General infoTypes are infoTypes that encompass multiple specific infoTypes.
+    /// For example, the "GEOGRAPHIC_DATA" general infoType would have set for this
+    /// field "LOCATION", "LOCATION_COORDINATES", and "STREET_ADDRESS".
+    #[prost(string, repeated, tag = "12")]
+    pub specific_info_types: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 /// Classification of infoTypes to organize them according to geographic
 /// location, industry, and data type.
@@ -2470,6 +2553,8 @@ pub mod info_type_category {
         Armenia = 51,
         /// The infoType is typically used in Australia.
         Australia = 3,
+        /// The infoType is typically used in Austria.
+        Austria = 53,
         /// The infoType is typically used in Azerbaijan.
         Azerbaijan = 48,
         /// The infoType is typically used in Belarus.
@@ -2488,6 +2573,8 @@ pub mod info_type_category {
         Colombia = 9,
         /// The infoType is typically used in Croatia.
         Croatia = 42,
+        /// The infoType is typically used in Czechia.
+        Czechia = 52,
         /// The infoType is typically used in Denmark.
         Denmark = 10,
         /// The infoType is typically used in France.
@@ -2575,6 +2662,7 @@ pub mod info_type_category {
                 Self::Argentina => "ARGENTINA",
                 Self::Armenia => "ARMENIA",
                 Self::Australia => "AUSTRALIA",
+                Self::Austria => "AUSTRIA",
                 Self::Azerbaijan => "AZERBAIJAN",
                 Self::Belarus => "BELARUS",
                 Self::Belgium => "BELGIUM",
@@ -2584,6 +2672,7 @@ pub mod info_type_category {
                 Self::China => "CHINA",
                 Self::Colombia => "COLOMBIA",
                 Self::Croatia => "CROATIA",
+                Self::Czechia => "CZECHIA",
                 Self::Denmark => "DENMARK",
                 Self::France => "FRANCE",
                 Self::Finland => "FINLAND",
@@ -2631,6 +2720,7 @@ pub mod info_type_category {
                 "ARGENTINA" => Some(Self::Argentina),
                 "ARMENIA" => Some(Self::Armenia),
                 "AUSTRALIA" => Some(Self::Australia),
+                "AUSTRIA" => Some(Self::Austria),
                 "AZERBAIJAN" => Some(Self::Azerbaijan),
                 "BELARUS" => Some(Self::Belarus),
                 "BELGIUM" => Some(Self::Belgium),
@@ -2640,6 +2730,7 @@ pub mod info_type_category {
                 "CHINA" => Some(Self::China),
                 "COLOMBIA" => Some(Self::Colombia),
                 "CROATIA" => Some(Self::Croatia),
+                "CZECHIA" => Some(Self::Czechia),
                 "DENMARK" => Some(Self::Denmark),
                 "FRANCE" => Some(Self::France),
                 "FINLAND" => Some(Self::Finland),
@@ -2764,6 +2855,8 @@ pub mod info_type_category {
         /// Information that is not sensitive on its own, but provides details about
         /// the circumstances surrounding an entity or an event.
         ContextualInformation = 7,
+        /// Category for `CustomInfoType` types.
+        Custom = 8,
     }
     impl TypeCategory {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -2780,6 +2873,7 @@ pub mod info_type_category {
                 Self::GovernmentId => "GOVERNMENT_ID",
                 Self::Document => "DOCUMENT",
                 Self::ContextualInformation => "CONTEXTUAL_INFORMATION",
+                Self::Custom => "CUSTOM",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -2793,6 +2887,7 @@ pub mod info_type_category {
                 "GOVERNMENT_ID" => Some(Self::GovernmentId),
                 "DOCUMENT" => Some(Self::Document),
                 "CONTEXTUAL_INFORMATION" => Some(Self::ContextualInformation),
+                "CUSTOM" => Some(Self::Custom),
                 _ => None,
             }
         }
@@ -2896,7 +2991,7 @@ pub mod quasi_id {
         InfoType(super::InfoType),
         /// A column can be tagged with a custom tag. In this case, the user must
         /// indicate an auxiliary table that contains statistical information on
-        /// the possible values of this column (below).
+        /// the possible values of this column.
         #[prost(string, tag = "3")]
         CustomTag(::prost::alloc::string::String),
         /// If no semantic tag is indicated, we infer the statistical model from
@@ -2936,7 +3031,7 @@ pub mod statistical_table {
         pub field: ::core::option::Option<super::FieldId>,
         /// A column can be tagged with a custom tag. In this case, the user must
         /// indicate an auxiliary table that contains statistical information on
-        /// the possible values of this column (below).
+        /// the possible values of this column.
         #[prost(string, tag = "2")]
         pub custom_tag: ::prost::alloc::string::String,
     }
@@ -3060,7 +3155,7 @@ pub mod privacy_metric {
                 InfoType(super::super::super::InfoType),
                 /// A column can be tagged with a custom tag. In this case, the user must
                 /// indicate an auxiliary table that contains statistical information on
-                /// the possible values of this column (below).
+                /// the possible values of this column.
                 #[prost(string, tag = "3")]
                 CustomTag(::prost::alloc::string::String),
                 /// If no semantic tag is indicated, we infer the statistical model from
@@ -3717,7 +3812,8 @@ pub mod primitive_transformation {
         /// Mask
         #[prost(message, tag = "3")]
         CharacterMaskConfig(super::CharacterMaskConfig),
-        /// Ffx-Fpe
+        /// Ffx-Fpe. Strongly discouraged, consider using CryptoDeterministicConfig
+        /// instead. Fpe is computationally expensive incurring latency costs.
         #[prost(message, tag = "4")]
         CryptoReplaceFfxFpeConfig(super::CryptoReplaceFfxFpeConfig),
         /// Fixed size bucketing
@@ -4138,7 +4234,7 @@ pub mod bucketing_config {
 ///
 /// Note: We recommend using  CryptoDeterministicConfig for all use cases which
 /// do not require preserving the input alphabet space and size, plus warrant
-/// referential integrity.
+/// referential integrity. FPE incurs significant latency costs.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CryptoReplaceFfxFpeConfig {
     /// Required. The key used by the encryption algorithm.
@@ -5160,44 +5256,90 @@ pub mod action {
     /// Compatible with: Inspect
     #[derive(Clone, Copy, PartialEq, ::prost::Message)]
     pub struct PublishFindingsToCloudDataCatalog {}
-    /// Create a de-identified copy of the requested table or files.
+    /// Create a de-identified copy of a storage bucket. Only compatible
+    /// with Cloud Storage buckets.
+    ///
     ///
     /// A TransformationDetail will be created for each transformation.
     ///
-    /// If any rows in BigQuery are skipped during de-identification
-    /// (transformation errors or row size exceeds BigQuery insert API limits) they
-    /// are placed in the failure output table. If the original row exceeds
-    /// the BigQuery insert API limit it will be truncated when written to the
-    /// failure output table. The failure output table can be set in the
-    /// action.deidentify.output.big_query_output.deidentified_failure_output_table
-    /// field, if no table is set, a table will be automatically created in the
-    /// same project and dataset as the original table.
     ///
-    /// Compatible with: Inspect
+    /// Compatible with: Inspection of Cloud Storage
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Deidentify {
         /// User specified deidentify templates and configs for structured,
         /// unstructured, and image files.
         #[prost(message, optional, tag = "7")]
         pub transformation_config: ::core::option::Option<super::TransformationConfig>,
-        /// Config for storing transformation details. This is separate from the
-        /// de-identified content, and contains metadata about the successful
-        /// transformations and/or failures that occurred while de-identifying. This
-        /// needs to be set in order for users to access information about the status
-        /// of each transformation (see
+        /// Config for storing transformation details.
+        ///
+        /// This field specifies the configuration for storing detailed metadata
+        /// about each transformation performed during a de-identification process.
+        /// The metadata is stored separately from the de-identified content itself
+        /// and provides a granular record of both successful transformations and any
+        /// failures that occurred.
+        ///
+        /// Enabling this configuration is essential for users who need to access
+        /// comprehensive information about the status, outcome, and specifics of
+        /// each transformation. The details are captured in the
         /// [TransformationDetails][google.privacy.dlp.v2.TransformationDetails]
-        /// message for more information about what is noted).
+        /// message for each operation.
+        ///
+        /// Key use cases:
+        ///
+        /// * **Auditing and compliance**
+        ///      * Provides a verifiable audit trail of de-identification activities,
+        ///      which is crucial for meeting regulatory requirements and internal
+        ///      data governance policies.
+        ///      * Logs what data was transformed, what transformations were applied,
+        ///      when they occurred, and their success status. This helps
+        ///      demonstrate accountability and due diligence in protecting
+        ///      sensitive data.
+        ///
+        /// * **Troubleshooting and debugging**
+        ///      * Offers detailed error messages and context if a transformation
+        ///      fails. This information is useful for diagnosing and resolving
+        ///      issues in the de-identification pipeline.
+        ///      * Helps pinpoint the exact location and nature of failures, speeding
+        ///      up the debugging process.
+        ///
+        /// * **Process verification and quality assurance**
+        ///      * Allows users to confirm that de-identification rules and
+        ///      transformations were applied correctly and consistently across
+        ///      the dataset as intended.
+        ///      * Helps in verifying the effectiveness of the chosen
+        ///      de-identification strategies.
+        ///
+        /// * **Data lineage and impact analysis**
+        ///      * Creates a record of how data elements were modified, contributing
+        ///      to data lineage. This is useful for understanding the provenance
+        ///      of de-identified data.
+        ///      * Aids in assessing the potential impact of de-identification choices
+        ///      on downstream analytical processes or data usability.
+        ///
+        /// * **Reporting and operational insights**
+        ///      * You can analyze the metadata stored in a queryable BigQuery table
+        ///      to generate reports on transformation success rates, common
+        ///      error types, processing volumes (e.g., transformedBytes), and the
+        ///      types of transformations applied.
+        ///      * These insights can inform optimization of de-identification
+        ///      configurations and resource planning.
+        ///
+        /// To take advantage of these benefits, set this configuration. The stored
+        /// details include a description of the transformation, success or
+        /// error codes, error messages, the number of bytes transformed, the
+        /// location of the transformed content, and identifiers for the job and
+        /// source data.
         #[prost(message, optional, tag = "3")]
         pub transformation_details_storage_config: ::core::option::Option<
             super::TransformationDetailsStorageConfig,
         >,
         /// List of user-specified file type groups to transform. If specified, only
-        /// the files with these file types will be transformed. If empty, all
-        /// supported files will be transformed. Supported types may be automatically
-        /// added over time. If a file type is set in this field that isn't supported
-        /// by the Deidentify action then the job will fail and will not be
-        /// successfully created/started. Currently the only file types supported
-        /// are: IMAGES, TEXT_FILES, CSV, TSV.
+        /// the files with these file types are transformed. If empty, all
+        /// supported files are transformed. Supported types may be automatically
+        /// added over time. Any unsupported file types that are set in this field
+        /// are excluded from de-identification. An error is recorded for each
+        /// unsupported file in the TransformationDetails output table. Currently the
+        /// only file types supported are: IMAGES, TEXT_FILES, CSV, TSV.
         #[prost(enumeration = "super::FileType", repeated, tag = "8")]
         pub file_types_to_transform: ::prost::alloc::vec::Vec<i32>,
         /// Where to store the output.
@@ -5765,7 +5907,7 @@ pub struct InspectJobConfig {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DataProfileAction {
     /// Type of action to execute when a profile is generated.
-    #[prost(oneof = "data_profile_action::Action", tags = "1, 2, 3, 4, 8")]
+    #[prost(oneof = "data_profile_action::Action", tags = "1, 2, 3, 4, 8, 9")]
     pub action: ::core::option::Option<data_profile_action::Action>,
 }
 /// Nested message and enum types in `DataProfileAction`.
@@ -5774,17 +5916,43 @@ pub mod data_profile_action {
     /// of your choice whenever updated.
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Export {
-        /// Store all table and column profiles in an existing table or a new table
-        /// in an existing dataset. Each re-generation will result in new rows in
-        /// BigQuery. Data is inserted using [streaming
-        /// insert](<https://cloud.google.com/blog/products/bigquery/life-of-a-bigquery-streaming-insert>)
-        /// and so data may be in the buffer for a period of time after the profile
-        /// has finished. The Pub/Sub notification is sent before the streaming
-        /// buffer is guaranteed to be written, so data may not be instantly
-        /// visible to queries by the time your topic receives the Pub/Sub
-        /// notification.
+        /// Store all profiles to BigQuery.
+        ///
+        /// * The system will create a new dataset and table for you if none are
+        ///    are provided. The dataset will be named
+        ///    `sensitive_data_protection_discovery` and table will be named
+        ///    `discovery_profiles`. This table will be placed in the same project as
+        ///    the container project running the scan. After the first profile is
+        ///    generated and the dataset and table are created, the discovery scan
+        ///    configuration will be updated with the dataset and table names.
+        /// * See [Analyze data profiles stored in
+        /// BigQuery](<https://cloud.google.com/sensitive-data-protection/docs/analyze-data-profiles>).
+        /// * See [Sample queries for your BigQuery
+        /// table](<https://cloud.google.com/sensitive-data-protection/docs/analyze-data-profiles#sample_sql_queries>).
+        /// *  Data is inserted using [streaming
+        ///     insert](<https://cloud.google.com/blog/products/bigquery/life-of-a-bigquery-streaming-insert>)
+        ///     and so data may be in the buffer for a period of time after the
+        ///     profile has finished.
+        ///   * The Pub/Sub notification is sent before the streaming buffer is
+        ///     guaranteed to be written, so data may not be instantly
+        ///     visible to queries by the time your topic receives the Pub/Sub
+        ///     notification.
+        ///   * The best practice is to use the same table for an entire organization
+        ///     so that you can take advantage of the [provided Looker
+        ///     reports](<https://cloud.google.com/sensitive-data-protection/docs/analyze-data-profiles#use_a_premade_report>).
+        ///     If you use VPC Service Controls to define security perimeters, then
+        ///     you must use a separate table for each boundary.
         #[prost(message, optional, tag = "1")]
         pub profile_table: ::core::option::Option<super::BigQueryTable>,
+        /// Store sample [data profile
+        /// findings][google.privacy.dlp.v2.DataProfileFinding] in an existing table
+        /// or a new table in an existing dataset. Each regeneration will result in
+        /// new rows in BigQuery. Data is inserted using [streaming
+        /// insert](<https://cloud.google.com/blog/products/bigquery/life-of-a-bigquery-streaming-insert>)
+        /// and so data may be in the buffer for a period of time after the profile
+        /// has finished.
+        #[prost(message, optional, tag = "2")]
+        pub sample_findings_table: ::core::option::Option<super::BigQueryTable>,
     }
     /// Send a Pub/Sub message into the given Pub/Sub topic to connect other
     /// systems to data profile generation. The message payload data will
@@ -5862,9 +6030,23 @@ pub mod data_profile_action {
     /// Message expressing intention to publish to Google Security Operations.
     #[derive(Clone, Copy, PartialEq, ::prost::Message)]
     pub struct PublishToChronicle {}
-    /// If set, a summary finding will be created/updated in SCC for each profile.
+    /// If set, a summary finding will be created or updated in Security Command
+    /// Center for each profile.
     #[derive(Clone, Copy, PartialEq, ::prost::Message)]
     pub struct PublishToSecurityCommandCenter {}
+    /// Create Dataplex Catalog aspects for profiled resources with the aspect type
+    /// Sensitive Data Protection Profile. To learn more about aspects, see
+    /// <https://cloud.google.com/sensitive-data-protection/docs/add-aspects.>
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct PublishToDataplexCatalog {
+        /// Whether creating a Dataplex Catalog aspect for a profiled resource should
+        /// lower the risk of the profile for that resource. This also lowers the
+        /// data risk of resources at the lower levels of the resource hierarchy. For
+        /// example, reducing the data risk of a table data profile also reduces the
+        /// data risk of the constituent column data profiles.
+        #[prost(bool, tag = "1")]
+        pub lower_data_risk_to_low: bool,
+    }
     /// If set, attaches the \[tags\]
     /// (<https://cloud.google.com/resource-manager/docs/tags/tags-overview>)
     /// provided to profiled resources. Tags support [access
@@ -6007,13 +6189,98 @@ pub mod data_profile_action {
         /// analytics](<https://cloud.google.com/chronicle/docs/detection/usecase-dlp-high-risk-user-download>).
         #[prost(message, tag = "3")]
         PublishToChronicle(PublishToChronicle),
-        /// Publishes findings to SCC for each data profile.
+        /// Publishes findings to Security Command Center for each data profile.
         #[prost(message, tag = "4")]
         PublishToScc(PublishToSecurityCommandCenter),
         /// Tags the profiled resources with the specified tag values.
         #[prost(message, tag = "8")]
         TagResources(TagResources),
+        /// Publishes a portion of each profile to Dataplex Catalog with the aspect
+        /// type Sensitive Data Protection Profile.
+        #[prost(message, tag = "9")]
+        PublishToDataplexCatalog(PublishToDataplexCatalog),
     }
+}
+/// Details about a piece of potentially sensitive information that was detected
+/// when the data resource was profiled.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DataProfileFinding {
+    /// The content that was found. Even if the content is not textual, it
+    /// may be converted to a textual representation here. If the finding exceeds
+    /// 4096 bytes in length, the quote may be omitted.
+    #[prost(string, tag = "1")]
+    pub quote: ::prost::alloc::string::String,
+    /// The [type of
+    /// content](<https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference>)
+    /// that might have been found.
+    #[prost(message, optional, tag = "2")]
+    pub infotype: ::core::option::Option<InfoType>,
+    /// Contains data parsed from quotes. Currently supported infoTypes: DATE,
+    /// DATE_OF_BIRTH, and TIME.
+    #[prost(message, optional, tag = "3")]
+    pub quote_info: ::core::option::Option<QuoteInfo>,
+    /// Resource name of the data profile associated with the finding.
+    #[prost(string, tag = "4")]
+    pub data_profile_resource_name: ::prost::alloc::string::String,
+    /// A unique identifier for the finding.
+    #[prost(string, tag = "5")]
+    pub finding_id: ::prost::alloc::string::String,
+    /// Timestamp when the finding was detected.
+    #[prost(message, optional, tag = "6")]
+    pub timestamp: ::core::option::Option<::prost_types::Timestamp>,
+    /// Where the content was found.
+    #[prost(message, optional, tag = "7")]
+    pub location: ::core::option::Option<DataProfileFindingLocation>,
+    /// How broadly a resource has been shared.
+    #[prost(enumeration = "ResourceVisibility", tag = "8")]
+    pub resource_visibility: i32,
+    /// The [full resource
+    /// name](<https://cloud.google.com/apis/design/resource_names#full_resource_name>)
+    /// of the resource profiled for this finding.
+    #[prost(string, tag = "9")]
+    pub full_resource_name: ::prost::alloc::string::String,
+    /// The type of the resource that was profiled.
+    #[prost(message, optional, tag = "10")]
+    pub data_source_type: ::core::option::Option<DataSourceType>,
+}
+/// Location of a data profile finding within a resource.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DataProfileFindingLocation {
+    /// Name of the container where the finding is located.
+    /// The top-level name is the source file name or table name. Names of some
+    /// common storage containers are formatted as follows:
+    ///
+    /// * BigQuery tables:  `{project_id}:{dataset_id}.{table_id}`
+    /// * Cloud Storage files: `gs://{bucket}/{path}`
+    #[prost(string, tag = "1")]
+    pub container_name: ::prost::alloc::string::String,
+    /// Additional location details that may be provided for some types of
+    /// profiles. At this time, only findings for table data profiles include such
+    /// details.
+    #[prost(oneof = "data_profile_finding_location::LocationExtraDetails", tags = "2")]
+    pub location_extra_details: ::core::option::Option<
+        data_profile_finding_location::LocationExtraDetails,
+    >,
+}
+/// Nested message and enum types in `DataProfileFindingLocation`.
+pub mod data_profile_finding_location {
+    /// Additional location details that may be provided for some types of
+    /// profiles. At this time, only findings for table data profiles include such
+    /// details.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum LocationExtraDetails {
+        /// Location of a finding within a resource that produces a table data
+        /// profile.
+        #[prost(message, tag = "2")]
+        DataProfileFindingRecordLocation(super::DataProfileFindingRecordLocation),
+    }
+}
+/// Location of a finding within a resource that produces a table data profile.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DataProfileFindingRecordLocation {
+    /// Field ID of the column containing the finding.
+    #[prost(message, optional, tag = "1")]
+    pub field: ::core::option::Option<FieldId>,
 }
 /// Configuration for setting up a job to scan resources for profile generation.
 /// Only one data profile configuration may exist per organization, folder,
@@ -6029,7 +6296,7 @@ pub struct DataProfileJobConfig {
     pub location: ::core::option::Option<DataProfileLocation>,
     /// The project that will run the scan. The DLP service
     /// account that exists within this project must have access to all resources
-    /// that are profiled, and the Cloud DLP API must be enabled.
+    /// that are profiled, and the DLP API must be enabled.
     #[prost(string, tag = "5")]
     pub project_id: ::prost::alloc::string::String,
     /// Must be set only when scanning other clouds.
@@ -6183,6 +6450,11 @@ pub struct DiscoveryConfig {
     /// Required. A status for this configuration.
     #[prost(enumeration = "discovery_config::Status", tag = "10")]
     pub status: i32,
+    /// Optional. Processing location configuration. Vertex AI dataset scanning
+    /// will set processing_location.image_fallback_type to MultiRegionProcessing
+    /// by default.
+    #[prost(message, optional, tag = "13")]
+    pub processing_location: ::core::option::Option<ProcessingLocation>,
 }
 /// Nested message and enum types in `DiscoveryConfig`.
 pub mod discovery_config {
@@ -6194,7 +6466,7 @@ pub mod discovery_config {
         pub location: ::core::option::Option<super::DiscoveryStartingLocation>,
         /// The project that will run the scan. The DLP service
         /// account that exists within this project must have access to all resources
-        /// that are profiled, and the Cloud DLP API must be enabled.
+        /// that are profiled, and the DLP API must be enabled.
         #[prost(string, tag = "2")]
         pub project_id: ::prost::alloc::string::String,
     }
@@ -6247,7 +6519,7 @@ pub mod discovery_config {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DiscoveryTarget {
     /// A target to match against for Discovery.
-    #[prost(oneof = "discovery_target::Target", tags = "1, 2, 3, 4, 5")]
+    #[prost(oneof = "discovery_target::Target", tags = "1, 2, 3, 4, 5, 7")]
     pub target: ::core::option::Option<discovery_target::Target>,
 }
 /// Nested message and enum types in `DiscoveryTarget`.
@@ -6276,6 +6548,16 @@ pub mod discovery_target {
         /// will be the one applied.
         #[prost(message, tag = "5")]
         OtherCloudTarget(super::OtherCloudDiscoveryTarget),
+        /// Vertex AI dataset target for Discovery. The first target to match a
+        /// dataset will be the one applied. Note that discovery for Vertex AI can
+        /// incur Cloud Storage Class B operation charges for storage.objects.get
+        /// operations and retrieval fees. For more information, see [Cloud Storage
+        /// pricing](<https://cloud.google.com/storage/pricing#price-tables>).
+        /// Note that discovery for Vertex AI dataset will not be able to scan images
+        /// unless DiscoveryConfig.processing_location.image_fallback_location has
+        /// multi_region_processing or global_processing configured.
+        #[prost(message, tag = "7")]
+        VertexDatasetTarget(super::VertexDatasetDiscoveryTarget),
     }
 }
 /// Target used to match against for discovery with BigQuery tables
@@ -6921,18 +7203,18 @@ pub mod discovery_cloud_storage_filter {
         Others(super::AllOtherResources),
     }
 }
-/// Match file stores (e.g. buckets) using regex filters.
+/// Match file stores (e.g. buckets) using filters.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FileStoreCollection {
-    /// The first filter containing a pattern that matches a file store will
-    /// be used.
+    /// The first filter containing a pattern that matches a file store will be
+    /// used.
     #[prost(oneof = "file_store_collection::Pattern", tags = "1")]
     pub pattern: ::core::option::Option<file_store_collection::Pattern>,
 }
 /// Nested message and enum types in `FileStoreCollection`.
 pub mod file_store_collection {
-    /// The first filter containing a pattern that matches a file store will
-    /// be used.
+    /// The first filter containing a pattern that matches a file store will be
+    /// used.
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Pattern {
         /// Optional. A collection of regular expressions to match a file store
@@ -7132,12 +7414,12 @@ pub mod discovery_cloud_storage_conditions {
         Unspecified = 0,
         /// Scan buckets regardless of the attribute.
         AllSupportedBuckets = 1,
-        /// Buckets with autoclass disabled
-        /// (<https://cloud.google.com/storage/docs/autoclass>). Only one of
+        /// Buckets with [Autoclass](<https://cloud.google.com/storage/docs/autoclass>)
+        /// disabled. Only one of
         /// AUTOCLASS_DISABLED or AUTOCLASS_ENABLED should be set.
         AutoclassDisabled = 2,
-        /// Buckets with autoclass enabled
-        /// (<https://cloud.google.com/storage/docs/autoclass>). Only one of
+        /// Buckets with [Autoclass](<https://cloud.google.com/storage/docs/autoclass>)
+        /// enabled. Only one of
         /// AUTOCLASS_DISABLED or AUTOCLASS_ENABLED should be set. Scanning
         /// Autoclass-enabled buckets can affect object storage classes.
         AutoclassEnabled = 3,
@@ -7600,6 +7882,146 @@ pub mod other_cloud_discovery_starting_location {
 /// Match discovery resources not covered by any other filter.
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct AllOtherResources {}
+/// Target used to match against for discovery with Vertex AI datasets.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct VertexDatasetDiscoveryTarget {
+    /// Required. The datasets the discovery cadence applies to. The first target
+    /// with a matching filter will be the one to apply to a dataset.
+    #[prost(message, optional, tag = "1")]
+    pub filter: ::core::option::Option<DiscoveryVertexDatasetFilter>,
+    /// In addition to matching the filter, these conditions must be true
+    /// before a profile is generated.
+    #[prost(message, optional, tag = "2")]
+    pub conditions: ::core::option::Option<DiscoveryVertexDatasetConditions>,
+    /// Type of schedule.
+    #[prost(oneof = "vertex_dataset_discovery_target::Cadence", tags = "3, 4")]
+    pub cadence: ::core::option::Option<vertex_dataset_discovery_target::Cadence>,
+}
+/// Nested message and enum types in `VertexDatasetDiscoveryTarget`.
+pub mod vertex_dataset_discovery_target {
+    /// Type of schedule.
+    #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
+    pub enum Cadence {
+        /// How often and when to update profiles. New datasets that match both the
+        /// filter and conditions are scanned as quickly as possible depending on
+        /// system capacity.
+        #[prost(message, tag = "3")]
+        GenerationCadence(super::DiscoveryVertexDatasetGenerationCadence),
+        /// Disable profiling for datasets that match this filter.
+        #[prost(message, tag = "4")]
+        Disabled(super::Disabled),
+    }
+}
+/// Determines what datasets will have profiles generated within an organization
+/// or project. Includes the ability to filter by regular expression patterns
+/// on project ID or dataset regex.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DiscoveryVertexDatasetFilter {
+    /// Whether the filter applies to a specific set of datasets or all
+    /// other datasets within the location being profiled. The first
+    /// filter to match will be applied, regardless of the condition. If none is
+    /// set, this field defaults to `others`.
+    #[prost(oneof = "discovery_vertex_dataset_filter::Filter", tags = "1, 2, 100")]
+    pub filter: ::core::option::Option<discovery_vertex_dataset_filter::Filter>,
+}
+/// Nested message and enum types in `DiscoveryVertexDatasetFilter`.
+pub mod discovery_vertex_dataset_filter {
+    /// Whether the filter applies to a specific set of datasets or all
+    /// other datasets within the location being profiled. The first
+    /// filter to match will be applied, regardless of the condition. If none is
+    /// set, this field defaults to `others`.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Filter {
+        /// A specific set of Vertex AI datasets for this filter to apply to.
+        #[prost(message, tag = "1")]
+        Collection(super::VertexDatasetCollection),
+        /// The dataset resource to scan. Targets including this can only include
+        /// one target (the target with this dataset resource reference).
+        #[prost(message, tag = "2")]
+        VertexDatasetResourceReference(super::VertexDatasetResourceReference),
+        /// Catch-all. This should always be the last target in the list because
+        /// anything above it will apply first. Should only appear once in a
+        /// configuration. If none is specified, a default one will be added
+        /// automatically.
+        #[prost(message, tag = "100")]
+        Others(super::AllOtherResources),
+    }
+}
+/// Match dataset resources using regex filters.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct VertexDatasetCollection {
+    /// The pattern used to filter dataset resources.
+    #[prost(oneof = "vertex_dataset_collection::Pattern", tags = "1")]
+    pub pattern: ::core::option::Option<vertex_dataset_collection::Pattern>,
+}
+/// Nested message and enum types in `VertexDatasetCollection`.
+pub mod vertex_dataset_collection {
+    /// The pattern used to filter dataset resources.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Pattern {
+        /// The regex used to filter dataset resources.
+        #[prost(message, tag = "1")]
+        VertexDatasetRegexes(super::VertexDatasetRegexes),
+    }
+}
+/// A collection of regular expressions to determine what datasets to match
+/// against.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct VertexDatasetRegexes {
+    /// Required. The group of regular expression patterns to match against one or
+    /// more datasets. Maximum of 100 entries. The sum of the lengths of all
+    /// regular expressions can't exceed 10 KiB.
+    #[prost(message, repeated, tag = "1")]
+    pub patterns: ::prost::alloc::vec::Vec<VertexDatasetRegex>,
+}
+/// A pattern to match against one or more dataset resources.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct VertexDatasetRegex {
+    /// For organizations, if unset, will match all projects. Has no effect
+    /// for configurations created within a project.
+    #[prost(string, tag = "1")]
+    pub project_id_regex: ::prost::alloc::string::String,
+}
+/// Identifies a single Vertex AI dataset.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct VertexDatasetResourceReference {
+    /// Required. The name of the dataset resource. If set within a project-level
+    /// configuration, the specified resource must be within the project.
+    #[prost(string, tag = "1")]
+    pub dataset_resource_name: ::prost::alloc::string::String,
+}
+/// Requirements that must be true before a dataset is profiled for the
+/// first time.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct DiscoveryVertexDatasetConditions {
+    /// Vertex AI dataset must have been created after this date. Used to avoid
+    /// backfilling.
+    #[prost(message, optional, tag = "1")]
+    pub created_after: ::core::option::Option<::prost_types::Timestamp>,
+    /// Minimum age a Vertex AI dataset must have. If set, the value must be 1 hour
+    /// or greater.
+    #[prost(message, optional, tag = "2")]
+    pub min_age: ::core::option::Option<::prost_types::Duration>,
+}
+/// How often existing datasets should have their profiles refreshed.
+/// New datasets are scanned as quickly as possible depending on system
+/// capacity.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct DiscoveryVertexDatasetGenerationCadence {
+    /// If you set this field, profiles are refreshed at this
+    /// frequency regardless of whether the underlying datasets have changed.
+    /// Defaults to never.
+    #[prost(enumeration = "DataProfileUpdateFrequency", tag = "1")]
+    pub refresh_frequency: i32,
+    /// Governs when to update data profiles when the inspection rules
+    /// defined by the `InspectTemplate` change.
+    /// If not set, changing the template will not cause a data profile to be
+    /// updated.
+    #[prost(message, optional, tag = "2")]
+    pub inspect_template_modified_cadence: ::core::option::Option<
+        DiscoveryInspectTemplateModifiedCadence,
+    >,
+}
 /// Combines all of the information about a DLP job.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DlpJob {
@@ -7714,7 +8136,8 @@ pub mod dlp_job {
         InspectDetails(super::InspectDataSourceDetails),
     }
 }
-/// The request message for [DlpJobs.GetDlpJob][].
+/// The request message for
+/// [GetDlpJob][google.privacy.dlp.v2.DlpService.GetDlpJob].
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetDlpJobRequest {
     /// Required. The name of the DlpJob resource.
@@ -8440,6 +8863,7 @@ pub struct ListTableDataProfilesRequest {
     ///      - `resource_visibility`: PUBLIC|RESTRICTED
     ///      - `status_code` - an RPC status code as defined in
     ///      <https://github.com/googleapis/googleapis/blob/master/google/rpc/code.proto>
+    ///
     /// * The operator must be `=` or `!=`.
     ///
     /// Examples:
@@ -8699,7 +9123,8 @@ pub struct TableDataProfile {
     /// May be empty if the profile is still being generated.
     #[prost(message, optional, tag = "21")]
     pub profile_status: ::core::option::Option<ProfileStatus>,
-    /// State of a profile.
+    /// State of a profile. This will always be set to DONE when the table data
+    /// profile is written to another service like BigQuery or Pub/Sub.
     #[prost(enumeration = "table_data_profile::State", tag = "22")]
     pub state: i32,
     /// The sensitivity score of this table.
@@ -8754,6 +9179,20 @@ pub struct TableDataProfile {
     /// The time at which the table was created.
     #[prost(message, optional, tag = "23")]
     pub create_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// The BigQuery table to which the sample findings are written.
+    #[prost(message, optional, tag = "37")]
+    pub sample_findings_table: ::core::option::Option<BigQueryTable>,
+    /// The tags attached to the table, including any tags attached during
+    /// profiling. Because tags are attached to Cloud SQL instances rather than
+    /// Cloud SQL tables, this field is empty for Cloud SQL table profiles.
+    #[prost(message, repeated, tag = "39")]
+    pub tags: ::prost::alloc::vec::Vec<Tag>,
+    /// Resources related to this profile.
+    #[prost(message, repeated, tag = "41")]
+    pub related_resources: ::prost::alloc::vec::Vec<RelatedResource>,
+    /// Domains associated with the profile.
+    #[prost(message, repeated, tag = "47")]
+    pub domains: ::prost::alloc::vec::Vec<Domain>,
 }
 /// Nested message and enum types in `TableDataProfile`.
 pub mod table_data_profile {
@@ -9144,14 +9583,16 @@ pub struct FileStoreDataProfile {
     /// profile.
     #[prost(string, repeated, tag = "19")]
     pub data_storage_locations: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    /// The location type of the bucket (region, dual-region, multi-region, etc).
-    /// If dual-region, expect data_storage_locations to be populated.
+    /// The location type of the file store (region, dual-region, multi-region,
+    /// etc). If dual-region, expect data_storage_locations to be populated.
     #[prost(string, tag = "20")]
     pub location_type: ::prost::alloc::string::String,
     /// The file store path.
     ///
     /// * Cloud Storage: `gs://{bucket}`
     /// * Amazon S3: `s3://{bucket}`
+    /// * Vertex AI dataset:
+    /// `projects/{project_number}/locations/{location}/datasets/{dataset_id}`
     #[prost(string, tag = "6")]
     pub file_store_path: ::prost::alloc::string::String,
     /// The resource name of the resource profiled.
@@ -9214,9 +9655,23 @@ pub struct FileStoreDataProfile {
     pub file_store_info_type_summaries: ::prost::alloc::vec::Vec<
         FileStoreInfoTypeSummary,
     >,
-    /// The file store does not have any files.
+    /// The BigQuery table to which the sample findings are written.
+    #[prost(message, optional, tag = "22")]
+    pub sample_findings_table: ::core::option::Option<BigQueryTable>,
+    /// The file store does not have any files. If the profiling operation failed,
+    /// this is false.
     #[prost(bool, tag = "23")]
     pub file_store_is_empty: bool,
+    /// The tags attached to the resource, including any tags attached during
+    /// profiling.
+    #[prost(message, repeated, tag = "25")]
+    pub tags: ::prost::alloc::vec::Vec<Tag>,
+    /// Resources related to this profile.
+    #[prost(message, repeated, tag = "26")]
+    pub related_resources: ::prost::alloc::vec::Vec<RelatedResource>,
+    /// Domains associated with the profile.
+    #[prost(message, repeated, tag = "27")]
+    pub domains: ::prost::alloc::vec::Vec<Domain>,
 }
 /// Nested message and enum types in `FileStoreDataProfile`.
 pub mod file_store_data_profile {
@@ -9267,6 +9722,35 @@ pub mod file_store_data_profile {
         }
     }
 }
+/// A tag associated with a resource.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Tag {
+    /// The namespaced name for the tag value to attach to Google Cloud resources.
+    /// Must be in the format `{parent_id}/{tag_key_short_name}/{short_name}`, for
+    /// example, "123456/environment/prod". This is only set for Google Cloud
+    /// resources.
+    #[prost(string, tag = "1")]
+    pub namespaced_tag_value: ::prost::alloc::string::String,
+    /// The key of a tag key-value pair. For Google Cloud resources, this is the
+    /// resource name of the key, for example, "tagKeys/123456".
+    #[prost(string, tag = "2")]
+    pub key: ::prost::alloc::string::String,
+    /// The value of a tag key-value pair. For Google Cloud resources, this is the
+    /// resource name of the value, for example, "tagValues/123456".
+    #[prost(string, tag = "3")]
+    pub value: ::prost::alloc::string::String,
+}
+/// A related resource.
+/// Examples:
+///
+/// * The source BigQuery table for a Vertex AI dataset.
+/// * The source Cloud Storage bucket for a Vertex AI dataset.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RelatedResource {
+    /// The full resource name of the related resource.
+    #[prost(string, tag = "1")]
+    pub full_resource: ::prost::alloc::string::String,
+}
 /// Information regarding the discovered InfoType.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FileStoreInfoTypeSummary {
@@ -9313,8 +9797,8 @@ pub struct FileClusterSummary {
     /// File extensions can be derived from the file name or the file content.
     #[prost(message, repeated, tag = "8")]
     pub file_extensions_seen: ::prost::alloc::vec::Vec<FileExtensionInfo>,
-    /// True if no files exist in this cluster. If the bucket had more files than
-    /// could be listed, this will be false even if no files for this cluster
+    /// True if no files exist in this cluster. If the file store had more files
+    /// than could be listed, this will be false even if no files for this cluster
     /// were seen and file_extensions_seen is empty.
     #[prost(bool, tag = "9")]
     pub no_files_exist: bool,
@@ -9396,6 +9880,7 @@ pub struct ListFileStoreDataProfilesRequest {
     ///      - `resource_visibility`: PUBLIC|RESTRICTED
     ///      - `status_code` - an RPC status code as defined in
     ///      <https://github.com/googleapis/googleapis/blob/master/google/rpc/code.proto>
+    ///
     /// * The operator must be `=` or `!=`.
     ///
     /// Examples:
@@ -9705,8 +10190,8 @@ pub struct DeleteConnectionRequest {
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
 }
-/// A data connection to allow DLP to profile data in locations that require
-/// additional configuration.
+/// A data connection to allow the DLP API to profile data in locations that
+/// require additional configuration.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Connection {
     /// Output only. Name of the connection:
@@ -9769,7 +10254,7 @@ pub struct CloudSqlProperties {
     /// `projects/project-id/locations/us-central1`
     #[prost(string, tag = "1")]
     pub connection_name: ::prost::alloc::string::String,
-    /// Required. DLP will limit its connections to max_connections.
+    /// Required. The DLP API will limit its connections to max_connections.
     /// Must be 2 or greater.
     #[prost(int32, tag = "4")]
     pub max_connections: i32,
@@ -9902,6 +10387,8 @@ pub mod file_cluster_type {
         Multimedia = 8,
         /// Executable files like .exe, .class, .apk etc.
         Executable = 9,
+        /// AI models like .tflite etc.
+        AiModel = 10,
     }
     impl Cluster {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -9920,6 +10407,7 @@ pub mod file_cluster_type {
                 Self::Archive => "CLUSTER_ARCHIVE",
                 Self::Multimedia => "CLUSTER_MULTIMEDIA",
                 Self::Executable => "CLUSTER_EXECUTABLE",
+                Self::AiModel => "CLUSTER_AI_MODEL",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -9935,6 +10423,7 @@ pub mod file_cluster_type {
                 "CLUSTER_ARCHIVE" => Some(Self::Archive),
                 "CLUSTER_MULTIMEDIA" => Some(Self::Multimedia),
                 "CLUSTER_EXECUTABLE" => Some(Self::Executable),
+                "CLUSTER_AI_MODEL" => Some(Self::AiModel),
                 _ => None,
             }
         }
@@ -9945,6 +10434,191 @@ pub mod file_cluster_type {
         /// Cluster type.
         #[prost(enumeration = "Cluster", tag = "1")]
         Cluster(i32),
+    }
+}
+/// Configure processing location for discovery and inspection. For example,
+/// image OCR is only provided in limited regions but configuring
+/// ProcessingLocation will redirect OCR to a location where OCR is provided.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct ProcessingLocation {
+    /// Image processing falls back using this configuration.
+    #[prost(message, optional, tag = "1")]
+    pub image_fallback_location: ::core::option::Option<
+        processing_location::ImageFallbackLocation,
+    >,
+    /// Document processing falls back using this configuration.
+    #[prost(message, optional, tag = "2")]
+    pub document_fallback_location: ::core::option::Option<
+        processing_location::DocumentFallbackLocation,
+    >,
+}
+/// Nested message and enum types in `ProcessingLocation`.
+pub mod processing_location {
+    /// Processing occurs in a multi-region that contains the current region
+    /// if available.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct MultiRegionProcessing {}
+    /// Processing occurs in the global region.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct GlobalProcessing {}
+    /// Configure image processing to fall back to any of the following processing
+    /// options if image processing is unavailable in the original request
+    /// location.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct ImageFallbackLocation {
+        /// Processing occurs in a multi-region that contains the current region
+        /// if available.
+        #[prost(message, optional, tag = "100")]
+        pub multi_region_processing: ::core::option::Option<MultiRegionProcessing>,
+        /// Processing occurs in the global region.
+        #[prost(message, optional, tag = "200")]
+        pub global_processing: ::core::option::Option<GlobalProcessing>,
+    }
+    /// Configure document processing to fall back to any of the following
+    /// processing options if document processing is unavailable in the original
+    /// request location.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct DocumentFallbackLocation {
+        /// Processing occurs in a multi-region that contains the current region
+        /// if available.
+        #[prost(message, optional, tag = "100")]
+        pub multi_region_processing: ::core::option::Option<MultiRegionProcessing>,
+        /// Processing occurs in the global region.
+        #[prost(message, optional, tag = "200")]
+        pub global_processing: ::core::option::Option<GlobalProcessing>,
+    }
+}
+/// Collection of findings saved to a Cloud Storage bucket. This is used as the
+/// proto schema for textproto files created when specifying a cloud storage
+/// path to save Inspect findings.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SaveToGcsFindingsOutput {
+    /// List of findings.
+    #[prost(message, repeated, tag = "1")]
+    pub findings: ::prost::alloc::vec::Vec<Finding>,
+}
+/// A domain represents a thematic category that a data profile can fall under.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Domain {
+    /// A domain category that this profile is related to.
+    #[prost(enumeration = "domain::Category", tag = "1")]
+    pub category: i32,
+    /// The collection of signals that influenced selection of the category.
+    #[prost(enumeration = "domain::Signal", repeated, tag = "2")]
+    pub signals: ::prost::alloc::vec::Vec<i32>,
+}
+/// Nested message and enum types in `Domain`.
+pub mod domain {
+    /// This enum defines the various domain categories a data profile can fall
+    /// under.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Category {
+        /// Category unspecified.
+        Unspecified = 0,
+        /// Indicates that the data profile is related to artificial intelligence.
+        /// When set, all findings stored to Security Command Center will set the
+        /// corresponding AI domain field of `Finding` objects.
+        Ai = 1,
+        /// Indicates that the data profile is related to code.
+        Code = 2,
+    }
+    impl Category {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "CATEGORY_UNSPECIFIED",
+                Self::Ai => "AI",
+                Self::Code => "CODE",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "CATEGORY_UNSPECIFIED" => Some(Self::Unspecified),
+                "AI" => Some(Self::Ai),
+                "CODE" => Some(Self::Code),
+                _ => None,
+            }
+        }
+    }
+    /// The signal used to determine the category.
+    /// This list may increase over time.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Signal {
+        /// Unused.
+        Unspecified = 0,
+        /// One or more machine learning models are present.
+        Model = 1,
+        /// A table appears to be a text embedding.
+        TextEmbedding = 2,
+        /// The [Cloud SQL Vertex
+        /// AI](<https://cloud.google.com/sql/docs/postgres/integrate-cloud-sql-with-vertex-ai>)
+        /// plugin is installed on the database.
+        VertexPlugin = 3,
+        /// Support for [Cloud SQL vector
+        /// embeddings](<https://cloud.google.com/sql/docs/mysql/enable-vector-search>)
+        /// is enabled on the database.
+        VectorPlugin = 4,
+        /// Source code is present.
+        SourceCode = 5,
+        /// If the service determines the category type. For example, Vertex AI
+        /// assets would always have a `Category` of `AI`.
+        Service = 6,
+    }
+    impl Signal {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "SIGNAL_UNSPECIFIED",
+                Self::Model => "MODEL",
+                Self::TextEmbedding => "TEXT_EMBEDDING",
+                Self::VertexPlugin => "VERTEX_PLUGIN",
+                Self::VectorPlugin => "VECTOR_PLUGIN",
+                Self::SourceCode => "SOURCE_CODE",
+                Self::Service => "SERVICE",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "SIGNAL_UNSPECIFIED" => Some(Self::Unspecified),
+                "MODEL" => Some(Self::Model),
+                "TEXT_EMBEDDING" => Some(Self::TextEmbedding),
+                "VERTEX_PLUGIN" => Some(Self::VertexPlugin),
+                "VECTOR_PLUGIN" => Some(Self::VectorPlugin),
+                "SOURCE_CODE" => Some(Self::SourceCode),
+                "SERVICE" => Some(Self::Service),
+                _ => None,
+            }
+        }
     }
 }
 /// Enum of possible outcomes of transformations. SUCCESS if transformation and
@@ -10777,8 +11451,8 @@ impl UniquenessScoreLevel {
 pub enum ConnectionState {
     /// Unused
     Unspecified = 0,
-    /// DLP automatically created this connection during an initial scan, and it is
-    /// awaiting full configuration by a user.
+    /// The DLP API automatically created this connection during an initial scan,
+    /// and it is awaiting full configuration by a user.
     MissingCredentials = 1,
     /// A configured connection that has not encountered any errors.
     Available = 2,
@@ -10957,6 +11631,9 @@ pub mod dlp_service_client {
         /// When no InfoTypes or CustomInfoTypes are specified in this request, the
         /// system will automatically choose what detectors to run. By default this may
         /// be all types, but may change over time as detectors are updated.
+        ///
+        /// Only the first frame of each multiframe image is redacted. Metadata and
+        /// other frames are omitted in the response.
         pub async fn redact_image(
             &mut self,
             request: impl tonic::IntoRequest<super::RedactImageRequest>,
@@ -11054,7 +11731,7 @@ pub mod dlp_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
-        /// Returns a list of the sensitive information types that DLP API
+        /// Returns a list of the sensitive information types that the DLP API
         /// supports. See
         /// https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference
         /// to learn more.
