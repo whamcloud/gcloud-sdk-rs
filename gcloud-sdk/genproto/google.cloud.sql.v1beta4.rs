@@ -2875,6 +2875,11 @@ pub struct Settings {
     /// Dataplex on Cloud SQL instances is activated.
     #[prost(message, optional, tag = "41")]
     pub enable_dataplex_integration: ::core::option::Option<bool>,
+    /// Optional. Cloud SQL for MySQL auto-upgrade configuration. When this
+    /// parameter is set to true, auto-upgrade is enabled for MySQL 8.0 minor
+    /// versions. The MySQL version must be 8.0.35 or higher.
+    #[prost(bool, optional, tag = "50")]
+    pub auto_upgrade_enabled: ::core::option::Option<bool>,
 }
 /// Nested message and enum types in `Settings`.
 pub mod settings {
@@ -3596,6 +3601,10 @@ pub enum SqlDatabaseVersion {
     Postgres15 = 172,
     /// The database version is PostgreSQL 16.
     Postgres16 = 272,
+    /// The database version is PostgreSQL 17.
+    Postgres17 = 408,
+    /// The database version is PostgreSQL 18.
+    Postgres18 = 557,
     /// The database version is MySQL 8.
     Mysql80 = 20,
     /// The database major version is MySQL 8.0 and the minor version is 18.
@@ -3675,6 +3684,8 @@ impl SqlDatabaseVersion {
             Self::Postgres14 => "POSTGRES_14",
             Self::Postgres15 => "POSTGRES_15",
             Self::Postgres16 => "POSTGRES_16",
+            Self::Postgres17 => "POSTGRES_17",
+            Self::Postgres18 => "POSTGRES_18",
             Self::Mysql80 => "MYSQL_8_0",
             Self::Mysql8018 => "MYSQL_8_0_18",
             Self::Mysql8026 => "MYSQL_8_0_26",
@@ -3724,6 +3735,8 @@ impl SqlDatabaseVersion {
             "POSTGRES_14" => Some(Self::Postgres14),
             "POSTGRES_15" => Some(Self::Postgres15),
             "POSTGRES_16" => Some(Self::Postgres16),
+            "POSTGRES_17" => Some(Self::Postgres17),
+            "POSTGRES_18" => Some(Self::Postgres18),
             "MYSQL_8_0" => Some(Self::Mysql80),
             "MYSQL_8_0_18" => Some(Self::Mysql8018),
             "MYSQL_8_0_26" => Some(Self::Mysql8026),

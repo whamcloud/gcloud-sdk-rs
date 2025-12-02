@@ -39,10 +39,15 @@ pub struct Order {
     /// length of this field must be <= 1000 characters.
     #[prost(string, tag = "8")]
     pub customer_motivation: ::prost::alloc::string::String,
-    /// Required. Customer specified deadline by when this order should be
-    /// fulfilled.
+    /// Deprecated: Please use customer_requested_installation_date instead.
+    #[deprecated]
     #[prost(message, optional, tag = "9")]
     pub fulfillment_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Optional. Customer requested installation date for this order.
+    #[prost(message, optional, tag = "21")]
+    pub customer_requested_installation_date: ::core::option::Option<
+        super::super::super::r#type::Date,
+    >,
     /// Required. [Unicode CLDR](<http://cldr.unicode.org/>) region code where this
     /// order will be deployed. For a list of valid CLDR region codes, see the
     /// [Language Subtag
@@ -59,13 +64,48 @@ pub struct Order {
     /// current time when an order is submitted.
     #[prost(message, optional, tag = "14")]
     pub submit_time: ::core::option::Option<::prost_types::Timestamp>,
-    /// Required. The Google Cloud Billing ID to be charged for this order.
+    /// Output only. The Google Cloud Billing ID to be charged for this order.
     #[prost(string, tag = "15")]
     pub billing_id: ::prost::alloc::string::String,
     /// Optional. Existing hardware to be removed as part of this order.
     /// Note: any hardware removed will be recycled unless otherwise agreed.
     #[prost(message, repeated, tag = "16")]
     pub existing_hardware: ::prost::alloc::vec::Vec<HardwareLocation>,
+    /// Output only. The deployment type of this order.
+    #[prost(enumeration = "order::DeploymentType", tag = "18")]
+    pub deployment_type: i32,
+    /// Output only. Actual installation date for this order.
+    #[prost(message, optional, tag = "19")]
+    pub actual_installation_date: ::core::option::Option<
+        super::super::super::r#type::Date,
+    >,
+    /// Output only. Estimated installation date for this order.
+    #[prost(message, optional, tag = "20")]
+    pub estimated_installation_date: ::core::option::Option<
+        super::super::super::r#type::Date,
+    >,
+    /// Output only. Estimated delivery date for this order.
+    #[prost(message, optional, tag = "22")]
+    pub estimated_delivery_date: ::core::option::Option<
+        super::super::super::r#type::Date,
+    >,
+    /// Optional. Whether this order is a migration from customer's existing
+    /// infrastructure.
+    #[prost(bool, tag = "23")]
+    pub migration: bool,
+    /// Output only. The time when the order was moved to ACCEPTED state.
+    #[prost(message, optional, tag = "24")]
+    pub accepted_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. The date to which the customer or Google wants to set the
+    /// scheduled installation date.
+    #[prost(message, optional, tag = "25")]
+    pub requested_date_change: ::core::option::Option<super::super::super::r#type::Date>,
+    /// Output only. Notes for this order, provided by the vendor.
+    #[prost(string, tag = "26")]
+    pub vendor_notes: ::prost::alloc::string::String,
+    /// Output only. Contact information of the SI assigned to this order.
+    #[prost(message, optional, tag = "27")]
+    pub vendor_contact: ::core::option::Option<OrganizationContact>,
 }
 /// Nested message and enum types in `Order`.
 pub mod order {
@@ -198,6 +238,57 @@ pub mod order {
             }
         }
     }
+    /// Valid types of a deployment.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum DeploymentType {
+        /// Deployment type is unspecified.
+        Unspecified = 0,
+        /// Prod deployment with SLOs.
+        FullProduction = 1,
+        /// Deployment with best-effort support and no SLOs.
+        ProofOfConcept = 2,
+        /// Internal deployment with best-effort support and no SLOs.
+        Internal = 3,
+        /// Customer lab deployment that we support as though it's prod.
+        CustomerLab = 4,
+    }
+    impl DeploymentType {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "DEPLOYMENT_TYPE_UNSPECIFIED",
+                Self::FullProduction => "FULL_PRODUCTION",
+                Self::ProofOfConcept => "PROOF_OF_CONCEPT",
+                Self::Internal => "INTERNAL",
+                Self::CustomerLab => "CUSTOMER_LAB",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "DEPLOYMENT_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+                "FULL_PRODUCTION" => Some(Self::FullProduction),
+                "PROOF_OF_CONCEPT" => Some(Self::ProofOfConcept),
+                "INTERNAL" => Some(Self::Internal),
+                "CUSTOMER_LAB" => Some(Self::CustomerLab),
+                _ => None,
+            }
+        }
+    }
 }
 /// A physical site where hardware will be installed.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -297,8 +388,9 @@ pub struct HardwareGroup {
     /// to. Format: `projects/{project}/locations/{location}/zones/{zone}`
     #[prost(string, tag = "9")]
     pub zone: ::prost::alloc::string::String,
-    /// Optional. Requested installation date for the hardware in this
-    /// HardwareGroup. Filled in by the customer.
+    /// Deprecated: This value is not used. Use the requested_installation_date
+    /// field in the Order resource instead.
+    #[deprecated]
     #[prost(message, optional, tag = "10")]
     pub requested_installation_date: ::core::option::Option<
         super::super::super::r#type::Date,
@@ -448,6 +540,11 @@ pub struct Hardware {
     /// Output only. Per machine asset information needed for turnup.
     #[prost(message, repeated, tag = "20")]
     pub machine_infos: ::prost::alloc::vec::Vec<hardware::MachineInfo>,
+    /// Output only. The estimated delivery date of the hardware.
+    #[prost(message, optional, tag = "21")]
+    pub estimated_delivery_date: ::core::option::Option<
+        super::super::super::r#type::Date,
+    >,
 }
 /// Nested message and enum types in `Hardware`.
 pub mod hardware {
@@ -712,9 +809,23 @@ pub struct Sku {
     /// Output only. The vCPU count associated with this SKU.
     #[prost(int32, tag = "12")]
     pub vcpu_count: i32,
+    /// Output only. The inclusive ranges of hardware counts that are allowed in a
+    /// zone using this SKU.
+    #[prost(message, repeated, tag = "13")]
+    pub hardware_count_ranges: ::prost::alloc::vec::Vec<sku::Range>,
 }
 /// Nested message and enum types in `Sku`.
 pub mod sku {
+    /// Inclusive range.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct Range {
+        /// The minimum value of the range.
+        #[prost(int32, tag = "1")]
+        pub min: i32,
+        /// The maximum value of the range.
+        #[prost(int32, tag = "2")]
+        pub max: i32,
+    }
     /// Valid types of a SKU.
     #[derive(
         Clone,
@@ -805,6 +916,22 @@ pub struct Zone {
     /// Output only. Provisioning state for configurations like MAC addresses.
     #[prost(enumeration = "zone::ProvisioningState", tag = "14")]
     pub provisioning_state: i32,
+    /// Optional. Whether to skip the cluster provisioning step during factory
+    /// turnup. If true, indicates that the Kubernetes cluster will be created
+    /// after the zone's hardware is installed at the customer site.
+    #[prost(bool, tag = "16")]
+    pub skip_cluster_provisioning: bool,
+    /// Output only. Indicates whether a valid cluster intent must be provided by
+    /// the customer before accepting the order. If true, the order cannot be
+    /// accepted until cluster intent is present. This is used to enforce early
+    /// validation and prevent delays caused by missing configuration.
+    #[prost(bool, tag = "17")]
+    pub cluster_intent_required: bool,
+    /// Output only. Indicates whether the provided cluster intent has been
+    /// successfully verified. This flag ensures cluster intent exists before order
+    /// can be accepted.
+    #[prost(bool, tag = "18")]
+    pub cluster_intent_verified: bool,
 }
 /// Nested message and enum types in `Zone`.
 pub mod zone {
@@ -830,6 +957,8 @@ pub mod zone {
         Preparing = 2,
         /// Factory turnup has succeeded.
         ReadyForCustomerFactoryTurnupChecks = 5,
+        /// The Zone is running factory turnup checks.
+        CustomerFactoryTurnupChecksStarted = 8,
         /// The Zone is ready for site turnup.
         ReadyForSiteTurnup = 6,
         /// The Zone failed in factory turnup checks.
@@ -852,6 +981,9 @@ pub mod zone {
                 Self::ReadyForCustomerFactoryTurnupChecks => {
                     "READY_FOR_CUSTOMER_FACTORY_TURNUP_CHECKS"
                 }
+                Self::CustomerFactoryTurnupChecksStarted => {
+                    "CUSTOMER_FACTORY_TURNUP_CHECKS_STARTED"
+                }
                 Self::ReadyForSiteTurnup => "READY_FOR_SITE_TURNUP",
                 Self::CustomerFactoryTurnupChecksFailed => {
                     "CUSTOMER_FACTORY_TURNUP_CHECKS_FAILED"
@@ -868,6 +1000,9 @@ pub mod zone {
                 "PREPARING" => Some(Self::Preparing),
                 "READY_FOR_CUSTOMER_FACTORY_TURNUP_CHECKS" => {
                     Some(Self::ReadyForCustomerFactoryTurnupChecks)
+                }
+                "CUSTOMER_FACTORY_TURNUP_CHECKS_STARTED" => {
+                    Some(Self::CustomerFactoryTurnupChecksStarted)
                 }
                 "READY_FOR_SITE_TURNUP" => Some(Self::ReadyForSiteTurnup),
                 "CUSTOMER_FACTORY_TURNUP_CHECKS_FAILED" => {
@@ -1061,8 +1196,17 @@ pub mod hardware_physical_info {
         Nema515 = 1,
         /// C13.
         C13 = 2,
-        /// Standard european receptacle.
+        /// Deprecated: Please use TYPE_G_BS1363, CEE_7_3, CEE_7_5 or TYPE_F
+        /// instead.
         StandardEu = 3,
+        /// Type G / BS1363.
+        TypeGBs1363 = 4,
+        /// C 7/3.
+        Cee73 = 5,
+        /// C 7/5.
+        Cee75 = 6,
+        /// Type F.
+        TypeF = 7,
     }
     impl PowerReceptacleType {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -1075,6 +1219,10 @@ pub mod hardware_physical_info {
                 Self::Nema515 => "NEMA_5_15",
                 Self::C13 => "C_13",
                 Self::StandardEu => "STANDARD_EU",
+                Self::TypeGBs1363 => "TYPE_G_BS1363",
+                Self::Cee73 => "CEE_7_3",
+                Self::Cee75 => "CEE_7_5",
+                Self::TypeF => "TYPE_F",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -1084,6 +1232,10 @@ pub mod hardware_physical_info {
                 "NEMA_5_15" => Some(Self::Nema515),
                 "C_13" => Some(Self::C13),
                 "STANDARD_EU" => Some(Self::StandardEu),
+                "TYPE_G_BS1363" => Some(Self::TypeGBs1363),
+                "CEE_7_3" => Some(Self::Cee73),
+                "CEE_7_5" => Some(Self::Cee75),
+                "TYPE_F" => Some(Self::TypeF),
                 _ => None,
             }
         }
@@ -1714,6 +1866,18 @@ pub mod submit_order_request {
             }
         }
     }
+}
+/// A request to cancel an order.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CancelOrderRequest {
+    /// Required. The name of the order.
+    /// Format: `projects/{project}/locations/{location}/orders/{order}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Optional. An optional unique identifier for this request. See
+    /// [AIP-155](<https://google.aip.dev/155>).
+    #[prost(string, tag = "2")]
+    pub request_id: ::prost::alloc::string::String,
 }
 /// A request to list sites.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -2351,6 +2515,15 @@ pub struct SignalZoneStateRequest {
         tag = "4"
     )]
     pub provisioning_state_signal: i32,
+    /// Optional. The step being executed. Provides a finer grained status when the
+    /// state_signal is FACTORY_TURNUP_CHECKS_STARTED or
+    /// FACTORY_TURNUP_CHECKS_FAILED.
+    #[prost(string, tag = "5")]
+    pub step: ::prost::alloc::string::String,
+    /// Optional. Additional details, such as an error message when state_signal is
+    /// FACTORY_TURNUP_CHECKS_FAILED.
+    #[prost(string, tag = "6")]
+    pub details: ::prost::alloc::string::String,
 }
 /// Nested message and enum types in `SignalZoneStateRequest`.
 pub mod signal_zone_state_request {
@@ -2370,10 +2543,14 @@ pub mod signal_zone_state_request {
     pub enum StateSignal {
         /// State signal of the zone is unspecified.
         Unspecified = 0,
+        /// Factory turnup checks have started.
+        FactoryTurnupChecksStarted = 3,
         /// The Zone is ready for site turnup.
         FactoryTurnupChecksPassed = 1,
         /// The Zone failed in factory turnup checks.
         FactoryTurnupChecksFailed = 2,
+        /// Verify that a valid cluster intent is present.
+        VerifyClusterIntentPresence = 4,
     }
     impl StateSignal {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -2383,16 +2560,22 @@ pub mod signal_zone_state_request {
         pub fn as_str_name(&self) -> &'static str {
             match self {
                 Self::Unspecified => "STATE_SIGNAL_UNSPECIFIED",
+                Self::FactoryTurnupChecksStarted => "FACTORY_TURNUP_CHECKS_STARTED",
                 Self::FactoryTurnupChecksPassed => "FACTORY_TURNUP_CHECKS_PASSED",
                 Self::FactoryTurnupChecksFailed => "FACTORY_TURNUP_CHECKS_FAILED",
+                Self::VerifyClusterIntentPresence => "VERIFY_CLUSTER_INTENT_PRESENCE",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
         pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
             match value {
                 "STATE_SIGNAL_UNSPECIFIED" => Some(Self::Unspecified),
+                "FACTORY_TURNUP_CHECKS_STARTED" => Some(Self::FactoryTurnupChecksStarted),
                 "FACTORY_TURNUP_CHECKS_PASSED" => Some(Self::FactoryTurnupChecksPassed),
                 "FACTORY_TURNUP_CHECKS_FAILED" => Some(Self::FactoryTurnupChecksFailed),
+                "VERIFY_CLUSTER_INTENT_PRESENCE" => {
+                    Some(Self::VerifyClusterIntentPresence)
+                }
                 _ => None,
             }
         }
@@ -2469,6 +2652,18 @@ pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[prost(string, tag = "7")]
     pub api_version: ::prost::alloc::string::String,
+}
+/// A request to change the requested date of an order.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RequestOrderDateChangeRequest {
+    /// Required. The name of the order to update.
+    /// Format: projects/{project}/locations/{location}/orders/{order}
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Required. The date to which the customer or Google wants to set the
+    /// scheduled installation date.
+    #[prost(message, optional, tag = "2")]
+    pub requested_date: ::core::option::Option<super::super::super::r#type::Date>,
 }
 /// Generated client implementations.
 pub mod gdc_hardware_management_client {
@@ -2735,6 +2930,36 @@ pub mod gdc_hardware_management_client {
                     GrpcMethod::new(
                         "google.cloud.gdchardwaremanagement.v1alpha.GDCHardwareManagement",
                         "SubmitOrder",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Cancels an order.
+        pub async fn cancel_order(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CancelOrderRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.gdchardwaremanagement.v1alpha.GDCHardwareManagement/CancelOrder",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.gdchardwaremanagement.v1alpha.GDCHardwareManagement",
+                        "CancelOrder",
                     ),
                 );
             self.inner.unary(req, path, codec).await
@@ -3584,6 +3809,36 @@ pub mod gdc_hardware_management_client {
                     GrpcMethod::new(
                         "google.cloud.gdchardwaremanagement.v1alpha.GDCHardwareManagement",
                         "SignalZoneState",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Updates the requested date change of a single Order.
+        pub async fn request_order_date_change(
+            &mut self,
+            request: impl tonic::IntoRequest<super::RequestOrderDateChangeRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.gdchardwaremanagement.v1alpha.GDCHardwareManagement/RequestOrderDateChange",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.gdchardwaremanagement.v1alpha.GDCHardwareManagement",
+                        "RequestOrderDateChange",
                     ),
                 );
             self.inner.unary(req, path, codec).await

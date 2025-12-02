@@ -600,6 +600,12 @@ pub struct ExecutionConfig {
     /// a Cloud Storage bucket.**
     #[prost(string, tag = "10")]
     pub staging_bucket: ::prost::alloc::string::String,
+    /// Optional. Authentication configuration used to set the default identity for
+    /// the workload execution. The config specifies the type of identity
+    /// (service account or user) that will be used by workloads to access
+    /// resources on the project(s).
+    #[prost(message, optional, tag = "11")]
+    pub authentication_config: ::core::option::Option<AuthenticationConfig>,
     /// Network configuration for workload execution.
     #[prost(oneof = "execution_config::Network", tags = "4, 5")]
     pub network: ::core::option::Option<execution_config::Network>,
@@ -1014,6 +1020,65 @@ pub mod gke_node_pool_config {
         pub max_node_count: i32,
     }
 }
+/// Authentication configuration for a workload is used to set the default
+/// identity for the workload execution.
+/// The config specifies the type of identity (service account or user) that
+/// will be used by workloads to access resources on the project(s).
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct AuthenticationConfig {
+    /// Optional. Authentication type for the user workload running in containers.
+    #[prost(enumeration = "authentication_config::AuthenticationType", tag = "1")]
+    pub user_workload_authentication_type: i32,
+}
+/// Nested message and enum types in `AuthenticationConfig`.
+pub mod authentication_config {
+    /// Authentication types for workload execution.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AuthenticationType {
+        /// If AuthenticationType is unspecified then END_USER_CREDENTIALS is used
+        /// for 3.0 and newer runtimes, and SERVICE_ACCOUNT is used for older
+        /// runtimes.
+        Unspecified = 0,
+        /// Use service account credentials for authenticating to other services.
+        ServiceAccount = 1,
+        /// Use OAuth credentials associated with the workload creator/user for
+        /// authenticating to other services.
+        EndUserCredentials = 2,
+    }
+    impl AuthenticationType {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "AUTHENTICATION_TYPE_UNSPECIFIED",
+                Self::ServiceAccount => "SERVICE_ACCOUNT",
+                Self::EndUserCredentials => "END_USER_CREDENTIALS",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "AUTHENTICATION_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+                "SERVICE_ACCOUNT" => Some(Self::ServiceAccount),
+                "END_USER_CREDENTIALS" => Some(Self::EndUserCredentials),
+                _ => None,
+            }
+        }
+    }
+}
 /// Autotuning configuration of the workload.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AutotuningConfig {
@@ -1051,6 +1116,10 @@ pub mod autotuning_config {
         BroadcastHashJoin = 3,
         /// Memory management for workloads.
         Memory = 4,
+        /// No autotuning.
+        None = 5,
+        /// Automatic selection of scenarios.
+        Auto = 6,
     }
     impl Scenario {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -1063,6 +1132,8 @@ pub mod autotuning_config {
                 Self::Scaling => "SCALING",
                 Self::BroadcastHashJoin => "BROADCAST_HASH_JOIN",
                 Self::Memory => "MEMORY",
+                Self::None => "NONE",
+                Self::Auto => "AUTO",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -1072,6 +1143,8 @@ pub mod autotuning_config {
                 "SCALING" => Some(Self::Scaling),
                 "BROADCAST_HASH_JOIN" => Some(Self::BroadcastHashJoin),
                 "MEMORY" => Some(Self::Memory),
+                "NONE" => Some(Self::None),
+                "AUTO" => Some(Self::Auto),
                 _ => None,
             }
         }
@@ -1103,6 +1176,8 @@ pub enum Component {
     /// It cannot be activated on clusters created with supported Dataproc on
     /// Compute Engine image versions.
     Anaconda = 5,
+    /// Delta Lake.
+    Delta = 20,
     /// Docker
     Docker = 13,
     /// The Druid query engine. (alpha)
@@ -1115,8 +1190,14 @@ pub enum Component {
     HiveWebhcat = 3,
     /// Hudi.
     Hudi = 18,
+    /// Iceberg.
+    Iceberg = 19,
     /// The Jupyter Notebook.
     Jupyter = 1,
+    /// The Jupyter Kernel Gateway.
+    JupyterKernelGateway = 22,
+    /// The Pig component.
+    Pig = 21,
     /// The Presto query engine.
     Presto = 6,
     /// The Trino query engine.
@@ -1139,13 +1220,17 @@ impl Component {
         match self {
             Self::Unspecified => "COMPONENT_UNSPECIFIED",
             Self::Anaconda => "ANACONDA",
+            Self::Delta => "DELTA",
             Self::Docker => "DOCKER",
             Self::Druid => "DRUID",
             Self::Flink => "FLINK",
             Self::Hbase => "HBASE",
             Self::HiveWebhcat => "HIVE_WEBHCAT",
             Self::Hudi => "HUDI",
+            Self::Iceberg => "ICEBERG",
             Self::Jupyter => "JUPYTER",
+            Self::JupyterKernelGateway => "JUPYTER_KERNEL_GATEWAY",
+            Self::Pig => "PIG",
             Self::Presto => "PRESTO",
             Self::Trino => "TRINO",
             Self::Ranger => "RANGER",
@@ -1159,13 +1244,17 @@ impl Component {
         match value {
             "COMPONENT_UNSPECIFIED" => Some(Self::Unspecified),
             "ANACONDA" => Some(Self::Anaconda),
+            "DELTA" => Some(Self::Delta),
             "DOCKER" => Some(Self::Docker),
             "DRUID" => Some(Self::Druid),
             "FLINK" => Some(Self::Flink),
             "HBASE" => Some(Self::Hbase),
             "HIVE_WEBHCAT" => Some(Self::HiveWebhcat),
             "HUDI" => Some(Self::Hudi),
+            "ICEBERG" => Some(Self::Iceberg),
             "JUPYTER" => Some(Self::Jupyter),
+            "JUPYTER_KERNEL_GATEWAY" => Some(Self::JupyterKernelGateway),
+            "PIG" => Some(Self::Pig),
             "PRESTO" => Some(Self::Presto),
             "TRINO" => Some(Self::Trino),
             "RANGER" => Some(Self::Ranger),
@@ -2199,6 +2288,9 @@ pub struct Cluster {
 /// The cluster config.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ClusterConfig {
+    /// Optional. The cluster tier.
+    #[prost(enumeration = "cluster_config::ClusterTier", tag = "29")]
+    pub cluster_tier: i32,
     /// Optional. A Cloud Storage bucket used to stage job
     /// dependencies, config files, and job driver console output.
     /// If you do not specify a staging bucket, Cloud
@@ -2284,6 +2376,52 @@ pub struct ClusterConfig {
     /// Optional. The node group settings.
     #[prost(message, repeated, tag = "25")]
     pub auxiliary_node_groups: ::prost::alloc::vec::Vec<AuxiliaryNodeGroup>,
+}
+/// Nested message and enum types in `ClusterConfig`.
+pub mod cluster_config {
+    /// The cluster tier.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum ClusterTier {
+        /// Not set. Works the same as CLUSTER_TIER_STANDARD.
+        Unspecified = 0,
+        /// Standard Dataproc cluster.
+        Standard = 1,
+        /// Premium Dataproc cluster.
+        Premium = 2,
+    }
+    impl ClusterTier {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "CLUSTER_TIER_UNSPECIFIED",
+                Self::Standard => "CLUSTER_TIER_STANDARD",
+                Self::Premium => "CLUSTER_TIER_PREMIUM",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "CLUSTER_TIER_UNSPECIFIED" => Some(Self::Unspecified),
+                "CLUSTER_TIER_STANDARD" => Some(Self::Standard),
+                "CLUSTER_TIER_PREMIUM" => Some(Self::Premium),
+                _ => None,
+            }
+        }
+    }
 }
 /// The Dataproc cluster config for a cluster that does not directly control the
 /// underlying compute resources, such as a [Dataproc-on-GKE

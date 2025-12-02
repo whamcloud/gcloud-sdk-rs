@@ -48,6 +48,13 @@ pub struct AzureCredentials {
 /// the `updated` property of Cloud Storage objects, the `LastModified` field
 /// of S3 objects, and the `Last-Modified` header of Azure blobs.
 ///
+/// For S3 objects, the `LastModified` value is the time the object begins
+/// uploading. If the object meets your "last modification time" criteria,
+/// but has not finished uploading, the object is not transferred. See
+/// [Transfer from Amazon S3 to Cloud
+/// Storage](<https://cloud.google.com/storage-transfer/docs/create-transfers/agentless/s3#transfer_options>)
+/// for more information.
+///
 /// Transfers with a [PosixFilesystem][google.storagetransfer.v1.PosixFilesystem]
 /// source or destination don't support `ObjectConditions`.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -332,52 +339,87 @@ pub struct AzureBlobStorageData {
     /// Format: `projects/{project_number}/secrets/{secret_name}`
     #[prost(string, tag = "7")]
     pub credentials_secret: ::prost::alloc::string::String,
+    /// Optional. Federated identity config of a user registered Azure application.
+    ///
+    /// If `federated_identity_config` is specified, do not specify
+    /// [azure_credentials][google.storagetransfer.v1.AzureBlobStorageData.azure_credentials]
+    /// or
+    /// [credentials_secret][google.storagetransfer.v1.AzureBlobStorageData.credentials_secret].
+    #[prost(message, optional, tag = "8")]
+    pub federated_identity_config: ::core::option::Option<
+        azure_blob_storage_data::FederatedIdentityConfig,
+    >,
 }
-/// An HttpData resource specifies a list of objects on the web to be transferred
-/// over HTTP.  The information of the objects to be transferred is contained in
-/// a file referenced by a URL. The first line in the file must be
-/// `"TsvHttpData-1.0"`, which specifies the format of the file.  Subsequent
-/// lines specify the information of the list of objects, one object per list
-/// entry. Each entry has the following tab-delimited fields:
+/// Nested message and enum types in `AzureBlobStorageData`.
+pub mod azure_blob_storage_data {
+    /// The identity of an Azure application through which Storage Transfer Service
+    /// can authenticate requests using Azure workload identity federation.
+    ///
+    /// Storage Transfer Service can issue requests to Azure Storage through
+    /// registered Azure applications, eliminating the need to pass credentials to
+    /// Storage Transfer Service directly.
+    ///
+    /// To configure federated identity, see
+    /// [Configure access to Microsoft Azure
+    /// Storage](<https://cloud.google.com/storage-transfer/docs/source-microsoft-azure#option_3_authenticate_using_federated_identity>).
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct FederatedIdentityConfig {
+        /// Required. The client (application) ID of the application with federated
+        /// credentials.
+        #[prost(string, tag = "1")]
+        pub client_id: ::prost::alloc::string::String,
+        /// Required. The tenant (directory) ID of the application with federated
+        /// credentials.
+        #[prost(string, tag = "2")]
+        pub tenant_id: ::prost::alloc::string::String,
+    }
+}
+/// An HttpData resource specifies a list of objects on the web to be
+///   transferred over HTTP.  The information of the objects to be transferred is
+///   contained in a file referenced by a URL. The first line in the file must be
+///   `"TsvHttpData-1.0"`, which specifies the format of the file.  Subsequent
+///   lines specify the information of the list of objects, one object per list
+///   entry. Each entry has the following tab-delimited fields:
 ///
-/// * **HTTP URL** — The location of the object.
+///   * **HTTP URL** — The location of the object.
 ///
-/// * **Length** — The size of the object in bytes.
+///   * **Length** — The size of the object in bytes.
 ///
-/// * **MD5** — The base64-encoded MD5 hash of the object.
+///   * **MD5** — The base64-encoded MD5 hash of the object.
 ///
-/// For an example of a valid TSV file, see
-/// [Transferring data from
-/// URLs](<https://cloud.google.com/storage-transfer/docs/create-url-list>).
+///   For an example of a valid TSV file, see
+///   [Transferring data from
+///   URLs](<https://cloud.google.com/storage-transfer/docs/create-url-list>).
 ///
-/// When transferring data based on a URL list, keep the following in mind:
+///   When transferring data based on a URL list, keep the following in mind:
 ///
 /// * When an object located at `http(s)://hostname:port/<URL-path>` is
-/// transferred to a data sink, the name of the object at the data sink is
+///   transferred to a data sink, the name of the object at the data sink is
 /// `<hostname>/<URL-path>`.
 ///
 /// * If the specified size of an object does not match the actual size of the
-/// object fetched, the object is not transferred.
+///   object fetched, the object is not transferred.
 ///
 /// * If the specified MD5 does not match the MD5 computed from the transferred
-/// bytes, the object transfer fails.
+///   bytes, the object transfer fails.
 ///
 /// * Ensure that each URL you specify is publicly accessible. For
-/// example, in Cloud Storage you can
-/// \[share an object publicly\]
-/// (/storage/docs/cloud-console#_sharingdata) and get a link to it.
+///   example, in Cloud Storage you can
+///   \[share an object publicly\]
+///   (/storage/docs/cloud-console#_sharingdata) and get a link to it.
 ///
 /// * Storage Transfer Service obeys `robots.txt` rules and requires the source
-/// HTTP server to support `Range` requests and to return a `Content-Length`
-/// header in each response.
+///   HTTP server to support `Range` requests and to return a `Content-Length`
+///   header in each response.
 ///
 /// * [ObjectConditions][google.storagetransfer.v1.ObjectConditions] have no
 /// effect when filtering objects to transfer.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct HttpData {
     /// Required. The URL that points to the file that stores the object list
-    /// entries. This file must allow public access.  Currently, only URLs with
-    /// HTTP and HTTPS schemes are supported.
+    /// entries. This file must allow public access. The URL is either an
+    /// HTTP/HTTPS address (e.g. `<https://example.com/urllist.tsv`>) or a Cloud
+    /// Storage path (e.g. `gs://my-bucket/urllist.tsv`).
     #[prost(string, tag = "1")]
     pub list_url: ::prost::alloc::string::String,
 }
@@ -722,7 +764,7 @@ pub mod agent_pool {
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct TransferOptions {
     /// When to overwrite objects that already exist in the sink. The default is
-    /// that only objects that are different from the source are ovewritten. If
+    /// that only objects that are different from the source are overwritten. If
     /// true, all objects in the sink whose name matches an object in the source
     /// are overwritten with the source object.
     #[prost(bool, tag = "1")]
@@ -891,6 +933,47 @@ pub mod transfer_spec {
         /// more information.
         #[prost(message, tag = "16")]
         GcsIntermediateDataLocation(super::GcsData),
+    }
+}
+/// Specifies the configuration for a cross-bucket replication job. Cross-bucket
+/// replication copies new or updated objects from a source Cloud Storage bucket
+/// to a destination Cloud Storage bucket. Existing objects in the source bucket
+/// are not copied by a new cross-bucket replication job.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReplicationSpec {
+    /// Object conditions that determine which objects are transferred. For
+    /// replication jobs, only `include_prefixes` and `exclude_prefixes` are
+    /// supported.
+    #[prost(message, optional, tag = "3")]
+    pub object_conditions: ::core::option::Option<ObjectConditions>,
+    /// Specifies the metadata options to be applied during replication.
+    /// Delete options are not supported. If a delete option is specified, the
+    /// request fails with an [INVALID_ARGUMENT][google.rpc.Code.INVALID_ARGUMENT]
+    /// error.
+    #[prost(message, optional, tag = "4")]
+    pub transfer_options: ::core::option::Option<TransferOptions>,
+    /// The data source to be replicated.
+    #[prost(oneof = "replication_spec::DataSource", tags = "1")]
+    pub data_source: ::core::option::Option<replication_spec::DataSource>,
+    /// The destination for replicated objects.
+    #[prost(oneof = "replication_spec::DataSink", tags = "2")]
+    pub data_sink: ::core::option::Option<replication_spec::DataSink>,
+}
+/// Nested message and enum types in `ReplicationSpec`.
+pub mod replication_spec {
+    /// The data source to be replicated.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum DataSource {
+        /// The Cloud Storage bucket from which to replicate objects.
+        #[prost(message, tag = "1")]
+        GcsDataSource(super::GcsData),
+    }
+    /// The destination for replicated objects.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum DataSink {
+        /// The Cloud Storage bucket to which to replicate objects.
+        #[prost(message, tag = "2")]
+        GcsDataSink(super::GcsData),
     }
 }
 /// Specifies the metadata options for running a transfer.
@@ -1438,7 +1521,7 @@ pub struct Schedule {
     /// [schedule_end_date][google.storagetransfer.v1.Schedule.schedule_end_date],
     /// `end_time_of_day` specifies the end date and time for starting new transfer
     /// operations. This field must be greater than or equal to the timestamp
-    /// corresponding to the combintation of
+    /// corresponding to the combination of
     /// [schedule_start_date][google.storagetransfer.v1.Schedule.schedule_start_date]
     /// and
     /// [start_time_of_day][google.storagetransfer.v1.Schedule.start_time_of_day],
@@ -1517,9 +1600,29 @@ pub struct TransferJob {
     /// The ID of the Google Cloud project that owns the job.
     #[prost(string, tag = "3")]
     pub project_id: ::prost::alloc::string::String,
+    /// Optional. The user-managed service account to which to delegate service
+    /// agent permissions. You can grant Cloud Storage bucket permissions to this
+    /// service account instead of to the Transfer Service service agent.
+    ///
+    /// Format is
+    /// `projects/-/serviceAccounts/ACCOUNT_EMAIL_OR_UNIQUEID`
+    ///
+    /// Either the service account email
+    /// (`SERVICE_ACCOUNT_NAME@PROJECT_ID.iam.gserviceaccount.com`) or the unique
+    /// ID (`123456789012345678901`) are accepted in the string. The `-`
+    /// wildcard character is required; replacing it with a project ID is invalid.
+    ///
+    /// See
+    /// <https://cloud.google.com//storage-transfer/docs/delegate-service-agent-permissions>
+    /// for required permissions.
+    #[prost(string, tag = "18")]
+    pub service_account: ::prost::alloc::string::String,
     /// Transfer specification.
     #[prost(message, optional, tag = "4")]
     pub transfer_spec: ::core::option::Option<TransferSpec>,
+    /// Replication specification.
+    #[prost(message, optional, tag = "17")]
+    pub replication_spec: ::core::option::Option<ReplicationSpec>,
     /// Notification configuration.
     #[prost(message, optional, tag = "11")]
     pub notification_config: ::core::option::Option<NotificationConfig>,
@@ -1916,7 +2019,7 @@ pub mod logging_config {
         Find = 1,
         /// Deleting objects at the source or the destination.
         Delete = 2,
-        /// Copying objects to Google Cloud Storage.
+        /// Copying objects to the destination.
         Copy = 3,
     }
     impl LoggableAction {
@@ -1965,6 +2068,10 @@ pub mod logging_config {
         /// `LoggableAction` terminated in an error state. `FAILED` actions are
         /// logged as [ERROR][google.logging.type.LogSeverity.ERROR].
         Failed = 2,
+        /// The `COPY` action was skipped for this file. Only supported for
+        /// agent-based transfers. `SKIPPED` actions are
+        /// logged as [INFO][google.logging.type.LogSeverity.INFO].
+        Skipped = 3,
     }
     impl LoggableActionState {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -1976,6 +2083,7 @@ pub mod logging_config {
                 Self::Unspecified => "LOGGABLE_ACTION_STATE_UNSPECIFIED",
                 Self::Succeeded => "SUCCEEDED",
                 Self::Failed => "FAILED",
+                Self::Skipped => "SKIPPED",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -1984,6 +2092,7 @@ pub mod logging_config {
                 "LOGGABLE_ACTION_STATE_UNSPECIFIED" => Some(Self::Unspecified),
                 "SUCCEEDED" => Some(Self::Succeeded),
                 "FAILED" => Some(Self::Failed),
+                "SKIPPED" => Some(Self::Skipped),
                 _ => None,
             }
         }
@@ -2172,17 +2281,32 @@ pub struct DeleteTransferJobRequest {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListTransferJobsRequest {
     /// Required. A list of query parameters specified as JSON text in the form of:
-    /// `{"projectId":"my_project_id",
-    ///   "jobNames":\["jobid1","jobid2",...\],
-    ///   "jobStatuses":\["status1","status2",...\]}`
     ///
-    /// Since `jobNames` and `jobStatuses` support multiple values, their values
-    /// must be specified with array notation. `projectId` is required.
-    /// `jobNames` and `jobStatuses` are optional.  The valid values for
-    /// `jobStatuses` are case-insensitive:
-    /// [ENABLED][google.storagetransfer.v1.TransferJob.Status.ENABLED],
-    /// [DISABLED][google.storagetransfer.v1.TransferJob.Status.DISABLED], and
-    /// [DELETED][google.storagetransfer.v1.TransferJob.Status.DELETED].
+    /// ```
+    /// {
+    ///    "projectId":"my_project_id",
+    ///    "jobNames":\["jobid1","jobid2",...\],
+    ///    "jobStatuses":\["status1","status2",...\],
+    ///    "dataBackend":"QUERY_REPLICATION_CONFIGS",
+    ///    "sourceBucket":"source-bucket-name",
+    ///    "sinkBucket":"sink-bucket-name",
+    /// }
+    /// ```
+    ///
+    /// The JSON formatting in the example is for display only; provide the
+    /// query parameters without spaces or line breaks.
+    ///
+    /// * `projectId` is required.
+    /// * Since `jobNames` and `jobStatuses` support multiple values, their values
+    ///    must be specified with array notation. `jobNames` and `jobStatuses` are
+    ///    optional. Valid values are case-insensitive:
+    ///      * [ENABLED][google.storagetransfer.v1.TransferJob.Status.ENABLED]
+    ///      * [DISABLED][google.storagetransfer.v1.TransferJob.Status.DISABLED]
+    ///      * [DELETED][google.storagetransfer.v1.TransferJob.Status.DELETED]
+    /// * Specify `"dataBackend":"QUERY_REPLICATION_CONFIGS"` to return a list of
+    ///    cross-bucket replication jobs.
+    /// * Limit the results to jobs from a particular bucket with `sourceBucket`
+    ///    and/or to a particular bucket with `sinkBucket`.
     #[prost(string, tag = "1")]
     pub filter: ::prost::alloc::string::String,
     /// The list page size. The max allowed value is 256.

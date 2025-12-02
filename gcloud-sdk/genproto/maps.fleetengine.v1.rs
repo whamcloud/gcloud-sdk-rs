@@ -34,11 +34,11 @@ pub mod speed_reading_interval {
     pub enum Speed {
         /// Default value. This value is unused.
         Unspecified = 0,
-        /// Normal speed, no slowdown is detected.
+        /// Normal speed, no traffic delays.
         Normal = 1,
-        /// Slowdown detected, but no traffic jam formed.
+        /// Slowdown detected, medium amount of traffic.
         Slow = 2,
-        /// Traffic jam detected.
+        /// Traffic delays.
         TrafficJam = 3,
     }
     impl Speed {
@@ -299,6 +299,21 @@ pub struct VehicleLocation {
     /// Accuracy of `raw_location` as a radius, in meters.
     #[prost(message, optional, tag = "25")]
     pub raw_location_accuracy: ::core::option::Option<f64>,
+    /// The location from Android's Fused Location Provider.
+    #[prost(message, optional, tag = "29")]
+    pub flp_location: ::core::option::Option<
+        super::super::super::google::r#type::LatLng,
+    >,
+    /// Update timestamp of `flp_location`.
+    #[prost(message, optional, tag = "30")]
+    pub flp_update_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Accuracy of `flp_location` in meters as a radius.
+    #[prost(message, optional, tag = "31")]
+    pub flp_latlng_accuracy_meters: ::core::option::Option<f64>,
+    /// Direction the vehicle is moving in degrees, as determined by the Fused
+    /// Location Provider. 0 represents North. The valid range is [0,360).
+    #[prost(message, optional, tag = "32")]
+    pub flp_heading_degrees: ::core::option::Option<i32>,
     /// Supplemental location provided by the integrating app.
     #[prost(message, optional, tag = "18")]
     pub supplemental_location: ::core::option::Option<
@@ -318,6 +333,33 @@ pub struct VehicleLocation {
     #[deprecated]
     #[prost(bool, tag = "26")]
     pub road_snapped: bool,
+}
+/// Describes a trip attribute as a key-value pair. The "key:value" string length
+/// cannot exceed 256 characters.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TripAttribute {
+    /// The attribute's key. Keys may not contain the colon character (:).
+    #[prost(string, tag = "1")]
+    pub key: ::prost::alloc::string::String,
+    /// The attribute's value, can be in string, bool, or double type.
+    #[prost(oneof = "trip_attribute::TripAttributeValue", tags = "2, 3, 4")]
+    pub trip_attribute_value: ::core::option::Option<trip_attribute::TripAttributeValue>,
+}
+/// Nested message and enum types in `TripAttribute`.
+pub mod trip_attribute {
+    /// The attribute's value, can be in string, bool, or double type.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum TripAttributeValue {
+        /// String typed attribute value.
+        #[prost(string, tag = "2")]
+        StringValue(::prost::alloc::string::String),
+        /// Boolean typed attribute value.
+        #[prost(bool, tag = "3")]
+        BoolValue(bool),
+        /// Double typed attribute value.
+        #[prost(double, tag = "4")]
+        NumberValue(f64),
+    }
 }
 /// The type of a trip.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
@@ -861,6 +903,9 @@ pub struct Trip {
     /// interpreted.
     #[prost(enumeration = "TripView", tag = "31")]
     pub view: i32,
+    /// A list of custom Trip attributes. Each attribute must have a unique key.
+    #[prost(message, repeated, tag = "35")]
+    pub attributes: ::prost::alloc::vec::Vec<TripAttribute>,
 }
 /// The actual location where a stop (pickup/dropoff) happened.
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
@@ -1111,10 +1156,11 @@ pub struct GetTripRequest {
     /// If a minimum is unspecified, the route data are always retrieved.
     #[prost(message, optional, tag = "6")]
     pub current_route_segment_version: ::core::option::Option<::prost_types::Timestamp>,
-    /// Indicates the minimum timestamp (exclusive) for which
-    /// `Trip.remaining_waypoints` are retrieved. If they are unchanged since this
-    /// timestamp, the `remaining_waypoints` are not set in the response. If this
-    /// field is unspecified, `remaining_waypoints` is always retrieved.
+    /// Deprecated: `Trip.remaining_waypoints` are always retrieved. Use
+    /// `remaining_waypoints_route_version` to control when
+    /// `Trip.remaining_waypoints.traffic_to_waypoint` and
+    /// `Trip.remaining_waypoints.path_to_waypoint` data are retrieved.
+    #[deprecated]
     #[prost(message, optional, tag = "7")]
     pub remaining_waypoints_version: ::core::option::Option<::prost_types::Timestamp>,
     /// The returned current route format, `LAT_LNG_LIST_TYPE` (in `Trip.route`),
@@ -1142,6 +1188,19 @@ pub struct GetTripRequest {
     pub remaining_waypoints_route_version: ::core::option::Option<
         ::prost_types::Timestamp,
     >,
+}
+/// DeleteTrip request message.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteTripRequest {
+    /// Optional. The standard Fleet Engine request header.
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<RequestHeader>,
+    /// Required. Must be in the format `providers/{provider}/trips/{trip}`.
+    /// The provider must be the Project ID (for example, `sample-cloud-project`)
+    /// of the Google Cloud Project of which the service account making
+    /// this call is a member.
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
 }
 /// ReportBillableTrip request message.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1466,6 +1525,33 @@ pub mod trip_service_client {
                 .insert(GrpcMethod::new("maps.fleetengine.v1.TripService", "GetTrip"));
             self.inner.unary(req, path, codec).await
         }
+        /// Deletes a single Trip.
+        ///
+        /// Returns FAILED_PRECONDITION if the Trip is active and assigned to a
+        /// vehicle.
+        pub async fn delete_trip(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteTripRequest>,
+        ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/maps.fleetengine.v1.TripService/DeleteTrip",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("maps.fleetengine.v1.TripService", "DeleteTrip"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
         /// Report billable trip usage.
         pub async fn report_billable_trip(
             &mut self,
@@ -1566,6 +1652,13 @@ pub struct Vehicle {
     /// Last reported location of the vehicle.
     #[prost(message, optional, tag = "5")]
     pub last_location: ::core::option::Option<VehicleLocation>,
+    /// Input only. Locations where this vehicle has been in the past that haven't
+    /// yet been reported to Fleet Engine. This is used in `UpdateVehicleRequest`
+    /// to record locations which were previously unable to be sent to the server.
+    /// Typically this happens when the vehicle does not have internet
+    /// connectivity.
+    #[prost(message, repeated, tag = "30")]
+    pub past_locations: ::prost::alloc::vec::Vec<VehicleLocation>,
     /// The total numbers of riders this vehicle can carry.  The driver is not
     /// considered in this value. This value must be greater than or equal to one.
     #[prost(int32, tag = "6")]
@@ -2126,6 +2219,20 @@ pub struct GetVehicleRequest {
     /// unspecified, `vehicle.waypoints` is always retrieved.
     #[prost(message, optional, tag = "5")]
     pub waypoints_version: ::core::option::Option<::prost_types::Timestamp>,
+}
+/// DeleteVehicle request message.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteVehicleRequest {
+    /// Optional. The standard Fleet Engine request header.
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<RequestHeader>,
+    /// Required. Must be in the format
+    /// `providers/{provider}/vehicles/{vehicle}`.
+    /// The {provider} must be the Project ID (for example, `sample-cloud-project`)
+    /// of the Google Cloud Project of which the service account making
+    /// this call is a member.
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
 }
 /// `UpdateVehicle request message.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -2698,13 +2805,12 @@ pub struct VehicleMatch {
     /// Type of the vehicle match.
     #[prost(enumeration = "vehicle_match::VehicleMatchType", tag = "8")]
     pub vehicle_match_type: i32,
-    /// The order requested for sorting vehicle matches.
+    /// The order requested for sorting vehicle matches. Equivalent to
+    /// `ordered_by`.
     #[prost(enumeration = "search_vehicles_request::VehicleMatchOrder", tag = "9")]
     pub requested_ordered_by: i32,
-    /// The actual order that was used for this vehicle. Normally this
-    /// will match the 'order_by' field from the request; however, in certain
-    /// circumstances such as an internal server error, a different method
-    /// may be used (such as `PICKUP_POINT_STRAIGHT_DISTANCE`).
+    /// The order requested for sorting vehicle matches. Equivalent to
+    /// `requested_ordered_by`.
     #[prost(enumeration = "search_vehicles_request::VehicleMatchOrder", tag = "10")]
     pub ordered_by: i32,
 }
@@ -2941,6 +3047,36 @@ pub mod vehicle_service_client {
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new("maps.fleetengine.v1.VehicleService", "GetVehicle"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Deletes a Vehicle from the Fleet Engine.
+        ///
+        /// Returns FAILED_PRECONDITION if the Vehicle has active Trips.
+        /// assigned to it.
+        pub async fn delete_vehicle(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteVehicleRequest>,
+        ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/maps.fleetengine.v1.VehicleService/DeleteVehicle",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "maps.fleetengine.v1.VehicleService",
+                        "DeleteVehicle",
+                    ),
                 );
             self.inner.unary(req, path, codec).await
         }
