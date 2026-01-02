@@ -409,27 +409,17 @@ pub struct ExplicitDecodingConfig {
     /// Required. Encoding of the audio data sent for recognition.
     #[prost(enumeration = "explicit_decoding_config::AudioEncoding", tag = "1")]
     pub encoding: i32,
-    /// Sample rate in Hertz of the audio data sent for recognition. Valid
-    /// values are: 8000-48000. 16000 is optimal. For best results, set the
-    /// sampling rate of the audio source to 16000 Hz. If that's not possible, use
-    /// the native sample rate of the audio source (instead of re-sampling).
-    /// Supported for the following encodings:
-    ///
-    /// * LINEAR16: Headerless 16-bit signed little-endian PCM samples.
-    ///
-    /// * MULAW: Headerless 8-bit companded mulaw samples.
-    ///
-    /// * ALAW: Headerless 8-bit companded alaw samples.
+    /// Optional. Sample rate in Hertz of the audio data sent for recognition.
+    /// Valid values are: 8000-48000, and 16000 is optimal. For best results, set
+    /// the sampling rate of the audio source to 16000 Hz. If that's not possible,
+    /// use the native sample rate of the audio source (instead of resampling).
+    /// Note that this field is marked as OPTIONAL for backward compatibility
+    /// reasons. It is (and has always been) effectively REQUIRED.
     #[prost(int32, tag = "2")]
     pub sample_rate_hertz: i32,
-    /// Number of channels present in the audio data sent for recognition.
-    /// Supported for the following encodings:
-    ///
-    /// * LINEAR16: Headerless 16-bit signed little-endian PCM samples.
-    ///
-    /// * MULAW: Headerless 8-bit companded mulaw samples.
-    ///
-    /// * ALAW: Headerless 8-bit companded alaw samples.
+    /// Optional. Number of channels present in the audio data sent for
+    /// recognition. Note that this field is marked as OPTIONAL for backward
+    /// compatibility reasons. It is (and has always been) effectively REQUIRED.
     ///
     /// The maximum allowed value is 8.
     #[prost(int32, tag = "3")]
@@ -459,6 +449,24 @@ pub mod explicit_decoding_config {
         Mulaw = 2,
         /// Headerless 8-bit companded alaw samples.
         Alaw = 3,
+        /// AMR frames with an rfc4867.5 header.
+        Amr = 4,
+        /// AMR-WB frames with an rfc4867.5 header.
+        AmrWb = 5,
+        /// FLAC frames in the "native FLAC" container format.
+        Flac = 6,
+        /// MPEG audio frames with optional (ignored) ID3 metadata.
+        Mp3 = 7,
+        /// Opus audio frames in an Ogg container.
+        OggOpus = 8,
+        /// Opus audio frames in a WebM container.
+        WebmOpus = 9,
+        /// AAC audio frames in an MP4 container.
+        Mp4Aac = 10,
+        /// AAC audio frames in an M4A container.
+        M4aAac = 11,
+        /// AAC audio frames in an MOV container.
+        MovAac = 12,
     }
     impl AudioEncoding {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -471,6 +479,15 @@ pub mod explicit_decoding_config {
                 Self::Linear16 => "LINEAR16",
                 Self::Mulaw => "MULAW",
                 Self::Alaw => "ALAW",
+                Self::Amr => "AMR",
+                Self::AmrWb => "AMR_WB",
+                Self::Flac => "FLAC",
+                Self::Mp3 => "MP3",
+                Self::OggOpus => "OGG_OPUS",
+                Self::WebmOpus => "WEBM_OPUS",
+                Self::Mp4Aac => "MP4_AAC",
+                Self::M4aAac => "M4A_AAC",
+                Self::MovAac => "MOV_AAC",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -480,6 +497,15 @@ pub mod explicit_decoding_config {
                 "LINEAR16" => Some(Self::Linear16),
                 "MULAW" => Some(Self::Mulaw),
                 "ALAW" => Some(Self::Alaw),
+                "AMR" => Some(Self::Amr),
+                "AMR_WB" => Some(Self::AmrWb),
+                "FLAC" => Some(Self::Flac),
+                "MP3" => Some(Self::Mp3),
+                "OGG_OPUS" => Some(Self::OggOpus),
+                "WEBM_OPUS" => Some(Self::WebmOpus),
+                "MP4_AAC" => Some(Self::Mp4Aac),
+                "M4A_AAC" => Some(Self::M4aAac),
+                "MOV_AAC" => Some(Self::MovAac),
                 _ => None,
             }
         }
@@ -681,6 +707,22 @@ pub mod speech_adaptation {
         }
     }
 }
+/// Denoiser config. May not be supported for all models and may
+/// have no effect.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct DenoiserConfig {
+    /// Denoise audio before sending to the transcription model.
+    #[prost(bool, tag = "1")]
+    pub denoise_audio: bool,
+    /// Signal-to-Noise Ratio (SNR) threshold for the denoiser. Here SNR means the
+    /// loudness of the speech signal. Audio with an SNR below this threshold,
+    /// meaning the speech is too quiet, will be prevented from being sent to the
+    /// transcription model.
+    ///
+    /// If snr_threshold=0, no filtering will be applied.
+    #[prost(float, tag = "2")]
+    pub snr_threshold: f32,
+}
 /// Provides information to the Recognizer that specifies how to process the
 /// recognition request.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -726,6 +768,10 @@ pub struct RecognitionConfig {
     /// the given audio to the desired language for supported models.
     #[prost(message, optional, tag = "15")]
     pub translation_config: ::core::option::Option<TranslationConfig>,
+    /// Optional. Optional denoiser config. May not be supported for all models
+    /// and may have no effect.
+    #[prost(message, optional, tag = "16")]
+    pub denoiser_config: ::core::option::Option<DenoiserConfig>,
     /// Decoding parameters for audio being sent for recognition.
     #[prost(oneof = "recognition_config::DecodingConfig", tags = "7, 8")]
     pub decoding_config: ::core::option::Option<recognition_config::DecodingConfig>,
@@ -1151,16 +1197,16 @@ pub struct SrtOutputFileFormatConfig {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct OutputFormatConfig {
     /// Configuration for the native output format. If this field is set or if no
-    /// other output format field is set then transcripts will be written to the
+    /// other output format field is set, then transcripts will be written to the
     /// sink in the native format.
     #[prost(message, optional, tag = "1")]
     pub native: ::core::option::Option<NativeOutputFileFormatConfig>,
-    /// Configuration for the vtt output format. If this field is set then
-    /// transcripts will be written to the sink in the vtt format.
+    /// Configuration for the VTT output format. If this field is set, then
+    /// transcripts will be written to the sink in the VTT format.
     #[prost(message, optional, tag = "2")]
     pub vtt: ::core::option::Option<VttOutputFileFormatConfig>,
-    /// Configuration for the srt output format. If this field is set then
-    /// transcripts will be written to the sink in the srt format.
+    /// Configuration for the SRT output format. If this field is set, then
+    /// transcripts will be written to the sink in the SRT format.
     #[prost(message, optional, tag = "3")]
     pub srt: ::core::option::Option<SrtOutputFileFormatConfig>,
 }
@@ -2819,7 +2865,7 @@ pub mod speech_client {
         }
     }
 }
-/// Representes a singular feature of a model. If the feature is `recognizer`,
+/// Represents a singular feature of a model. If the feature is `recognizer`,
 /// the release_state of the feature represents the release_state of the model
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ModelFeature {

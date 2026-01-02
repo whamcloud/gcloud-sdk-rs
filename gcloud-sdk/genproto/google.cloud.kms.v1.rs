@@ -98,7 +98,7 @@ pub struct CryptoKey {
     /// where all related cryptographic operations are performed. Only applicable
     /// if [CryptoKeyVersions][google.cloud.kms.v1.CryptoKeyVersion] have a
     /// [ProtectionLevel][google.cloud.kms.v1.ProtectionLevel] of
-    /// [EXTERNAL_VPC][CryptoKeyVersion.ProtectionLevel.EXTERNAL_VPC], with the
+    /// [EXTERNAL_VPC][google.cloud.kms.v1.ProtectionLevel.EXTERNAL_VPC], with the
     /// resource name in the format `projects/*/locations/*/ekmConnections/*`.
     /// Note, this list is non-exhaustive and may apply to additional
     /// [ProtectionLevels][google.cloud.kms.v1.ProtectionLevel] in the future.
@@ -167,6 +167,11 @@ pub mod crypto_key {
         /// [CryptoKeys][google.cloud.kms.v1.CryptoKey] with this purpose may be used
         /// with [MacSign][google.cloud.kms.v1.KeyManagementService.MacSign].
         Mac = 9,
+        /// [CryptoKeys][google.cloud.kms.v1.CryptoKey] with this purpose may be used
+        /// with
+        /// [GetPublicKey][google.cloud.kms.v1.KeyManagementService.GetPublicKey]
+        /// and [Decapsulate][google.cloud.kms.v1.KeyManagementService.Decapsulate].
+        KeyEncapsulation = 10,
     }
     impl CryptoKeyPurpose {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -181,6 +186,7 @@ pub mod crypto_key {
                 Self::AsymmetricDecrypt => "ASYMMETRIC_DECRYPT",
                 Self::RawEncryptDecrypt => "RAW_ENCRYPT_DECRYPT",
                 Self::Mac => "MAC",
+                Self::KeyEncapsulation => "KEY_ENCAPSULATION",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -192,6 +198,7 @@ pub mod crypto_key {
                 "ASYMMETRIC_DECRYPT" => Some(Self::AsymmetricDecrypt),
                 "RAW_ENCRYPT_DECRYPT" => Some(Self::RawEncryptDecrypt),
                 "MAC" => Some(Self::Mac),
+                "KEY_ENCAPSULATION" => Some(Self::KeyEncapsulation),
                 _ => None,
             }
         }
@@ -574,6 +581,19 @@ pub mod crypto_key_version {
         HmacSha224 = 36,
         /// Algorithm representing symmetric encryption by an external key manager.
         ExternalSymmetricEncryption = 18,
+        /// ML-KEM-768 (FIPS 203)
+        MlKem768 = 47,
+        /// ML-KEM-1024 (FIPS 203)
+        MlKem1024 = 48,
+        /// X-Wing hybrid KEM combining ML-KEM-768 with X25519 following
+        /// datatracker.ietf.org/doc/draft-connolly-cfrg-xwing-kem/.
+        KemXwing = 63,
+        /// The post-quantum Module-Lattice-Based Digital Signature Algorithm, at
+        /// security level 3. Randomized version.
+        PqSignMlDsa65 = 56,
+        /// The post-quantum stateless hash-based digital signature algorithm, at
+        /// security level 1. Randomized version.
+        PqSignSlhDsaSha2128s = 57,
     }
     impl CryptoKeyVersionAlgorithm {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -618,6 +638,11 @@ pub mod crypto_key_version {
                 Self::HmacSha512 => "HMAC_SHA512",
                 Self::HmacSha224 => "HMAC_SHA224",
                 Self::ExternalSymmetricEncryption => "EXTERNAL_SYMMETRIC_ENCRYPTION",
+                Self::MlKem768 => "ML_KEM_768",
+                Self::MlKem1024 => "ML_KEM_1024",
+                Self::KemXwing => "KEM_XWING",
+                Self::PqSignMlDsa65 => "PQ_SIGN_ML_DSA_65",
+                Self::PqSignSlhDsaSha2128s => "PQ_SIGN_SLH_DSA_SHA2_128S",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -661,6 +686,11 @@ pub mod crypto_key_version {
                 "EXTERNAL_SYMMETRIC_ENCRYPTION" => {
                     Some(Self::ExternalSymmetricEncryption)
                 }
+                "ML_KEM_768" => Some(Self::MlKem768),
+                "ML_KEM_1024" => Some(Self::MlKem1024),
+                "KEM_XWING" => Some(Self::KemXwing),
+                "PQ_SIGN_ML_DSA_65" => Some(Self::PqSignMlDsa65),
+                "PQ_SIGN_SLH_DSA_SHA2_128S" => Some(Self::PqSignSlhDsaSha2128s),
                 _ => None,
             }
         }
@@ -695,7 +725,7 @@ pub mod crypto_key_version {
         /// [ENABLED][google.cloud.kms.v1.CryptoKeyVersion.CryptoKeyVersionState.ENABLED]
         /// state.
         Disabled = 2,
-        /// This version is destroyed, and the key material is no longer stored.
+        /// The key material of this version is destroyed and no longer stored.
         /// This version may only become
         /// [ENABLED][google.cloud.kms.v1.CryptoKeyVersion.CryptoKeyVersionState.ENABLED]
         /// again if this version is
@@ -824,6 +854,29 @@ pub mod crypto_key_version {
         }
     }
 }
+/// Data with integrity verification field.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ChecksummedData {
+    /// Raw Data.
+    #[prost(bytes = "vec", tag = "3")]
+    pub data: ::prost::alloc::vec::Vec<u8>,
+    /// Integrity verification field. A CRC32C
+    /// checksum of the returned
+    /// [ChecksummedData.data][google.cloud.kms.v1.ChecksummedData.data]. An
+    /// integrity check of
+    /// [ChecksummedData.data][google.cloud.kms.v1.ChecksummedData.data] can be
+    /// performed by computing the CRC32C checksum of
+    /// [ChecksummedData.data][google.cloud.kms.v1.ChecksummedData.data] and
+    /// comparing your results to this field. Discard the response in case of
+    /// non-matching checksum values, and perform a limited number of retries. A
+    /// persistent mismatch may indicate an issue in your computation of the CRC32C
+    /// checksum. Note: This field is defined as int64 for reasons of compatibility
+    /// across different languages. However, it is a non-negative integer, which
+    /// will never exceed `2^32-1`, and can be safely downconverted to uint32 in
+    /// languages that support this type.
+    #[prost(message, optional, tag = "2")]
+    pub crc32c_checksum: ::core::option::Option<i64>,
+}
 /// The public keys for a given
 /// [CryptoKeyVersion][google.cloud.kms.v1.CryptoKeyVersion]. Obtained via
 /// [GetPublicKey][google.cloud.kms.v1.KeyManagementService.GetPublicKey].
@@ -851,8 +904,8 @@ pub struct PublicKey {
     /// mismatch may indicate an issue in your computation of the CRC32C checksum.
     /// Note: This field is defined as int64 for reasons of compatibility across
     /// different languages. However, it is a non-negative integer, which will
-    /// never exceed 2^32-1, and can be safely downconverted to uint32 in languages
-    /// that support this type.
+    /// never exceed `2^32-1`, and can be safely downconverted to uint32 in
+    /// languages that support this type.
     ///
     /// NOTE: This field is in Beta.
     #[prost(message, optional, tag = "3")]
@@ -868,6 +921,88 @@ pub struct PublicKey {
     /// [CryptoKeyVersion][google.cloud.kms.v1.CryptoKeyVersion] public key.
     #[prost(enumeration = "ProtectionLevel", tag = "5")]
     pub protection_level: i32,
+    /// The [PublicKey][google.cloud.kms.v1.PublicKey] format specified by the
+    /// customer through the
+    /// [public_key_format][google.cloud.kms.v1.GetPublicKeyRequest.public_key_format]
+    /// field.
+    #[prost(enumeration = "public_key::PublicKeyFormat", tag = "7")]
+    pub public_key_format: i32,
+    /// This field contains the public key (with integrity verification), formatted
+    /// according to the
+    /// [public_key_format][google.cloud.kms.v1.PublicKey.public_key_format] field.
+    #[prost(message, optional, tag = "8")]
+    pub public_key: ::core::option::Option<ChecksummedData>,
+}
+/// Nested message and enum types in `PublicKey`.
+pub mod public_key {
+    /// The supported [PublicKey][google.cloud.kms.v1.PublicKey] formats.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum PublicKeyFormat {
+        /// If the
+        /// [public_key_format][google.cloud.kms.v1.GetPublicKeyRequest.public_key_format]
+        /// field is not specified:
+        /// - For PQC algorithms, an error will be returned.
+        /// - For non-PQC algorithms, the default format is PEM, and the field
+        ///    [pem][google.cloud.kms.v1.PublicKey.pem] will be populated.
+        ///
+        /// Otherwise, the public key will be exported through the
+        /// [public_key][google.cloud.kms.v1.PublicKey.public_key] field in the
+        /// requested format.
+        Unspecified = 0,
+        /// The returned public key will be encoded in PEM format.
+        /// See the [RFC7468](<https://tools.ietf.org/html/rfc7468>) sections for
+        /// [General Considerations](<https://tools.ietf.org/html/rfc7468#section-2>)
+        /// and \[Textual Encoding of Subject Public Key Info\]
+        /// (<https://tools.ietf.org/html/rfc7468#section-13>) for more information.
+        Pem = 1,
+        /// The returned public key will be encoded in DER format (the
+        /// PrivateKeyInfo structure from RFC 5208).
+        Der = 2,
+        /// This is supported only for PQC algorithms.
+        /// The key material is returned in the format defined by NIST PQC
+        /// standards (FIPS 203, FIPS 204, and FIPS 205).
+        NistPqc = 3,
+        /// The returned public key is in raw bytes format defined in its standard
+        /// <https://datatracker.ietf.org/doc/draft-connolly-cfrg-xwing-kem.>
+        XwingRawBytes = 4,
+    }
+    impl PublicKeyFormat {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "PUBLIC_KEY_FORMAT_UNSPECIFIED",
+                Self::Pem => "PEM",
+                Self::Der => "DER",
+                Self::NistPqc => "NIST_PQC",
+                Self::XwingRawBytes => "XWING_RAW_BYTES",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "PUBLIC_KEY_FORMAT_UNSPECIFIED" => Some(Self::Unspecified),
+                "PEM" => Some(Self::Pem),
+                "DER" => Some(Self::Der),
+                "NIST_PQC" => Some(Self::NistPqc),
+                "XWING_RAW_BYTES" => Some(Self::XwingRawBytes),
+                _ => None,
+            }
+        }
+    }
 }
 /// An [ImportJob][google.cloud.kms.v1.ImportJob] can be used to create
 /// [CryptoKeys][google.cloud.kms.v1.CryptoKey] and
@@ -1520,9 +1655,9 @@ pub mod autokey_client {
         /// Creates a new [KeyHandle][google.cloud.kms.v1.KeyHandle], triggering the
         /// provisioning of a new [CryptoKey][google.cloud.kms.v1.CryptoKey] for CMEK
         /// use with the given resource type in the configured key project and the same
-        /// location. [GetOperation][Operations.GetOperation] should be used to resolve
-        /// the resulting long-running operation and get the resulting
-        /// [KeyHandle][google.cloud.kms.v1.KeyHandle] and
+        /// location. [GetOperation][google.longrunning.Operations.GetOperation] should
+        /// be used to resolve the resulting long-running operation and get the
+        /// resulting [KeyHandle][google.cloud.kms.v1.KeyHandle] and
         /// [CryptoKey][google.cloud.kms.v1.CryptoKey].
         pub async fn create_key_handle(
             &mut self,
@@ -1647,6 +1782,12 @@ pub struct AutokeyConfig {
     /// Output only. The state for the AutokeyConfig.
     #[prost(enumeration = "autokey_config::State", tag = "4")]
     pub state: i32,
+    /// Optional. A checksum computed by the server based on the value of other
+    /// fields. This may be sent on update requests to ensure that the client has
+    /// an up-to-date value before proceeding. The request will be rejected with an
+    /// ABORTED error on a mismatched etag.
+    #[prost(string, tag = "6")]
+    pub etag: ::prost::alloc::string::String,
 }
 /// Nested message and enum types in `AutokeyConfig`.
 pub mod autokey_config {
@@ -1960,6 +2101,10 @@ pub struct ListEkmConnectionsResponse {
     pub next_page_token: ::prost::alloc::string::String,
     /// The total number of [EkmConnections][google.cloud.kms.v1.EkmConnection]
     /// that matched the query.
+    ///
+    /// This field is not populated if
+    /// [ListEkmConnectionsRequest.filter][google.cloud.kms.v1.ListEkmConnectionsRequest.filter]
+    /// is applied.
     #[prost(int32, tag = "3")]
     pub total_size: i32,
 }
@@ -2068,7 +2213,7 @@ pub struct Certificate {
 /// [CryptoKeys][google.cloud.kms.v1.CryptoKey] and
 /// [CryptoKeyVersions][google.cloud.kms.v1.CryptoKeyVersion] with a
 /// [ProtectionLevel][google.cloud.kms.v1.ProtectionLevel] of
-/// [EXTERNAL_VPC][CryptoKeyVersion.ProtectionLevel.EXTERNAL_VPC], as well as
+/// [EXTERNAL_VPC][google.cloud.kms.v1.ProtectionLevel.EXTERNAL_VPC], as well as
 /// performing cryptographic operations using keys created within the
 /// [EkmConnection][google.cloud.kms.v1.EkmConnection].
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -2171,6 +2316,7 @@ pub mod ekm_connection {
         /// All [CryptoKeys][google.cloud.kms.v1.CryptoKey] created with this
         /// [EkmConnection][google.cloud.kms.v1.EkmConnection] use EKM-side key
         /// management operations initiated from Cloud KMS. This means that:
+        ///
         /// * When a [CryptoKeyVersion][google.cloud.kms.v1.CryptoKeyVersion]
         /// associated with this [EkmConnection][google.cloud.kms.v1.EkmConnection]
         /// is
@@ -2179,7 +2325,8 @@ pub mod ekm_connection {
         ///    external key material.
         /// * Destruction of external key material associated with this
         ///    [EkmConnection][google.cloud.kms.v1.EkmConnection] can be requested by
-        ///    calling [DestroyCryptoKeyVersion][EkmService.DestroyCryptoKeyVersion].
+        ///    calling
+        ///    [DestroyCryptoKeyVersion][google.cloud.kms.v1.KeyManagementService.DestroyCryptoKeyVersion].
         /// * Automatic rotation of key material is supported.
         CloudKms = 2,
     }
@@ -2211,7 +2358,7 @@ pub mod ekm_connection {
 /// [CryptoKeys][google.cloud.kms.v1.CryptoKey] and
 /// [CryptoKeyVersions][google.cloud.kms.v1.CryptoKeyVersion] with a
 /// [ProtectionLevel][google.cloud.kms.v1.ProtectionLevel] of
-/// [EXTERNAL_VPC][CryptoKeyVersion.ProtectionLevel.EXTERNAL_VPC] in a given
+/// [EXTERNAL_VPC][google.cloud.kms.v1.ProtectionLevel.EXTERNAL_VPC] in a given
 /// project and location.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct EkmConfig {
@@ -2689,6 +2836,10 @@ pub struct ListKeyRingsResponse {
     pub next_page_token: ::prost::alloc::string::String,
     /// The total number of [KeyRings][google.cloud.kms.v1.KeyRing] that matched
     /// the query.
+    ///
+    /// This field is not populated if
+    /// [ListKeyRingsRequest.filter][google.cloud.kms.v1.ListKeyRingsRequest.filter]
+    /// is applied.
     #[prost(int32, tag = "3")]
     pub total_size: i32,
 }
@@ -2706,6 +2857,10 @@ pub struct ListCryptoKeysResponse {
     pub next_page_token: ::prost::alloc::string::String,
     /// The total number of [CryptoKeys][google.cloud.kms.v1.CryptoKey] that
     /// matched the query.
+    ///
+    /// This field is not populated if
+    /// [ListCryptoKeysRequest.filter][google.cloud.kms.v1.ListCryptoKeysRequest.filter]
+    /// is applied.
     #[prost(int32, tag = "3")]
     pub total_size: i32,
 }
@@ -2724,6 +2879,10 @@ pub struct ListCryptoKeyVersionsResponse {
     /// The total number of
     /// [CryptoKeyVersions][google.cloud.kms.v1.CryptoKeyVersion] that matched the
     /// query.
+    ///
+    /// This field is not populated if
+    /// [ListCryptoKeyVersionsRequest.filter][google.cloud.kms.v1.ListCryptoKeyVersionsRequest.filter]
+    /// is applied.
     #[prost(int32, tag = "3")]
     pub total_size: i32,
 }
@@ -2741,6 +2900,10 @@ pub struct ListImportJobsResponse {
     pub next_page_token: ::prost::alloc::string::String,
     /// The total number of [ImportJobs][google.cloud.kms.v1.ImportJob] that
     /// matched the query.
+    ///
+    /// This field is not populated if
+    /// [ListImportJobsRequest.filter][google.cloud.kms.v1.ListImportJobsRequest.filter]
+    /// is applied.
     #[prost(int32, tag = "3")]
     pub total_size: i32,
 }
@@ -2779,6 +2942,15 @@ pub struct GetPublicKeyRequest {
     /// [CryptoKeyVersion][google.cloud.kms.v1.CryptoKeyVersion] public key to get.
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
+    /// Optional. The [PublicKey][google.cloud.kms.v1.PublicKey] format specified
+    /// by the user. This field is required for PQC algorithms. If specified, the
+    /// public key will be exported through the
+    /// [public_key][google.cloud.kms.v1.PublicKey.public_key] field in the
+    /// requested format. Otherwise, the [pem][google.cloud.kms.v1.PublicKey.pem]
+    /// field will be populated for non-PQC algorithms, and an error will be
+    /// returned for PQC algorithms.
+    #[prost(enumeration = "public_key::PublicKeyFormat", tag = "2")]
+    pub public_key_format: i32,
 }
 /// Request message for
 /// [KeyManagementService.GetImportJob][google.cloud.kms.v1.KeyManagementService.GetImportJob].
@@ -2871,7 +3043,9 @@ pub struct ImportCryptoKeyVersionRequest {
     /// [CryptoKeyVersion][google.cloud.kms.v1.CryptoKeyVersion], the
     /// [CryptoKeyVersion][google.cloud.kms.v1.CryptoKeyVersion] must be a child of
     /// [ImportCryptoKeyVersionRequest.parent][google.cloud.kms.v1.ImportCryptoKeyVersionRequest.parent],
-    /// have been previously created via [ImportCryptoKeyVersion][], and be in
+    /// have been previously created via
+    /// [ImportCryptoKeyVersion][google.cloud.kms.v1.KeyManagementService.ImportCryptoKeyVersion],
+    /// and be in
     /// [DESTROYED][google.cloud.kms.v1.CryptoKeyVersion.CryptoKeyVersionState.DESTROYED]
     /// or
     /// [IMPORT_FAILED][google.cloud.kms.v1.CryptoKeyVersion.CryptoKeyVersionState.IMPORT_FAILED]
@@ -3447,7 +3621,8 @@ pub struct MacVerifyRequest {
     /// checksum. [KeyManagementService][google.cloud.kms.v1.KeyManagementService]
     /// will report an error if the checksum verification fails. If you receive a
     /// checksum error, your client should verify that
-    /// CRC32C([MacVerifyRequest.tag][]) is equal to
+    /// CRC32C([MacVerifyRequest.mac][google.cloud.kms.v1.MacVerifyRequest.mac]) is
+    /// equal to
     /// [MacVerifyRequest.mac_crc32c][google.cloud.kms.v1.MacVerifyRequest.mac_crc32c],
     /// and if so, perform a limited number of retries. A persistent mismatch may
     /// indicate an issue in your computation of the CRC32C checksum. Note: This
@@ -3457,6 +3632,42 @@ pub struct MacVerifyRequest {
     /// this type.
     #[prost(message, optional, tag = "5")]
     pub mac_crc32c: ::core::option::Option<i64>,
+}
+/// Request message for
+/// [KeyManagementService.Decapsulate][google.cloud.kms.v1.KeyManagementService.Decapsulate].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DecapsulateRequest {
+    /// Required. The resource name of the
+    /// [CryptoKeyVersion][google.cloud.kms.v1.CryptoKeyVersion] to use for
+    /// decapsulation.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Required. The ciphertext produced from encapsulation with the
+    /// named [CryptoKeyVersion][google.cloud.kms.v1.CryptoKeyVersion] public
+    /// key(s).
+    #[prost(bytes = "vec", tag = "2")]
+    pub ciphertext: ::prost::alloc::vec::Vec<u8>,
+    /// Optional. A CRC32C checksum of the
+    /// [DecapsulateRequest.ciphertext][google.cloud.kms.v1.DecapsulateRequest.ciphertext].
+    /// If specified,
+    /// [KeyManagementService][google.cloud.kms.v1.KeyManagementService] will
+    /// verify the integrity of the received
+    /// [DecapsulateRequest.ciphertext][google.cloud.kms.v1.DecapsulateRequest.ciphertext]
+    /// using this checksum.
+    /// [KeyManagementService][google.cloud.kms.v1.KeyManagementService] will
+    /// report an error if the checksum verification fails. If you receive a
+    /// checksum error, your client should verify that
+    /// CRC32C([DecapsulateRequest.ciphertext][google.cloud.kms.v1.DecapsulateRequest.ciphertext])
+    /// is equal to
+    /// [DecapsulateRequest.ciphertext_crc32c][google.cloud.kms.v1.DecapsulateRequest.ciphertext_crc32c],
+    /// and if so, perform a limited number of retries. A persistent mismatch may
+    /// indicate an issue in your computation of the CRC32C checksum. Note: This
+    /// field is defined as int64 for reasons of compatibility across different
+    /// languages. However, it is a non-negative integer, which will never exceed
+    /// 2^32-1, and can be safely downconverted to uint32 in languages that support
+    /// this type.
+    #[prost(message, optional, tag = "3")]
+    pub ciphertext_crc32c: ::core::option::Option<i64>,
 }
 /// Request message for
 /// [KeyManagementService.GenerateRandomBytes][google.cloud.kms.v1.KeyManagementService.GenerateRandomBytes].
@@ -3932,6 +4143,61 @@ pub struct MacVerifyResponse {
     /// [CryptoKeyVersion][google.cloud.kms.v1.CryptoKeyVersion] used for
     /// verification.
     #[prost(enumeration = "ProtectionLevel", tag = "6")]
+    pub protection_level: i32,
+}
+/// Response message for
+/// [KeyManagementService.Decapsulate][google.cloud.kms.v1.KeyManagementService.Decapsulate].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DecapsulateResponse {
+    /// The resource name of the
+    /// [CryptoKeyVersion][google.cloud.kms.v1.CryptoKeyVersion] used for
+    /// decapsulation. Check this field to verify that the intended resource was
+    /// used for decapsulation.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// The decapsulated shared_secret originally encapsulated with the matching
+    /// public key.
+    #[prost(bytes = "vec", tag = "2")]
+    pub shared_secret: ::prost::alloc::vec::Vec<u8>,
+    /// Integrity verification field. A CRC32C checksum of the returned
+    /// [DecapsulateResponse.shared_secret][google.cloud.kms.v1.DecapsulateResponse.shared_secret].
+    /// An integrity check of
+    /// [DecapsulateResponse.shared_secret][google.cloud.kms.v1.DecapsulateResponse.shared_secret]
+    /// can be performed by computing the CRC32C checksum of
+    /// [DecapsulateResponse.shared_secret][google.cloud.kms.v1.DecapsulateResponse.shared_secret]
+    /// and comparing your results to this field. Discard the response in case of
+    /// non-matching checksum values, and perform a limited number of retries. A
+    /// persistent mismatch may indicate an issue in your computation of the CRC32C
+    /// checksum. Note: receiving this response message indicates that
+    /// [KeyManagementService][google.cloud.kms.v1.KeyManagementService] is able to
+    /// successfully decrypt the
+    /// [ciphertext][google.cloud.kms.v1.DecapsulateRequest.ciphertext]. Note: This
+    /// field is defined as int64 for reasons of compatibility across different
+    /// languages. However, it is a non-negative integer, which will never exceed
+    /// 2^32-1, and can be safely downconverted to uint32 in languages that support
+    /// this type.
+    #[prost(int64, optional, tag = "3")]
+    pub shared_secret_crc32c: ::core::option::Option<i64>,
+    /// Integrity verification field. A flag indicating whether
+    /// [DecapsulateRequest.ciphertext_crc32c][google.cloud.kms.v1.DecapsulateRequest.ciphertext_crc32c]
+    /// was received by
+    /// [KeyManagementService][google.cloud.kms.v1.KeyManagementService] and used
+    /// for the integrity verification of the
+    /// [ciphertext][google.cloud.kms.v1.DecapsulateRequest.ciphertext]. A false
+    /// value of this field indicates either that
+    /// [DecapsulateRequest.ciphertext_crc32c][google.cloud.kms.v1.DecapsulateRequest.ciphertext_crc32c]
+    /// was left unset or that it was not delivered to
+    /// [KeyManagementService][google.cloud.kms.v1.KeyManagementService]. If you've
+    /// set
+    /// [DecapsulateRequest.ciphertext_crc32c][google.cloud.kms.v1.DecapsulateRequest.ciphertext_crc32c]
+    /// but this field is still false, discard the response and perform a limited
+    /// number of retries.
+    #[prost(bool, tag = "4")]
+    pub verified_ciphertext_crc32c: bool,
+    /// The [ProtectionLevel][google.cloud.kms.v1.ProtectionLevel] of the
+    /// [CryptoKeyVersion][google.cloud.kms.v1.CryptoKeyVersion] used in
+    /// decapsulation.
+    #[prost(enumeration = "ProtectionLevel", tag = "5")]
     pub protection_level: i32,
 }
 /// Response message for
@@ -4980,6 +5246,40 @@ pub mod key_management_service_client {
                     GrpcMethod::new(
                         "google.cloud.kms.v1.KeyManagementService",
                         "MacVerify",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Decapsulates data that was encapsulated with a public key retrieved from
+        /// [GetPublicKey][google.cloud.kms.v1.KeyManagementService.GetPublicKey]
+        /// corresponding to a [CryptoKeyVersion][google.cloud.kms.v1.CryptoKeyVersion]
+        /// with [CryptoKey.purpose][google.cloud.kms.v1.CryptoKey.purpose]
+        /// KEY_ENCAPSULATION.
+        pub async fn decapsulate(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DecapsulateRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::DecapsulateResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.kms.v1.KeyManagementService/Decapsulate",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.kms.v1.KeyManagementService",
+                        "Decapsulate",
                     ),
                 );
             self.inner.unary(req, path, codec).await

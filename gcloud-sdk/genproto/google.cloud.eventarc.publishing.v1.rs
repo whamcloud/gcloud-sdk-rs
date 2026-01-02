@@ -85,6 +85,12 @@ pub mod cloud_event {
         #[prost(string, tag = "7")]
         TextData(::prost::alloc::string::String),
         /// Optional. Proto data.
+        ///
+        /// NOTE: The `protoData` field only functions as expected when the payload
+        /// is specifically a `CloudEvent` message type, and can't be used for
+        /// arbitrary protocol buffer messages. For any other protocol buffer type,
+        /// you must serialize your proto message into bytes, and use the
+        /// `binaryData` field instead.
         #[prost(message, tag = "8")]
         ProtoData(::prost_types::Any),
     }
@@ -188,18 +194,23 @@ pub mod publisher_client {
     ///
     /// A partner is a third-party event provider that is integrated with Eventarc.
     ///
-    /// A subscriber is a GCP customer interested in receiving events.
+    /// A subscriber is a Google Cloud customer interested in receiving events.
     ///
     /// Channel is a first-class Eventarc resource that is created and managed
-    /// by the subscriber in their GCP project. A Channel represents a subscriber's
-    /// intent to receive events from an event provider. A Channel is associated with
-    /// exactly one event provider.
+    /// by the subscriber in their Google Cloud project. A Channel represents a
+    /// subscriber's intent to receive events from an event provider. A Channel is
+    /// associated with exactly one event provider.
     ///
     /// ChannelConnection is a first-class Eventarc resource that
-    /// is created and managed by the partner in their GCP project. A
+    /// is created and managed by the partner in their Google Cloud project. A
     /// ChannelConnection represents a connection between a partner and a
     /// subscriber's Channel. A ChannelConnection has a one-to-one mapping with a
     /// Channel.
+    ///
+    /// Bus is a first-class Eventarc resource that is created and managed in a
+    /// Google Cloud project. A Bus provides a discoverable endpoint for events and
+    /// is a router that receives all events published by event providers and
+    /// delivers them to zero or more subscribers.
     ///
     /// Publisher allows an event provider to publish events to Eventarc.
     #[derive(Debug, Clone)]

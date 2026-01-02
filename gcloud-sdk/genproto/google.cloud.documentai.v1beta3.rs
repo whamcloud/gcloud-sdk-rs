@@ -83,6 +83,9 @@ pub struct BoundingPoly {
 /// quality.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Document {
+    /// Optional. An internal identifier for document. Should be loggable (no PII).
+    #[prost(string, tag = "15")]
+    pub docid: ::prost::alloc::string::String,
     /// An IANA published [media type (MIME
     /// type)](<https://www.iana.org/assignments/media-types/media-types.xhtml>).
     #[prost(string, tag = "3")]
@@ -130,6 +133,29 @@ pub struct Document {
     /// Document chunked based on chunking config.
     #[prost(message, optional, tag = "18")]
     pub chunked_document: ::core::option::Option<document::ChunkedDocument>,
+    /// Optional. The blob assets in this document. This is used to store the
+    /// content of the inline blobs in this document, e.g. image bytes, such that
+    /// it can be referenced by other fields in the document via asset id.
+    #[prost(message, repeated, tag = "19")]
+    pub blob_assets: ::prost::alloc::vec::Vec<document::BlobAsset>,
+    /// The entity validation output for the document. This is the validation
+    /// output for `document.entities` field.
+    #[prost(message, optional, tag = "21")]
+    pub entity_validation_output: ::core::option::Option<
+        document::EntityValidationOutput,
+    >,
+    /// A list of entity revisions. The entity revisions are appended to the
+    /// document in the processing order. This field can be used for comparing the
+    /// entity extraction results at different stages of the processing.
+    #[prost(message, repeated, tag = "22")]
+    pub entities_revisions: ::prost::alloc::vec::Vec<document::EntitiesRevision>,
+    /// The entity revision id that `document.entities` field is based on.
+    /// If this field is set and `entities_revisions` is not empty, the entities in
+    /// `document.entities` field are the entities in the entity revision with this
+    /// id and `document.entity_validation_output` field is the
+    /// `entity_validation_output` field in this entity revision.
+    #[prost(string, tag = "23")]
+    pub entities_revision_id: ::prost::alloc::string::String,
     /// Original source document from the user.
     #[prost(oneof = "document::Source", tags = "1, 2")]
     pub source: ::core::option::Option<document::Source>,
@@ -821,6 +847,9 @@ pub mod document {
         /// purposes.
         #[prost(bool, tag = "12")]
         pub redacted: bool,
+        /// Optional. Specifies how the entity's value is obtained.
+        #[prost(enumeration = "entity::Method", tag = "15")]
+        pub method: i32,
     }
     /// Nested message and enum types in `Entity`.
     pub mod entity {
@@ -846,7 +875,7 @@ pub mod document {
             /// populated.
             #[prost(
                 oneof = "normalized_value::StructuredValue",
-                tags = "2, 3, 4, 5, 6, 7, 8"
+                tags = "2, 3, 4, 5, 6, 7, 8, 10"
             )]
             pub structured_value: ::core::option::Option<
                 normalized_value::StructuredValue,
@@ -890,6 +919,55 @@ pub mod document {
                 /// Float value.
                 #[prost(float, tag = "8")]
                 FloatValue(f32),
+                /// A signature - a graphical representation of a person's name,
+                /// often used to sign a document.
+                #[prost(bool, tag = "10")]
+                SignatureValue(bool),
+            }
+        }
+        /// Specifies how the entity's value is obtained.
+        #[derive(
+            Clone,
+            Copy,
+            Debug,
+            PartialEq,
+            Eq,
+            Hash,
+            PartialOrd,
+            Ord,
+            ::prost::Enumeration
+        )]
+        #[repr(i32)]
+        pub enum Method {
+            /// When the method is not specified, it should be treated as `EXTRACT`.
+            Unspecified = 0,
+            /// The entity's value is directly extracted as-is from the document
+            /// text.
+            Extract = 1,
+            /// The entity's value is derived through inference and is not
+            /// necessarily an exact text extraction from the document.
+            Derive = 2,
+        }
+        impl Method {
+            /// String value of the enum field names used in the ProtoBuf definition.
+            ///
+            /// The values are not transformed in any way and thus are considered stable
+            /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+            pub fn as_str_name(&self) -> &'static str {
+                match self {
+                    Self::Unspecified => "METHOD_UNSPECIFIED",
+                    Self::Extract => "EXTRACT",
+                    Self::Derive => "DERIVE",
+                }
+            }
+            /// Creates an enum from field names used in the ProtoBuf definition.
+            pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+                match value {
+                    "METHOD_UNSPECIFIED" => Some(Self::Unspecified),
+                    "EXTRACT" => Some(Self::Extract),
+                    "DERIVE" => Some(Self::Derive),
+                    _ => None,
+                }
             }
         }
     }
@@ -1248,6 +1326,13 @@ pub mod document {
         #[prost(message, repeated, tag = "3")]
         pub provenance: ::prost::alloc::vec::Vec<Provenance>,
     }
+    /// Represents the annotation of a block or a chunk.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Annotations {
+        /// The description of the content with this annotation.
+        #[prost(string, tag = "1")]
+        pub description: ::prost::alloc::string::String,
+    }
     /// Represents the parsed layout of a document as a collection of blocks that
     /// the document is divided into.
     #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1268,7 +1353,10 @@ pub mod document {
             /// Page span of the block.
             #[prost(message, optional, tag = "5")]
             pub page_span: ::core::option::Option<document_layout_block::LayoutPageSpan>,
-            #[prost(oneof = "document_layout_block::Block", tags = "2, 3, 4")]
+            /// Identifies the bounding box for the block.
+            #[prost(message, optional, tag = "6")]
+            pub bounding_box: ::core::option::Option<super::super::BoundingPoly>,
+            #[prost(oneof = "document_layout_block::Block", tags = "2, 3, 4, 7")]
             pub block: ::core::option::Option<document_layout_block::Block>,
         }
         /// Nested message and enum types in `DocumentLayoutBlock`.
@@ -1298,6 +1386,9 @@ pub mod document {
                 /// Repeated blocks support further hierarchies and nested blocks.
                 #[prost(message, repeated, tag = "3")]
                 pub blocks: ::prost::alloc::vec::Vec<super::DocumentLayoutBlock>,
+                /// Annotation of the text block.
+                #[prost(message, optional, tag = "4")]
+                pub annotations: ::core::option::Option<super::super::Annotations>,
             }
             /// Represents a table type block.
             #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1311,6 +1402,9 @@ pub mod document {
                 /// Table caption/title.
                 #[prost(string, tag = "3")]
                 pub caption: ::prost::alloc::string::String,
+                /// Annotation of the table block.
+                #[prost(message, optional, tag = "4")]
+                pub annotations: ::core::option::Option<super::super::Annotations>,
             }
             /// Represents a row in a table.
             #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1352,6 +1446,47 @@ pub mod document {
                 #[prost(message, repeated, tag = "1")]
                 pub blocks: ::prost::alloc::vec::Vec<super::DocumentLayoutBlock>,
             }
+            /// Represents an image type block.
+            #[derive(Clone, PartialEq, ::prost::Message)]
+            pub struct LayoutImageBlock {
+                /// Mime type of the image. An IANA published \[media type (MIME type)\]
+                /// (<https://www.iana.org/assignments/media-types/media-types.xhtml>).
+                #[prost(string, tag = "1")]
+                pub mime_type: ::prost::alloc::string::String,
+                /// Text extracted from the image using OCR or alt text describing the
+                /// image.
+                #[prost(string, tag = "2")]
+                pub image_text: ::prost::alloc::string::String,
+                /// Annotation of the image block.
+                #[prost(message, optional, tag = "3")]
+                pub annotations: ::core::option::Option<super::super::Annotations>,
+                /// Source of the image.
+                #[prost(oneof = "layout_image_block::ImageSource", tags = "4, 5, 6")]
+                pub image_source: ::core::option::Option<
+                    layout_image_block::ImageSource,
+                >,
+            }
+            /// Nested message and enum types in `LayoutImageBlock`.
+            pub mod layout_image_block {
+                /// Source of the image.
+                #[derive(Clone, PartialEq, ::prost::Oneof)]
+                pub enum ImageSource {
+                    /// Optional. Asset id of the inline image. If set, find the image
+                    /// content in the blob_assets field.
+                    #[prost(string, tag = "4")]
+                    BlobAssetId(::prost::alloc::string::String),
+                    /// Optional. Google Cloud Storage uri of the image.
+                    #[prost(string, tag = "5")]
+                    GcsUri(::prost::alloc::string::String),
+                    /// Optional. Data uri of the image.
+                    /// It is composed of four parts: a prefix (data:), a MIME type
+                    /// indicating the type of data, an optional base64 token if
+                    /// non-textual, and the data itself:
+                    /// data:[<mediatype>][;base64],<data>
+                    #[prost(string, tag = "6")]
+                    DataUri(::prost::alloc::string::String),
+                }
+            }
             #[derive(Clone, PartialEq, ::prost::Oneof)]
             pub enum Block {
                 /// Block consisting of text content.
@@ -1363,6 +1498,9 @@ pub mod document {
                 /// Block consisting of list content/structure.
                 #[prost(message, tag = "4")]
                 ListBlock(LayoutListBlock),
+                /// Block consisting of image content.
+                #[prost(message, tag = "7")]
+                ImageBlock(LayoutImageBlock),
             }
         }
     }
@@ -1398,6 +1536,9 @@ pub mod document {
             /// Page footers associated with the chunk.
             #[prost(message, repeated, tag = "6")]
             pub page_footers: ::prost::alloc::vec::Vec<chunk::ChunkPageFooter>,
+            /// Chunk fields inside this chunk.
+            #[prost(message, repeated, tag = "7")]
+            pub chunk_fields: ::prost::alloc::vec::Vec<chunk::ChunkField>,
         }
         /// Nested message and enum types in `Chunk`.
         pub mod chunk {
@@ -1431,7 +1572,185 @@ pub mod document {
                 #[prost(message, optional, tag = "2")]
                 pub page_span: ::core::option::Option<ChunkPageSpan>,
             }
+            /// The image chunk field in the chunk.
+            #[derive(Clone, PartialEq, ::prost::Message)]
+            pub struct ImageChunkField {
+                /// Annotation of the image chunk field.
+                #[prost(message, optional, tag = "4")]
+                pub annotations: ::core::option::Option<super::super::Annotations>,
+                /// Source of the image.
+                #[prost(oneof = "image_chunk_field::ImageSource", tags = "1, 2, 3")]
+                pub image_source: ::core::option::Option<image_chunk_field::ImageSource>,
+            }
+            /// Nested message and enum types in `ImageChunkField`.
+            pub mod image_chunk_field {
+                /// Source of the image.
+                #[derive(Clone, PartialEq, ::prost::Oneof)]
+                pub enum ImageSource {
+                    /// Optional. Asset id of the inline image. If set, find the image
+                    /// content in the blob_assets field.
+                    #[prost(string, tag = "1")]
+                    BlobAssetId(::prost::alloc::string::String),
+                    /// Optional. Google Cloud Storage uri of the image.
+                    #[prost(string, tag = "2")]
+                    GcsUri(::prost::alloc::string::String),
+                    /// Optional. Data uri of the image.
+                    /// It is composed of four parts: a prefix (data:), a MIME type
+                    /// indicating the type of data, an optional base64 token if
+                    /// non-textual, and the data itself:
+                    /// data:[<mediatype>][;base64],<data>
+                    #[prost(string, tag = "3")]
+                    DataUri(::prost::alloc::string::String),
+                }
+            }
+            /// The table chunk field in the chunk.
+            #[derive(Clone, PartialEq, ::prost::Message)]
+            pub struct TableChunkField {
+                /// Annotation of the table chunk field.
+                #[prost(message, optional, tag = "1")]
+                pub annotations: ::core::option::Option<super::super::Annotations>,
+            }
+            /// The chunk field in the chunk. A chunk field could be one of the various
+            /// types (e.g. image, table) supported.
+            #[derive(Clone, PartialEq, ::prost::Message)]
+            pub struct ChunkField {
+                /// The type of the chunk field.
+                #[prost(oneof = "chunk_field::FieldType", tags = "1, 2")]
+                pub field_type: ::core::option::Option<chunk_field::FieldType>,
+            }
+            /// Nested message and enum types in `ChunkField`.
+            pub mod chunk_field {
+                /// The type of the chunk field.
+                #[derive(Clone, PartialEq, ::prost::Oneof)]
+                pub enum FieldType {
+                    /// The image chunk field in the chunk.
+                    #[prost(message, tag = "1")]
+                    ImageChunkField(super::ImageChunkField),
+                    /// The table chunk field in the chunk.
+                    #[prost(message, tag = "2")]
+                    TableChunkField(super::TableChunkField),
+                }
+            }
         }
+    }
+    /// Represents a blob asset. It's used to store the content of the inline blob
+    /// in this document, e.g. image bytes, such that it can be referenced by
+    /// other fields in the document via asset id.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct BlobAsset {
+        /// Optional. The id of the blob asset.
+        #[prost(string, tag = "1")]
+        pub asset_id: ::prost::alloc::string::String,
+        /// Optional. The content of the blob asset, e.g. image bytes.
+        #[prost(bytes = "vec", tag = "2")]
+        pub content: ::prost::alloc::vec::Vec<u8>,
+        /// The mime type of the blob asset.
+        /// An IANA published [media type (MIME
+        /// type)](<https://www.iana.org/assignments/media-types/media-types.xhtml>).
+        #[prost(string, tag = "3")]
+        pub mime_type: ::prost::alloc::string::String,
+    }
+    /// The output of the validation given the document and the validation rules.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct EntityValidationOutput {
+        /// The result of each validation rule.
+        #[prost(message, repeated, tag = "1")]
+        pub validation_results: ::prost::alloc::vec::Vec<
+            entity_validation_output::ValidationResult,
+        >,
+        /// The overall result of the validation, true if all applicable rules are
+        /// valid.
+        #[prost(bool, tag = "2")]
+        pub pass_all_rules: bool,
+    }
+    /// Nested message and enum types in `EntityValidationOutput`.
+    pub mod entity_validation_output {
+        /// Validation result for a single validation rule.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct ValidationResult {
+            /// The name of the validation rule.
+            #[prost(string, tag = "1")]
+            pub rule_name: ::prost::alloc::string::String,
+            /// The description of the validation rule.
+            #[prost(string, tag = "2")]
+            pub rule_description: ::prost::alloc::string::String,
+            /// The result of the validation rule.
+            #[prost(enumeration = "validation_result::ValidationResultType", tag = "3")]
+            pub validation_result_type: i32,
+            /// The detailed information of the running the validation process using
+            /// the entity from the document based on the validation rule.
+            #[prost(string, tag = "4")]
+            pub validation_details: ::prost::alloc::string::String,
+        }
+        /// Nested message and enum types in `ValidationResult`.
+        pub mod validation_result {
+            /// The result of the validation rule.
+            #[derive(
+                Clone,
+                Copy,
+                Debug,
+                PartialEq,
+                Eq,
+                Hash,
+                PartialOrd,
+                Ord,
+                ::prost::Enumeration
+            )]
+            #[repr(i32)]
+            pub enum ValidationResultType {
+                /// The validation result type is unspecified.
+                Unspecified = 0,
+                /// The validation is valid.
+                Valid = 1,
+                /// The validation is invalid.
+                Invalid = 2,
+                /// The validation is skipped.
+                Skipped = 3,
+                /// The validation is not applicable.
+                NotApplicable = 4,
+            }
+            impl ValidationResultType {
+                /// String value of the enum field names used in the ProtoBuf definition.
+                ///
+                /// The values are not transformed in any way and thus are considered stable
+                /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+                pub fn as_str_name(&self) -> &'static str {
+                    match self {
+                        Self::Unspecified => "VALIDATION_RESULT_TYPE_UNSPECIFIED",
+                        Self::Valid => "VALIDATION_RESULT_TYPE_VALID",
+                        Self::Invalid => "VALIDATION_RESULT_TYPE_INVALID",
+                        Self::Skipped => "VALIDATION_RESULT_TYPE_SKIPPED",
+                        Self::NotApplicable => "VALIDATION_RESULT_TYPE_NOT_APPLICABLE",
+                    }
+                }
+                /// Creates an enum from field names used in the ProtoBuf definition.
+                pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+                    match value {
+                        "VALIDATION_RESULT_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+                        "VALIDATION_RESULT_TYPE_VALID" => Some(Self::Valid),
+                        "VALIDATION_RESULT_TYPE_INVALID" => Some(Self::Invalid),
+                        "VALIDATION_RESULT_TYPE_SKIPPED" => Some(Self::Skipped),
+                        "VALIDATION_RESULT_TYPE_NOT_APPLICABLE" => {
+                            Some(Self::NotApplicable)
+                        }
+                        _ => None,
+                    }
+                }
+            }
+        }
+    }
+    /// Entity revision.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct EntitiesRevision {
+        /// The revision id.
+        #[prost(string, tag = "1")]
+        pub revision_id: ::prost::alloc::string::String,
+        /// The entities in this revision.
+        #[prost(message, repeated, tag = "2")]
+        pub entities: ::prost::alloc::vec::Vec<Entity>,
+        /// The entity validation output for this revision.
+        #[prost(message, optional, tag = "3")]
+        pub entity_validation_output: ::core::option::Option<EntityValidationOutput>,
     }
     /// Original source document from the user.
     #[derive(Clone, PartialEq, ::prost::Oneof)]
@@ -1918,6 +2237,9 @@ pub mod document_schema {
             /// in the document.
             #[prost(enumeration = "property::OccurrenceType", tag = "3")]
             pub occurrence_type: i32,
+            /// Specifies how the entity's value is obtained.
+            #[prost(enumeration = "property::Method", tag = "8")]
+            pub method: i32,
             /// Any additional metadata about the property can be added here.
             #[prost(message, optional, tag = "5")]
             pub property_metadata: ::core::option::Option<
@@ -1983,6 +2305,51 @@ pub mod document_schema {
                         "OPTIONAL_MULTIPLE" => Some(Self::OptionalMultiple),
                         "REQUIRED_ONCE" => Some(Self::RequiredOnce),
                         "REQUIRED_MULTIPLE" => Some(Self::RequiredMultiple),
+                        _ => None,
+                    }
+                }
+            }
+            /// Specifies how the entity's value is obtained from the document.
+            #[derive(
+                Clone,
+                Copy,
+                Debug,
+                PartialEq,
+                Eq,
+                Hash,
+                PartialOrd,
+                Ord,
+                ::prost::Enumeration
+            )]
+            #[repr(i32)]
+            pub enum Method {
+                /// Unspecified method. It defaults to `EXTRACT`.
+                Unspecified = 0,
+                /// The entity's value is directly extracted as-is from the document
+                /// text.
+                Extract = 1,
+                /// The entity's value is derived through inference and is not
+                /// necessarily an exact text extraction from the document.
+                Derive = 2,
+            }
+            impl Method {
+                /// String value of the enum field names used in the ProtoBuf definition.
+                ///
+                /// The values are not transformed in any way and thus are considered stable
+                /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+                pub fn as_str_name(&self) -> &'static str {
+                    match self {
+                        Self::Unspecified => "METHOD_UNSPECIFIED",
+                        Self::Extract => "EXTRACT",
+                        Self::Derive => "DERIVE",
+                    }
+                }
+                /// Creates an enum from field names used in the ProtoBuf definition.
+                pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+                    match value {
+                        "METHOD_UNSPECIFIED" => Some(Self::Unspecified),
+                        "EXTRACT" => Some(Self::Extract),
+                        "DERIVE" => Some(Self::Derive),
                         _ => None,
                     }
                 }
@@ -2517,28 +2884,30 @@ pub struct ProcessorVersion {
     /// The display name of the processor version.
     #[prost(string, tag = "2")]
     pub display_name: ::prost::alloc::string::String,
-    /// The schema of the processor version. Describes the output.
+    /// Output only. The schema of the processor version. Describes the output.
     #[prost(message, optional, tag = "12")]
     pub document_schema: ::core::option::Option<DocumentSchema>,
     /// Output only. The state of the processor version.
     #[prost(enumeration = "processor_version::State", tag = "6")]
     pub state: i32,
-    /// The time the processor version was created.
+    /// Output only. The time the processor version was created.
     #[prost(message, optional, tag = "7")]
     pub create_time: ::core::option::Option<::prost_types::Timestamp>,
-    /// The most recently invoked evaluation for the processor version.
+    /// Output only. The most recently invoked evaluation for the processor
+    /// version.
     #[prost(message, optional, tag = "8")]
     pub latest_evaluation: ::core::option::Option<EvaluationReference>,
-    /// The KMS key name used for encryption.
+    /// Output only. The KMS key name used for encryption.
     #[prost(string, tag = "9")]
     pub kms_key_name: ::prost::alloc::string::String,
-    /// The KMS key version with which data is encrypted.
+    /// Output only. The KMS key version with which data is encrypted.
     #[prost(string, tag = "10")]
     pub kms_key_version_name: ::prost::alloc::string::String,
     /// Output only. Denotes that this `ProcessorVersion` is managed by Google.
     #[prost(bool, tag = "11")]
     pub google_managed: bool,
-    /// If set, information about the eventual deprecation of this version.
+    /// Output only. If set, information about the eventual deprecation of this
+    /// version.
     #[prost(message, optional, tag = "13")]
     pub deprecation_info: ::core::option::Option<processor_version::DeprecationInfo>,
     /// Output only. The model type of this processor version.
@@ -2811,7 +3180,7 @@ pub struct Processor {
     /// processing.
     #[prost(string, tag = "6")]
     pub process_endpoint: ::prost::alloc::string::String,
-    /// The time the processor was created.
+    /// Output only. The time the processor was created.
     #[prost(message, optional, tag = "7")]
     pub create_time: ::core::option::Option<::prost_types::Timestamp>,
     /// The [KMS key](<https://cloud.google.com/security-key-management>) used for
@@ -2974,6 +3343,25 @@ pub mod process_options {
         /// Optional. Config for chunking in layout parser processor.
         #[prost(message, optional, tag = "1")]
         pub chunking_config: ::core::option::Option<layout_config::ChunkingConfig>,
+        /// Optional. Whether to include images in layout parser processor response.
+        #[prost(bool, tag = "2")]
+        pub return_images: bool,
+        /// Optional. Whether to include bounding boxes in layout parser processor
+        /// response.
+        #[prost(bool, tag = "3")]
+        pub return_bounding_boxes: bool,
+        /// Optional. Whether to include image annotations in layout parser response.
+        #[prost(bool, tag = "4")]
+        pub enable_image_annotation: bool,
+        /// Optional. Whether to extract images in layout parser response.
+        #[prost(bool, tag = "7")]
+        pub enable_image_extraction: bool,
+        /// Optional. Whether to refine PDF layout using LLM.
+        #[prost(bool, tag = "5")]
+        pub enable_llm_layout_parsing: bool,
+        /// Optional. Whether to include table annotations in layout parser response.
+        #[prost(bool, tag = "6")]
+        pub enable_table_annotation: bool,
     }
     /// Nested message and enum types in `LayoutConfig`.
     pub mod layout_config {
@@ -2988,12 +3376,12 @@ pub mod process_options {
             #[prost(bool, tag = "2")]
             pub include_ancestor_headings: bool,
             /// Optional. The number of tokens to group together when evaluating
-            /// semantic similarity.
+            /// semantic similarity. THIS FIELD IS NOT YET USED.
             #[prost(bool, tag = "3")]
             pub semantic_chunking_group_size: bool,
             /// Optional. The percentile of cosine dissimilarity that must be exceeded
             /// between a group of tokens and the next. The smaller this number is, the
-            /// more chunks will be generated.
+            /// more chunks will be generated. THIS FIELD IS NOT YET USED.
             #[prost(int32, tag = "4")]
             pub breakpoint_percentile_threshold: i32,
         }
@@ -3751,7 +4139,7 @@ pub mod train_processor_version_request {
     /// Processor.
     #[derive(Clone, Copy, PartialEq, ::prost::Message)]
     pub struct CustomDocumentExtractionOptions {
-        /// Training method to use for CDE training.
+        /// Optional. Training method to use for CDE training.
         #[prost(
             enumeration = "custom_document_extraction_options::TrainingMethod",
             tag = "3"
@@ -4219,8 +4607,6 @@ pub mod import_processor_version_request {
     pub enum Source {
         /// The source processor version to import from. The source processor version
         /// and destination processor need to be in the same environment and region.
-        /// Note that ProcessorVersions with `model_type` `MODEL_TYPE_LLM` are not
-        /// supported.
         #[prost(string, tag = "2")]
         ProcessorVersionSource(::prost::alloc::string::String),
         /// The source processor version to import from. It can be from a different
