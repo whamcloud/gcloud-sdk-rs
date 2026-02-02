@@ -98,8 +98,13 @@ pub struct CryptoKey {
     /// where all related cryptographic operations are performed. Only applicable
     /// if [CryptoKeyVersions][google.cloud.kms.v1.CryptoKeyVersion] have a
     /// [ProtectionLevel][google.cloud.kms.v1.ProtectionLevel] of
-    /// [EXTERNAL_VPC][CryptoKeyVersion.ProtectionLevel.EXTERNAL_VPC], with the
-    /// resource name in the format `projects/*/locations/*/ekmConnections/*`.
+    /// [EXTERNAL_VPC][google.cloud.kms.v1.ProtectionLevel.EXTERNAL_VPC], with the
+    /// resource name in the format `projects/*/locations/*/ekmConnections/*`. Only
+    /// applicable if [CryptoKeyVersions][google.cloud.kms.v1.CryptoKeyVersion]
+    /// have a [ProtectionLevel][google.cloud.kms.v1.ProtectionLevel] of
+    /// [HSM_SINGLE_TENANT][google.cloud.kms.v1.ProtectionLevel.HSM_SINGLE_TENANT],
+    /// with the resource name in the format
+    /// `projects/*/locations/*/singleTenantHsmInstances/*`.
     /// Note, this list is non-exhaustive and may apply to additional
     /// [ProtectionLevels][google.cloud.kms.v1.ProtectionLevel] in the future.
     #[prost(string, tag = "15")]
@@ -167,6 +172,11 @@ pub mod crypto_key {
         /// [CryptoKeys][google.cloud.kms.v1.CryptoKey] with this purpose may be used
         /// with [MacSign][google.cloud.kms.v1.KeyManagementService.MacSign].
         Mac = 9,
+        /// [CryptoKeys][google.cloud.kms.v1.CryptoKey] with this purpose may be used
+        /// with
+        /// [GetPublicKey][google.cloud.kms.v1.KeyManagementService.GetPublicKey]
+        /// and [Decapsulate][google.cloud.kms.v1.KeyManagementService.Decapsulate].
+        KeyEncapsulation = 10,
     }
     impl CryptoKeyPurpose {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -181,6 +191,7 @@ pub mod crypto_key {
                 Self::AsymmetricDecrypt => "ASYMMETRIC_DECRYPT",
                 Self::RawEncryptDecrypt => "RAW_ENCRYPT_DECRYPT",
                 Self::Mac => "MAC",
+                Self::KeyEncapsulation => "KEY_ENCAPSULATION",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -192,6 +203,7 @@ pub mod crypto_key {
                 "ASYMMETRIC_DECRYPT" => Some(Self::AsymmetricDecrypt),
                 "RAW_ENCRYPT_DECRYPT" => Some(Self::RawEncryptDecrypt),
                 "MAC" => Some(Self::Mac),
+                "KEY_ENCAPSULATION" => Some(Self::KeyEncapsulation),
                 _ => None,
             }
         }
@@ -574,6 +586,19 @@ pub mod crypto_key_version {
         HmacSha224 = 36,
         /// Algorithm representing symmetric encryption by an external key manager.
         ExternalSymmetricEncryption = 18,
+        /// ML-KEM-768 (FIPS 203)
+        MlKem768 = 47,
+        /// ML-KEM-1024 (FIPS 203)
+        MlKem1024 = 48,
+        /// X-Wing hybrid KEM combining ML-KEM-768 with X25519 following
+        /// datatracker.ietf.org/doc/draft-connolly-cfrg-xwing-kem/.
+        KemXwing = 63,
+        /// The post-quantum Module-Lattice-Based Digital Signature Algorithm, at
+        /// security level 3. Randomized version.
+        PqSignMlDsa65 = 56,
+        /// The post-quantum stateless hash-based digital signature algorithm, at
+        /// security level 1. Randomized version.
+        PqSignSlhDsaSha2128s = 57,
     }
     impl CryptoKeyVersionAlgorithm {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -618,6 +643,11 @@ pub mod crypto_key_version {
                 Self::HmacSha512 => "HMAC_SHA512",
                 Self::HmacSha224 => "HMAC_SHA224",
                 Self::ExternalSymmetricEncryption => "EXTERNAL_SYMMETRIC_ENCRYPTION",
+                Self::MlKem768 => "ML_KEM_768",
+                Self::MlKem1024 => "ML_KEM_1024",
+                Self::KemXwing => "KEM_XWING",
+                Self::PqSignMlDsa65 => "PQ_SIGN_ML_DSA_65",
+                Self::PqSignSlhDsaSha2128s => "PQ_SIGN_SLH_DSA_SHA2_128S",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -661,6 +691,11 @@ pub mod crypto_key_version {
                 "EXTERNAL_SYMMETRIC_ENCRYPTION" => {
                     Some(Self::ExternalSymmetricEncryption)
                 }
+                "ML_KEM_768" => Some(Self::MlKem768),
+                "ML_KEM_1024" => Some(Self::MlKem1024),
+                "KEM_XWING" => Some(Self::KemXwing),
+                "PQ_SIGN_ML_DSA_65" => Some(Self::PqSignMlDsa65),
+                "PQ_SIGN_SLH_DSA_SHA2_128S" => Some(Self::PqSignSlhDsaSha2128s),
                 _ => None,
             }
         }
@@ -695,7 +730,7 @@ pub mod crypto_key_version {
         /// [ENABLED][google.cloud.kms.v1.CryptoKeyVersion.CryptoKeyVersionState.ENABLED]
         /// state.
         Disabled = 2,
-        /// This version is destroyed, and the key material is no longer stored.
+        /// The key material of this version is destroyed and no longer stored.
         /// This version may only become
         /// [ENABLED][google.cloud.kms.v1.CryptoKeyVersion.CryptoKeyVersionState.ENABLED]
         /// again if this version is
@@ -824,6 +859,29 @@ pub mod crypto_key_version {
         }
     }
 }
+/// Data with integrity verification field.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ChecksummedData {
+    /// Raw Data.
+    #[prost(bytes = "vec", tag = "3")]
+    pub data: ::prost::alloc::vec::Vec<u8>,
+    /// Integrity verification field. A CRC32C
+    /// checksum of the returned
+    /// [ChecksummedData.data][google.cloud.kms.v1.ChecksummedData.data]. An
+    /// integrity check of
+    /// [ChecksummedData.data][google.cloud.kms.v1.ChecksummedData.data] can be
+    /// performed by computing the CRC32C checksum of
+    /// [ChecksummedData.data][google.cloud.kms.v1.ChecksummedData.data] and
+    /// comparing your results to this field. Discard the response in case of
+    /// non-matching checksum values, and perform a limited number of retries. A
+    /// persistent mismatch may indicate an issue in your computation of the CRC32C
+    /// checksum. Note: This field is defined as int64 for reasons of compatibility
+    /// across different languages. However, it is a non-negative integer, which
+    /// will never exceed `2^32-1`, and can be safely downconverted to uint32 in
+    /// languages that support this type.
+    #[prost(message, optional, tag = "2")]
+    pub crc32c_checksum: ::core::option::Option<i64>,
+}
 /// The public keys for a given
 /// [CryptoKeyVersion][google.cloud.kms.v1.CryptoKeyVersion]. Obtained via
 /// [GetPublicKey][google.cloud.kms.v1.KeyManagementService.GetPublicKey].
@@ -851,8 +909,8 @@ pub struct PublicKey {
     /// mismatch may indicate an issue in your computation of the CRC32C checksum.
     /// Note: This field is defined as int64 for reasons of compatibility across
     /// different languages. However, it is a non-negative integer, which will
-    /// never exceed 2^32-1, and can be safely downconverted to uint32 in languages
-    /// that support this type.
+    /// never exceed `2^32-1`, and can be safely downconverted to uint32 in
+    /// languages that support this type.
     ///
     /// NOTE: This field is in Beta.
     #[prost(message, optional, tag = "3")]
@@ -868,6 +926,88 @@ pub struct PublicKey {
     /// [CryptoKeyVersion][google.cloud.kms.v1.CryptoKeyVersion] public key.
     #[prost(enumeration = "ProtectionLevel", tag = "5")]
     pub protection_level: i32,
+    /// The [PublicKey][google.cloud.kms.v1.PublicKey] format specified by the
+    /// customer through the
+    /// [public_key_format][google.cloud.kms.v1.GetPublicKeyRequest.public_key_format]
+    /// field.
+    #[prost(enumeration = "public_key::PublicKeyFormat", tag = "7")]
+    pub public_key_format: i32,
+    /// This field contains the public key (with integrity verification), formatted
+    /// according to the
+    /// [public_key_format][google.cloud.kms.v1.PublicKey.public_key_format] field.
+    #[prost(message, optional, tag = "8")]
+    pub public_key: ::core::option::Option<ChecksummedData>,
+}
+/// Nested message and enum types in `PublicKey`.
+pub mod public_key {
+    /// The supported [PublicKey][google.cloud.kms.v1.PublicKey] formats.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum PublicKeyFormat {
+        /// If the
+        /// [public_key_format][google.cloud.kms.v1.GetPublicKeyRequest.public_key_format]
+        /// field is not specified:
+        /// - For PQC algorithms, an error will be returned.
+        /// - For non-PQC algorithms, the default format is PEM, and the field
+        ///    [pem][google.cloud.kms.v1.PublicKey.pem] will be populated.
+        ///
+        /// Otherwise, the public key will be exported through the
+        /// [public_key][google.cloud.kms.v1.PublicKey.public_key] field in the
+        /// requested format.
+        Unspecified = 0,
+        /// The returned public key will be encoded in PEM format.
+        /// See the [RFC7468](<https://tools.ietf.org/html/rfc7468>) sections for
+        /// [General Considerations](<https://tools.ietf.org/html/rfc7468#section-2>)
+        /// and \[Textual Encoding of Subject Public Key Info\]
+        /// (<https://tools.ietf.org/html/rfc7468#section-13>) for more information.
+        Pem = 1,
+        /// The returned public key will be encoded in DER format (the
+        /// PrivateKeyInfo structure from RFC 5208).
+        Der = 2,
+        /// This is supported only for PQC algorithms.
+        /// The key material is returned in the format defined by NIST PQC
+        /// standards (FIPS 203, FIPS 204, and FIPS 205).
+        NistPqc = 3,
+        /// The returned public key is in raw bytes format defined in its standard
+        /// <https://datatracker.ietf.org/doc/draft-connolly-cfrg-xwing-kem.>
+        XwingRawBytes = 4,
+    }
+    impl PublicKeyFormat {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "PUBLIC_KEY_FORMAT_UNSPECIFIED",
+                Self::Pem => "PEM",
+                Self::Der => "DER",
+                Self::NistPqc => "NIST_PQC",
+                Self::XwingRawBytes => "XWING_RAW_BYTES",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "PUBLIC_KEY_FORMAT_UNSPECIFIED" => Some(Self::Unspecified),
+                "PEM" => Some(Self::Pem),
+                "DER" => Some(Self::Der),
+                "NIST_PQC" => Some(Self::NistPqc),
+                "XWING_RAW_BYTES" => Some(Self::XwingRawBytes),
+                _ => None,
+            }
+        }
+    }
 }
 /// An [ImportJob][google.cloud.kms.v1.ImportJob] can be used to create
 /// [CryptoKeys][google.cloud.kms.v1.CryptoKey] and
@@ -956,6 +1096,16 @@ pub struct ImportJob {
     /// protection level of [HSM][google.cloud.kms.v1.ProtectionLevel.HSM].
     #[prost(message, optional, tag = "8")]
     pub attestation: ::core::option::Option<KeyOperationAttestation>,
+    /// Immutable. The resource name of the backend environment where the key
+    /// material for the wrapping key resides and where all related cryptographic
+    /// operations are performed. Currently, this field is only populated for keys
+    /// stored in HSM_SINGLE_TENANT. Note, this list is non-exhaustive and may
+    /// apply to additional [ProtectionLevels][google.cloud.kms.v1.ProtectionLevel]
+    /// in the future.
+    /// Supported resources:
+    /// * `"projects/*/locations/*/singleTenantHsmInstances/*"`
+    #[prost(string, tag = "11")]
+    pub crypto_key_backend: ::prost::alloc::string::String,
 }
 /// Nested message and enum types in `ImportJob`.
 pub mod import_job {
@@ -1165,6 +1315,8 @@ pub enum ProtectionLevel {
     External = 3,
     /// Crypto operations are performed in an EKM-over-VPC backend.
     ExternalVpc = 4,
+    /// Crypto operations are performed in a single-tenant HSM.
+    HsmSingleTenant = 5,
 }
 impl ProtectionLevel {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -1178,6 +1330,7 @@ impl ProtectionLevel {
             Self::Hsm => "HSM",
             Self::External => "EXTERNAL",
             Self::ExternalVpc => "EXTERNAL_VPC",
+            Self::HsmSingleTenant => "HSM_SINGLE_TENANT",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -1188,6 +1341,7 @@ impl ProtectionLevel {
             "HSM" => Some(Self::Hsm),
             "EXTERNAL" => Some(Self::External),
             "EXTERNAL_VPC" => Some(Self::ExternalVpc),
+            "HSM_SINGLE_TENANT" => Some(Self::HsmSingleTenant),
             _ => None,
         }
     }
@@ -1216,6 +1370,12 @@ pub enum AccessReason {
     GoogleInitiatedSystemOperation = 6,
     /// No reason is expected for this key request.
     ReasonNotExpected = 7,
+    /// Deprecated: This code is no longer generated by
+    /// Google Cloud. The GOOGLE_RESPONSE_TO_PRODUCTION_ALERT justification codes
+    /// available in both Key Access Justifications and Access Transparency logs
+    /// provide customer-visible signals of emergency access in more precise
+    /// contexts.
+    ///
     /// Customer uses their account to perform any access to their own data which
     /// their IAM policy authorizes, and one of the following is true:
     ///
@@ -1225,6 +1385,12 @@ pub enum AccessReason {
     ///    resource in the same project or folder as the currently accessed resource
     ///    within the past 7 days.
     ModifiedCustomerInitiatedAccess = 8,
+    /// Deprecated: This code is no longer generated by
+    /// Google Cloud. The GOOGLE_RESPONSE_TO_PRODUCTION_ALERT justification codes
+    /// available in both Key Access Justifications and Access Transparency logs
+    /// provide customer-visible signals of emergency access in more precise
+    /// contexts.
+    ///
     /// Google systems access customer data to help optimize the structure of the
     /// data or quality for future uses by the customer, and one of the following
     /// is true:
@@ -1520,9 +1686,9 @@ pub mod autokey_client {
         /// Creates a new [KeyHandle][google.cloud.kms.v1.KeyHandle], triggering the
         /// provisioning of a new [CryptoKey][google.cloud.kms.v1.CryptoKey] for CMEK
         /// use with the given resource type in the configured key project and the same
-        /// location. [GetOperation][Operations.GetOperation] should be used to resolve
-        /// the resulting long-running operation and get the resulting
-        /// [KeyHandle][google.cloud.kms.v1.KeyHandle] and
+        /// location. [GetOperation][google.longrunning.Operations.GetOperation] should
+        /// be used to resolve the resulting long-running operation and get the
+        /// resulting [KeyHandle][google.cloud.kms.v1.KeyHandle] and
         /// [CryptoKey][google.cloud.kms.v1.CryptoKey].
         pub async fn create_key_handle(
             &mut self,
@@ -1647,6 +1813,12 @@ pub struct AutokeyConfig {
     /// Output only. The state for the AutokeyConfig.
     #[prost(enumeration = "autokey_config::State", tag = "4")]
     pub state: i32,
+    /// Optional. A checksum computed by the server based on the value of other
+    /// fields. This may be sent on update requests to ensure that the client has
+    /// an up-to-date value before proceeding. The request will be rejected with an
+    /// ABORTED error on a mismatched etag.
+    #[prost(string, tag = "6")]
+    pub etag: ::prost::alloc::string::String,
 }
 /// Nested message and enum types in `AutokeyConfig`.
 pub mod autokey_config {
@@ -1960,6 +2132,10 @@ pub struct ListEkmConnectionsResponse {
     pub next_page_token: ::prost::alloc::string::String,
     /// The total number of [EkmConnections][google.cloud.kms.v1.EkmConnection]
     /// that matched the query.
+    ///
+    /// This field is not populated if
+    /// [ListEkmConnectionsRequest.filter][google.cloud.kms.v1.ListEkmConnectionsRequest.filter]
+    /// is applied.
     #[prost(int32, tag = "3")]
     pub total_size: i32,
 }
@@ -2068,7 +2244,7 @@ pub struct Certificate {
 /// [CryptoKeys][google.cloud.kms.v1.CryptoKey] and
 /// [CryptoKeyVersions][google.cloud.kms.v1.CryptoKeyVersion] with a
 /// [ProtectionLevel][google.cloud.kms.v1.ProtectionLevel] of
-/// [EXTERNAL_VPC][CryptoKeyVersion.ProtectionLevel.EXTERNAL_VPC], as well as
+/// [EXTERNAL_VPC][google.cloud.kms.v1.ProtectionLevel.EXTERNAL_VPC], as well as
 /// performing cryptographic operations using keys created within the
 /// [EkmConnection][google.cloud.kms.v1.EkmConnection].
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -2171,6 +2347,7 @@ pub mod ekm_connection {
         /// All [CryptoKeys][google.cloud.kms.v1.CryptoKey] created with this
         /// [EkmConnection][google.cloud.kms.v1.EkmConnection] use EKM-side key
         /// management operations initiated from Cloud KMS. This means that:
+        ///
         /// * When a [CryptoKeyVersion][google.cloud.kms.v1.CryptoKeyVersion]
         /// associated with this [EkmConnection][google.cloud.kms.v1.EkmConnection]
         /// is
@@ -2179,7 +2356,8 @@ pub mod ekm_connection {
         ///    external key material.
         /// * Destruction of external key material associated with this
         ///    [EkmConnection][google.cloud.kms.v1.EkmConnection] can be requested by
-        ///    calling [DestroyCryptoKeyVersion][EkmService.DestroyCryptoKeyVersion].
+        ///    calling
+        ///    [DestroyCryptoKeyVersion][google.cloud.kms.v1.KeyManagementService.DestroyCryptoKeyVersion].
         /// * Automatic rotation of key material is supported.
         CloudKms = 2,
     }
@@ -2211,7 +2389,7 @@ pub mod ekm_connection {
 /// [CryptoKeys][google.cloud.kms.v1.CryptoKey] and
 /// [CryptoKeyVersions][google.cloud.kms.v1.CryptoKeyVersion] with a
 /// [ProtectionLevel][google.cloud.kms.v1.ProtectionLevel] of
-/// [EXTERNAL_VPC][CryptoKeyVersion.ProtectionLevel.EXTERNAL_VPC] in a given
+/// [EXTERNAL_VPC][google.cloud.kms.v1.ProtectionLevel.EXTERNAL_VPC] in a given
 /// project and location.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct EkmConfig {
@@ -2531,6 +2709,1324 @@ pub mod ekm_service_client {
         }
     }
 }
+/// A [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance]
+/// represents a single-tenant HSM instance. It can be used for creating
+/// [CryptoKeys][google.cloud.kms.v1.CryptoKey] with a
+/// [ProtectionLevel][google.cloud.kms.v1.ProtectionLevel] of
+/// [HSM_SINGLE_TENANT][CryptoKeyVersion.ProtectionLevel.HSM_SINGLE_TENANT], as
+/// well as performing cryptographic operations using keys created within the
+/// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SingleTenantHsmInstance {
+    /// Identifier. The resource name for this
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance] in
+    /// the format `projects/*/locations/*/singleTenantHsmInstances/*`.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Output only. The time at which the
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance] was
+    /// created.
+    #[prost(message, optional, tag = "2")]
+    pub create_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. The state of the
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance].
+    #[prost(enumeration = "single_tenant_hsm_instance::State", tag = "3")]
+    pub state: i32,
+    /// Required. The quorum auth configuration for the
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance].
+    #[prost(message, optional, tag = "4")]
+    pub quorum_auth: ::core::option::Option<single_tenant_hsm_instance::QuorumAuth>,
+    /// Output only. The time at which the
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance] was
+    /// deleted.
+    #[prost(message, optional, tag = "5")]
+    pub delete_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. The system-defined duration that an instance can remain
+    /// unrefreshed until it is automatically disabled. This will have a value of
+    /// 120 days.
+    #[prost(message, optional, tag = "6")]
+    pub unrefreshed_duration_until_disable: ::core::option::Option<
+        ::prost_types::Duration,
+    >,
+    /// Output only. The time at which the instance will be automatically disabled
+    /// if not refreshed. This field is updated upon creation and after each
+    /// successful refresh operation and enable. A
+    /// [RefreshSingleTenantHsmInstance][] operation must be made via a
+    /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+    /// before this time otherwise the
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance] will
+    /// become disabled.
+    #[prost(message, optional, tag = "7")]
+    pub disable_time: ::core::option::Option<::prost_types::Timestamp>,
+}
+/// Nested message and enum types in `SingleTenantHsmInstance`.
+pub mod single_tenant_hsm_instance {
+    /// Configuration for M of N quorum auth.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct QuorumAuth {
+        /// Required. The total number of approvers. This is the N value used
+        /// for M of N quorum auth. Must be greater than or equal to 3 and less than
+        /// or equal to 16.
+        #[prost(int32, tag = "1")]
+        pub total_approver_count: i32,
+        /// Output only. The required numbers of approvers. The M value used for M of
+        /// N quorum auth. Must be greater than or equal to 2 and less than or equal
+        /// to
+        /// [total_approver_count][google.cloud.kms.v1.SingleTenantHsmInstance.QuorumAuth.total_approver_count]
+        /// - 1.
+        #[prost(int32, tag = "2")]
+        pub required_approver_count: i32,
+        /// Output only. The public keys associated with the 2FA keys for M of N
+        /// quorum auth.
+        #[prost(string, repeated, tag = "3")]
+        pub two_factor_public_key_pems: ::prost::alloc::vec::Vec<
+            ::prost::alloc::string::String,
+        >,
+    }
+    /// The set of states of a
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance].
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum State {
+        /// Not specified.
+        Unspecified = 0,
+        /// The
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance] is
+        /// being created.
+        Creating = 1,
+        /// The
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance] is
+        /// waiting for 2FA keys to be registered. This can be done by calling
+        /// [CreateSingleTenantHsmInstanceProposal][google.cloud.kms.v1.HsmManagement.CreateSingleTenantHsmInstanceProposal]
+        /// with the [RegisterTwoFactorAuthKeys][] operation.
+        PendingTwoFactorAuthRegistration = 2,
+        /// The
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance] is
+        /// ready to use. A
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance]
+        /// must be in the
+        /// [ACTIVE][google.cloud.kms.v1.SingleTenantHsmInstance.State.ACTIVE] state
+        /// for all [CryptoKeys][google.cloud.kms.v1.CryptoKey] created within the
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance] to
+        /// be usable.
+        Active = 3,
+        /// The
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance] is
+        /// being disabled.
+        Disabling = 4,
+        /// The
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance] is
+        /// disabled.
+        Disabled = 5,
+        /// The
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance] is
+        /// being deleted. Requests to the instance will be rejected in this state.
+        Deleting = 6,
+        /// The
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance]
+        /// has been deleted.
+        Deleted = 7,
+        /// The
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance]
+        /// has failed and can not be recovered or used.
+        Failed = 8,
+    }
+    impl State {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "STATE_UNSPECIFIED",
+                Self::Creating => "CREATING",
+                Self::PendingTwoFactorAuthRegistration => {
+                    "PENDING_TWO_FACTOR_AUTH_REGISTRATION"
+                }
+                Self::Active => "ACTIVE",
+                Self::Disabling => "DISABLING",
+                Self::Disabled => "DISABLED",
+                Self::Deleting => "DELETING",
+                Self::Deleted => "DELETED",
+                Self::Failed => "FAILED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "STATE_UNSPECIFIED" => Some(Self::Unspecified),
+                "CREATING" => Some(Self::Creating),
+                "PENDING_TWO_FACTOR_AUTH_REGISTRATION" => {
+                    Some(Self::PendingTwoFactorAuthRegistration)
+                }
+                "ACTIVE" => Some(Self::Active),
+                "DISABLING" => Some(Self::Disabling),
+                "DISABLED" => Some(Self::Disabled),
+                "DELETING" => Some(Self::Deleting),
+                "DELETED" => Some(Self::Deleted),
+                "FAILED" => Some(Self::Failed),
+                _ => None,
+            }
+        }
+    }
+}
+/// A
+/// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+/// represents a proposal to perform an operation on a
+/// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SingleTenantHsmInstanceProposal {
+    /// Identifier. The resource name for this
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance] in
+    /// the format `projects/*/locations/*/singleTenantHsmInstances/*/proposals/*`.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Output only. The time at which the
+    /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+    /// was created.
+    #[prost(message, optional, tag = "2")]
+    pub create_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. The state of the
+    /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal].
+    #[prost(enumeration = "single_tenant_hsm_instance_proposal::State", tag = "3")]
+    pub state: i32,
+    /// Output only. The root cause of the most recent failure. Only present if
+    /// [state][google.cloud.kms.v1.SingleTenantHsmInstanceProposal.state] is
+    /// [FAILED][SingleTenantHsmInstanceProposal.FAILED].
+    #[prost(string, tag = "4")]
+    pub failure_reason: ::prost::alloc::string::String,
+    /// Output only. The time at which the
+    /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+    /// was deleted.
+    #[prost(message, optional, tag = "15")]
+    pub delete_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. The time at which the soft-deleted
+    /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+    /// will be permanently purged. This field is only populated
+    /// when the state is DELETED and will be set a time after expiration of the
+    /// proposal, i.e. >= expire_time or (create_time + ttl).
+    #[prost(message, optional, tag = "16")]
+    pub purge_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// The approval parameters for the
+    /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal].
+    /// The type of parameters is determined by the operation being proposed.
+    #[prost(
+        oneof = "single_tenant_hsm_instance_proposal::ApprovalParameters",
+        tags = "5, 14"
+    )]
+    pub approval_parameters: ::core::option::Option<
+        single_tenant_hsm_instance_proposal::ApprovalParameters,
+    >,
+    /// The expiration of the
+    /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal].
+    /// If not set, the
+    /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+    /// will expire in 1 day. The maximum expire time is 7 days. The minimum expire
+    /// time is 5 minutes.
+    #[prost(oneof = "single_tenant_hsm_instance_proposal::Expiration", tags = "6, 7")]
+    pub expiration: ::core::option::Option<
+        single_tenant_hsm_instance_proposal::Expiration,
+    >,
+    /// The operation to perform on the
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance].
+    #[prost(
+        oneof = "single_tenant_hsm_instance_proposal::Operation",
+        tags = "8, 9, 10, 11, 12, 13, 17"
+    )]
+    pub operation: ::core::option::Option<
+        single_tenant_hsm_instance_proposal::Operation,
+    >,
+}
+/// Nested message and enum types in `SingleTenantHsmInstanceProposal`.
+pub mod single_tenant_hsm_instance_proposal {
+    /// Parameters of quorum approval for the
+    /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal].
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct QuorumParameters {
+        /// Output only. The required numbers of approvers. This is the M value used
+        /// for M of N quorum auth. It is less than the number of public keys.
+        #[prost(int32, tag = "1")]
+        pub required_approver_count: i32,
+        /// Output only. The challenges to be signed by 2FA keys for quorum auth. M
+        /// of N of these challenges are required to be signed to approve the
+        /// operation.
+        #[prost(message, repeated, tag = "2")]
+        pub challenges: ::prost::alloc::vec::Vec<super::Challenge>,
+        /// Output only. The public keys associated with the 2FA keys that have
+        /// already approved the
+        /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+        /// by signing the challenge.
+        #[prost(string, repeated, tag = "3")]
+        pub approved_two_factor_public_key_pems: ::prost::alloc::vec::Vec<
+            ::prost::alloc::string::String,
+        >,
+    }
+    /// Parameters for an approval that has both required challenges and a
+    /// quorum.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct RequiredActionQuorumParameters {
+        /// Output only. A list of specific challenges that must be signed.
+        /// For some operations, this will contain a single challenge.
+        #[prost(message, repeated, tag = "1")]
+        pub required_challenges: ::prost::alloc::vec::Vec<super::Challenge>,
+        /// Output only. The required number of quorum approvers. This is the M value
+        /// used for M of N quorum auth. It is less than the number of public keys.
+        #[prost(int32, tag = "2")]
+        pub required_approver_count: i32,
+        /// Output only. The challenges to be signed by 2FA keys for quorum auth. M
+        /// of N of these challenges are required to be signed to approve the
+        /// operation.
+        #[prost(message, repeated, tag = "3")]
+        pub quorum_challenges: ::prost::alloc::vec::Vec<super::Challenge>,
+        /// Output only. The public keys associated with the 2FA keys that have
+        /// already approved the
+        /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+        /// by signing the challenge.
+        #[prost(string, repeated, tag = "4")]
+        pub approved_two_factor_public_key_pems: ::prost::alloc::vec::Vec<
+            ::prost::alloc::string::String,
+        >,
+    }
+    /// Register 2FA keys for the
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance].
+    /// This operation requires all Challenges to be signed by 2FA keys. The
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance] must
+    /// be in the
+    /// [PENDING_TWO_FACTOR_AUTH_REGISTRATION][google.cloud.kms.v1.SingleTenantHsmInstance.State.PENDING_TWO_FACTOR_AUTH_REGISTRATION]
+    /// state to perform this operation.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct RegisterTwoFactorAuthKeys {
+        /// Required. The required numbers of approvers to set for the
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance].
+        /// This is the M value used for M of N quorum auth. Must be greater than or
+        /// equal to 2 and less than or equal to
+        /// [total_approver_count][google.cloud.kms.v1.SingleTenantHsmInstance.QuorumAuth.total_approver_count]
+        /// - 1.
+        #[prost(int32, tag = "1")]
+        pub required_approver_count: i32,
+        /// Required. The public keys associated with the 2FA keys for M of N quorum
+        /// auth. Public keys must be associated with RSA 2048 keys.
+        #[prost(string, repeated, tag = "2")]
+        pub two_factor_public_key_pems: ::prost::alloc::vec::Vec<
+            ::prost::alloc::string::String,
+        >,
+    }
+    /// Disable the
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance]. The
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance] must
+    /// be in the
+    /// [ACTIVE][google.cloud.kms.v1.SingleTenantHsmInstance.State.ACTIVE] state to
+    /// perform this operation.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct DisableSingleTenantHsmInstance {}
+    /// Enable the
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance]. The
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance] must
+    /// be in the
+    /// [DISABLED][google.cloud.kms.v1.SingleTenantHsmInstance.State.DISABLED]
+    /// state to perform this operation.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct EnableSingleTenantHsmInstance {}
+    /// Delete the
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance].
+    /// Deleting a
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance] will
+    /// make all [CryptoKeys][google.cloud.kms.v1.CryptoKey] attached to the
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance]
+    /// unusable. The
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance] must
+    /// not be in the
+    /// [DELETING][google.cloud.kms.v1.SingleTenantHsmInstance.State.DELETING] or
+    /// [DELETED][google.cloud.kms.v1.SingleTenantHsmInstance.State.DELETED] state
+    /// to perform this operation.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct DeleteSingleTenantHsmInstance {}
+    /// Add a quorum member to the
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance].
+    /// This will increase the
+    /// [total_approver_count][google.cloud.kms.v1.SingleTenantHsmInstance.QuorumAuth.total_approver_count]
+    /// by 1. The
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance] must
+    /// be in the
+    /// [ACTIVE][google.cloud.kms.v1.SingleTenantHsmInstance.State.ACTIVE] state to
+    /// perform this operation.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct AddQuorumMember {
+        /// Required. The public key associated with the 2FA key for the new quorum
+        /// member to add. Public keys must be associated with RSA 2048 keys.
+        #[prost(string, tag = "1")]
+        pub two_factor_public_key_pem: ::prost::alloc::string::String,
+    }
+    /// Remove a quorum member from the
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance].
+    /// This will reduce
+    /// [total_approver_count][google.cloud.kms.v1.SingleTenantHsmInstance.QuorumAuth.total_approver_count]
+    /// by 1. The
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance] must
+    /// be in the
+    /// [ACTIVE][google.cloud.kms.v1.SingleTenantHsmInstance.State.ACTIVE] state to
+    /// perform this operation.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct RemoveQuorumMember {
+        /// Required. The public key associated with the 2FA key for the quorum
+        /// member to remove. Public keys must be associated with RSA 2048 keys.
+        #[prost(string, tag = "1")]
+        pub two_factor_public_key_pem: ::prost::alloc::string::String,
+    }
+    /// Refreshes the
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance].
+    /// This operation must be performed periodically to keep the
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance]
+    /// active. This operation must be performed before
+    /// [unrefreshed_duration_until_disable][google.cloud.kms.v1.SingleTenantHsmInstance.unrefreshed_duration_until_disable]
+    /// has passed. The
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance] must
+    /// be in the
+    /// [ACTIVE][google.cloud.kms.v1.SingleTenantHsmInstance.State.ACTIVE] state to
+    /// perform this operation.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct RefreshSingleTenantHsmInstance {}
+    /// The set of states of a
+    /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal].
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum State {
+        /// Not specified.
+        Unspecified = 0,
+        /// The
+        /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+        /// is being created.
+        Creating = 1,
+        /// The
+        /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+        /// is pending approval.
+        Pending = 2,
+        /// The
+        /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+        /// has been approved.
+        Approved = 3,
+        /// The
+        /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+        /// is being executed.
+        Running = 4,
+        /// The
+        /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+        /// has been executed successfully.
+        Succeeded = 5,
+        /// The
+        /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+        /// has failed.
+        Failed = 6,
+        /// The
+        /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+        /// has been deleted and will be purged after the purge_time.
+        Deleted = 7,
+    }
+    impl State {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "STATE_UNSPECIFIED",
+                Self::Creating => "CREATING",
+                Self::Pending => "PENDING",
+                Self::Approved => "APPROVED",
+                Self::Running => "RUNNING",
+                Self::Succeeded => "SUCCEEDED",
+                Self::Failed => "FAILED",
+                Self::Deleted => "DELETED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "STATE_UNSPECIFIED" => Some(Self::Unspecified),
+                "CREATING" => Some(Self::Creating),
+                "PENDING" => Some(Self::Pending),
+                "APPROVED" => Some(Self::Approved),
+                "RUNNING" => Some(Self::Running),
+                "SUCCEEDED" => Some(Self::Succeeded),
+                "FAILED" => Some(Self::Failed),
+                "DELETED" => Some(Self::Deleted),
+                _ => None,
+            }
+        }
+    }
+    /// The approval parameters for the
+    /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal].
+    /// The type of parameters is determined by the operation being proposed.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum ApprovalParameters {
+        /// Output only. The quorum approval parameters for the
+        /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal].
+        #[prost(message, tag = "5")]
+        QuorumParameters(QuorumParameters),
+        /// Output only. Parameters for an approval of a
+        /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+        /// that has both required challenges and a quorum.
+        #[prost(message, tag = "14")]
+        RequiredActionQuorumParameters(RequiredActionQuorumParameters),
+    }
+    /// The expiration of the
+    /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal].
+    /// If not set, the
+    /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+    /// will expire in 1 day. The maximum expire time is 7 days. The minimum expire
+    /// time is 5 minutes.
+    #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
+    pub enum Expiration {
+        /// The time at which the
+        /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+        /// will expire if not approved and executed.
+        #[prost(message, tag = "6")]
+        ExpireTime(::prost_types::Timestamp),
+        /// Input only. The TTL for the
+        /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal].
+        /// Proposals will expire after this duration.
+        #[prost(message, tag = "7")]
+        Ttl(::prost_types::Duration),
+    }
+    /// The operation to perform on the
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance].
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Operation {
+        /// Register 2FA keys for the
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance].
+        /// This operation requires all N Challenges to be signed by 2FA keys. The
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance]
+        /// must be in the
+        /// [PENDING_TWO_FACTOR_AUTH_REGISTRATION][google.cloud.kms.v1.SingleTenantHsmInstance.State.PENDING_TWO_FACTOR_AUTH_REGISTRATION]
+        /// state to perform this operation.
+        #[prost(message, tag = "8")]
+        RegisterTwoFactorAuthKeys(RegisterTwoFactorAuthKeys),
+        /// Disable the
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance].
+        /// The
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance]
+        /// must be in the
+        /// [ACTIVE][google.cloud.kms.v1.SingleTenantHsmInstance.State.ACTIVE] state
+        /// to perform this operation.
+        #[prost(message, tag = "9")]
+        DisableSingleTenantHsmInstance(DisableSingleTenantHsmInstance),
+        /// Enable the
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance].
+        /// The
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance]
+        /// must be in the
+        /// [DISABLED][google.cloud.kms.v1.SingleTenantHsmInstance.State.DISABLED]
+        /// state to perform this operation.
+        #[prost(message, tag = "10")]
+        EnableSingleTenantHsmInstance(EnableSingleTenantHsmInstance),
+        /// Delete the
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance].
+        /// Deleting a
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance]
+        /// will make all [CryptoKeys][google.cloud.kms.v1.CryptoKey] attached to the
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance]
+        /// unusable. The
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance]
+        /// must be in the
+        /// [DISABLED][google.cloud.kms.v1.SingleTenantHsmInstance.State.DISABLED] or
+        /// [PENDING_TWO_FACTOR_AUTH_REGISTRATION][google.cloud.kms.v1.SingleTenantHsmInstance.State.PENDING_TWO_FACTOR_AUTH_REGISTRATION]
+        /// state to perform this operation.
+        #[prost(message, tag = "11")]
+        DeleteSingleTenantHsmInstance(DeleteSingleTenantHsmInstance),
+        /// Add a quorum member to the
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance].
+        /// This will increase the
+        /// [total_approver_count][google.cloud.kms.v1.SingleTenantHsmInstance.QuorumAuth.total_approver_count]
+        /// by 1. The
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance]
+        /// must be in the
+        /// [ACTIVE][google.cloud.kms.v1.SingleTenantHsmInstance.State.ACTIVE] state
+        /// to perform this operation.
+        #[prost(message, tag = "12")]
+        AddQuorumMember(AddQuorumMember),
+        /// Remove a quorum member from the
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance].
+        /// This will reduce
+        /// [total_approver_count][google.cloud.kms.v1.SingleTenantHsmInstance.QuorumAuth.total_approver_count]
+        /// by 1. The
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance]
+        /// must be in the
+        /// [ACTIVE][google.cloud.kms.v1.SingleTenantHsmInstance.State.ACTIVE] state
+        /// to perform this operation.
+        #[prost(message, tag = "13")]
+        RemoveQuorumMember(RemoveQuorumMember),
+        /// Refreshes the
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance].
+        /// This operation must be performed periodically to keep the
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance]
+        /// active. This operation must be performed before
+        /// [unrefreshed_duration_until_disable][google.cloud.kms.v1.SingleTenantHsmInstance.unrefreshed_duration_until_disable]
+        /// has passed. The
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance]
+        /// must be in the
+        /// [ACTIVE][google.cloud.kms.v1.SingleTenantHsmInstance.State.ACTIVE] state
+        /// to perform this operation.
+        #[prost(message, tag = "17")]
+        RefreshSingleTenantHsmInstance(RefreshSingleTenantHsmInstance),
+    }
+}
+/// A challenge to be signed by a 2FA key.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Challenge {
+    /// Output only. The challenge to be signed by the 2FA key indicated by the
+    /// public key.
+    #[prost(bytes = "vec", tag = "1")]
+    pub challenge: ::prost::alloc::vec::Vec<u8>,
+    /// Output only. The public key associated with the 2FA key that should sign
+    /// the challenge.
+    #[prost(string, tag = "2")]
+    pub public_key_pem: ::prost::alloc::string::String,
+}
+/// A reply to a challenge signed by a 2FA key.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ChallengeReply {
+    /// Required. The signed challenge associated with the 2FA key.
+    /// The signature must be RSASSA-PKCS1 v1.5 with a SHA256 digest.
+    #[prost(bytes = "vec", tag = "1")]
+    pub signed_challenge: ::prost::alloc::vec::Vec<u8>,
+    /// Required. The public key associated with the 2FA key.
+    #[prost(string, tag = "2")]
+    pub public_key_pem: ::prost::alloc::string::String,
+}
+/// Request message for
+/// [HsmManagement.ListSingleTenantHsmInstances][google.cloud.kms.v1.HsmManagement.ListSingleTenantHsmInstances].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListSingleTenantHsmInstancesRequest {
+    /// Required. The resource name of the location associated with the
+    /// [SingleTenantHsmInstances][google.cloud.kms.v1.SingleTenantHsmInstance] to
+    /// list, in the format `projects/*/locations/*`.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Optional. Optional limit on the number of
+    /// [SingleTenantHsmInstances][google.cloud.kms.v1.SingleTenantHsmInstance] to
+    /// include in the response. Further
+    /// [SingleTenantHsmInstances][google.cloud.kms.v1.SingleTenantHsmInstance] can
+    /// subsequently be
+    /// obtained by including the
+    /// [ListSingleTenantHsmInstancesResponse.next_page_token][google.cloud.kms.v1.ListSingleTenantHsmInstancesResponse.next_page_token]
+    /// in a subsequent request. If unspecified, the server will pick an
+    /// appropriate default.
+    #[prost(int32, tag = "2")]
+    pub page_size: i32,
+    /// Optional. Optional pagination token, returned earlier via
+    /// [ListSingleTenantHsmInstancesResponse.next_page_token][google.cloud.kms.v1.ListSingleTenantHsmInstancesResponse.next_page_token].
+    #[prost(string, tag = "3")]
+    pub page_token: ::prost::alloc::string::String,
+    /// Optional. Only include resources that match the filter in the response. For
+    /// more information, see
+    /// [Sorting and filtering list
+    /// results](<https://cloud.google.com/kms/docs/sorting-and-filtering>).
+    #[prost(string, tag = "4")]
+    pub filter: ::prost::alloc::string::String,
+    /// Optional. Specify how the results should be sorted. If not specified, the
+    /// results will be sorted in the default order.  For more information, see
+    /// [Sorting and filtering list
+    /// results](<https://cloud.google.com/kms/docs/sorting-and-filtering>).
+    #[prost(string, tag = "5")]
+    pub order_by: ::prost::alloc::string::String,
+    /// Optional. If set to true,
+    /// [HsmManagement.ListSingleTenantHsmInstances][google.cloud.kms.v1.HsmManagement.ListSingleTenantHsmInstances]
+    /// will also return
+    /// [SingleTenantHsmInstances][google.cloud.kms.v1.SingleTenantHsmInstance] in
+    /// DELETED state.
+    #[prost(bool, tag = "6")]
+    pub show_deleted: bool,
+}
+/// Response message for
+/// [HsmManagement.ListSingleTenantHsmInstances][google.cloud.kms.v1.HsmManagement.ListSingleTenantHsmInstances].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListSingleTenantHsmInstancesResponse {
+    /// The list of
+    /// [SingleTenantHsmInstances][google.cloud.kms.v1.SingleTenantHsmInstance].
+    #[prost(message, repeated, tag = "1")]
+    pub single_tenant_hsm_instances: ::prost::alloc::vec::Vec<SingleTenantHsmInstance>,
+    /// A token to retrieve next page of results. Pass this value in
+    /// [ListSingleTenantHsmInstancesRequest.page_token][google.cloud.kms.v1.ListSingleTenantHsmInstancesRequest.page_token]
+    /// to retrieve the next page of results.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+    /// The total number of
+    /// [SingleTenantHsmInstances][google.cloud.kms.v1.SingleTenantHsmInstance]
+    /// that matched the query.
+    ///
+    /// This field is not populated if
+    /// [ListSingleTenantHsmInstancesRequest.filter][google.cloud.kms.v1.ListSingleTenantHsmInstancesRequest.filter]
+    /// is applied.
+    #[prost(int32, tag = "3")]
+    pub total_size: i32,
+}
+/// Request message for
+/// [HsmManagement.GetSingleTenantHsmInstance][google.cloud.kms.v1.HsmManagement.GetSingleTenantHsmInstance].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetSingleTenantHsmInstanceRequest {
+    /// Required. The [name][google.cloud.kms.v1.SingleTenantHsmInstance.name] of
+    /// the [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance]
+    /// to get.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Request message for
+/// [HsmManagement.CreateSingleTenantHsmInstance][google.cloud.kms.v1.HsmManagement.CreateSingleTenantHsmInstance].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateSingleTenantHsmInstanceRequest {
+    /// Required. The resource name of the location associated with the
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance], in
+    /// the format `projects/*/locations/*`.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Optional. It must be unique within a location and match the regular
+    /// expression `\[a-zA-Z0-9_-\]{1,63}`.
+    #[prost(string, tag = "2")]
+    pub single_tenant_hsm_instance_id: ::prost::alloc::string::String,
+    /// Required. An
+    /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance] with
+    /// initial field values.
+    #[prost(message, optional, tag = "3")]
+    pub single_tenant_hsm_instance: ::core::option::Option<SingleTenantHsmInstance>,
+}
+/// Metadata message for
+/// [CreateSingleTenantHsmInstance][google.cloud.kms.v1.HsmManagement.CreateSingleTenantHsmInstance]
+/// long-running operation response.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct CreateSingleTenantHsmInstanceMetadata {}
+/// Request message for
+/// [HsmManagement.CreateSingleTenantHsmInstanceProposal][google.cloud.kms.v1.HsmManagement.CreateSingleTenantHsmInstanceProposal].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateSingleTenantHsmInstanceProposalRequest {
+    /// Required. The [name][google.cloud.kms.v1.SingleTenantHsmInstance.name] of
+    /// the [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance]
+    /// associated with the
+    /// [SingleTenantHsmInstanceProposals][google.cloud.kms.v1.SingleTenantHsmInstanceProposal].
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Optional. It must be unique within a location and match the regular
+    /// expression `\[a-zA-Z0-9_-\]{1,63}`.
+    #[prost(string, tag = "2")]
+    pub single_tenant_hsm_instance_proposal_id: ::prost::alloc::string::String,
+    /// Required. The
+    /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+    /// to create.
+    #[prost(message, optional, tag = "3")]
+    pub single_tenant_hsm_instance_proposal: ::core::option::Option<
+        SingleTenantHsmInstanceProposal,
+    >,
+}
+/// Metadata message for
+/// [CreateSingleTenantHsmInstanceProposal][google.cloud.kms.v1.HsmManagement.CreateSingleTenantHsmInstanceProposal]
+/// long-running operation response.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct CreateSingleTenantHsmInstanceProposalMetadata {}
+/// Request message for
+/// [HsmManagement.GetSingleTenantHsmInstanceProposal][google.cloud.kms.v1.HsmManagement.GetSingleTenantHsmInstanceProposal].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetSingleTenantHsmInstanceProposalRequest {
+    /// Required. The
+    /// [name][google.cloud.kms.v1.SingleTenantHsmInstanceProposal.name] of the
+    /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+    /// to get.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Request message for
+/// [HsmManagement.ApproveSingleTenantHsmInstanceProposal][google.cloud.kms.v1.HsmManagement.ApproveSingleTenantHsmInstanceProposal].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ApproveSingleTenantHsmInstanceProposalRequest {
+    /// Required. The
+    /// [name][google.cloud.kms.v1.SingleTenantHsmInstanceProposal.name] of the
+    /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+    /// to approve.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// The approval payload. The type of approval payload must correspond to the
+    /// type of approval_parameters in the proposal.
+    #[prost(
+        oneof = "approve_single_tenant_hsm_instance_proposal_request::ApprovalPayload",
+        tags = "2, 3"
+    )]
+    pub approval_payload: ::core::option::Option<
+        approve_single_tenant_hsm_instance_proposal_request::ApprovalPayload,
+    >,
+}
+/// Nested message and enum types in `ApproveSingleTenantHsmInstanceProposalRequest`.
+pub mod approve_single_tenant_hsm_instance_proposal_request {
+    /// The reply to
+    /// [QuorumParameters][google.cloud.kms.v1.SingleTenantHsmInstanceProposal.QuorumParameters]
+    /// for approving the proposal.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct QuorumReply {
+        /// Required. The challenge replies to approve the proposal. Challenge
+        /// replies can be sent across multiple requests. The proposal will be
+        /// approved when
+        /// [required_approver_count][google.cloud.kms.v1.SingleTenantHsmInstanceProposal.QuorumParameters.required_approver_count]
+        /// challenge replies are provided.
+        #[prost(message, repeated, tag = "1")]
+        pub challenge_replies: ::prost::alloc::vec::Vec<super::ChallengeReply>,
+    }
+    /// The reply to
+    /// [RequiredActionQuorumParameters][google.cloud.kms.v1.SingleTenantHsmInstanceProposal.RequiredActionQuorumParameters]
+    /// for approving the proposal.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct RequiredActionQuorumReply {
+        /// Required. All required challenges must be signed for the proposal to be
+        /// approved. These can be sent across multiple requests.
+        #[prost(message, repeated, tag = "1")]
+        pub required_challenge_replies: ::prost::alloc::vec::Vec<super::ChallengeReply>,
+        /// Required. Quorum members' signed challenge replies. These can be provided
+        /// across multiple requests. The proposal will be approved when
+        /// [required_approver_count][google.cloud.kms.v1.SingleTenantHsmInstanceProposal.RequiredActionQuorumParameters.required_approver_count]
+        /// quorum_challenge_replies are provided and when all
+        /// required_challenge_replies are provided.
+        #[prost(message, repeated, tag = "2")]
+        pub quorum_challenge_replies: ::prost::alloc::vec::Vec<super::ChallengeReply>,
+    }
+    /// The approval payload. The type of approval payload must correspond to the
+    /// type of approval_parameters in the proposal.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum ApprovalPayload {
+        /// Required. The reply to
+        /// [QuorumParameters][google.cloud.kms.v1.SingleTenantHsmInstanceProposal.QuorumParameters]
+        /// for approving the proposal.
+        #[prost(message, tag = "2")]
+        QuorumReply(QuorumReply),
+        /// Required. The reply to
+        /// [RequiredActionQuorumParameters][google.cloud.kms.v1.SingleTenantHsmInstanceProposal.RequiredActionQuorumParameters]
+        /// for approving the proposal.
+        #[prost(message, tag = "3")]
+        RequiredActionQuorumReply(RequiredActionQuorumReply),
+    }
+}
+/// Response message for
+/// [HsmManagement.ApproveSingleTenantHsmInstanceProposal][google.cloud.kms.v1.HsmManagement.ApproveSingleTenantHsmInstanceProposal].
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct ApproveSingleTenantHsmInstanceProposalResponse {}
+/// Request message for
+/// [HsmManagement.ExecuteSingleTenantHsmInstanceProposal][google.cloud.kms.v1.HsmManagement.ExecuteSingleTenantHsmInstanceProposal].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ExecuteSingleTenantHsmInstanceProposalRequest {
+    /// Required. The
+    /// [name][google.cloud.kms.v1.SingleTenantHsmInstanceProposal.name] of the
+    /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+    /// to execute.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Response message for
+/// [HsmManagement.ExecuteSingleTenantHsmInstanceProposal][google.cloud.kms.v1.HsmManagement.ExecuteSingleTenantHsmInstanceProposal].
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct ExecuteSingleTenantHsmInstanceProposalResponse {}
+/// Metadata message for
+/// [ExecuteSingleTenantHsmInstanceProposal][google.cloud.kms.v1.HsmManagement.ExecuteSingleTenantHsmInstanceProposal]
+/// long-running operation response.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct ExecuteSingleTenantHsmInstanceProposalMetadata {}
+/// Request message for
+/// [HsmManagement.ListSingleTenantHsmInstanceProposals][google.cloud.kms.v1.HsmManagement.ListSingleTenantHsmInstanceProposals].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListSingleTenantHsmInstanceProposalsRequest {
+    /// Required. The resource name of the single tenant HSM instance associated
+    /// with the
+    /// [SingleTenantHsmInstanceProposals][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+    /// to list, in the format `projects/*/locations/*/singleTenantHsmInstances/*`.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Optional. Optional limit on the number of
+    /// [SingleTenantHsmInstanceProposals][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+    /// to include in the response. Further
+    /// [SingleTenantHsmInstanceProposals][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+    /// can subsequently be obtained by including the
+    /// [ListSingleTenantHsmInstanceProposalsResponse.next_page_token][google.cloud.kms.v1.ListSingleTenantHsmInstanceProposalsResponse.next_page_token]
+    /// in a subsequent request. If unspecified, the server will pick an
+    /// appropriate default.
+    #[prost(int32, tag = "2")]
+    pub page_size: i32,
+    /// Optional. Optional pagination token, returned earlier via
+    /// [ListSingleTenantHsmInstanceProposalsResponse.next_page_token][google.cloud.kms.v1.ListSingleTenantHsmInstanceProposalsResponse.next_page_token].
+    #[prost(string, tag = "3")]
+    pub page_token: ::prost::alloc::string::String,
+    /// Optional. Only include resources that match the filter in the response. For
+    /// more information, see
+    /// [Sorting and filtering list
+    /// results](<https://cloud.google.com/kms/docs/sorting-and-filtering>).
+    #[prost(string, tag = "4")]
+    pub filter: ::prost::alloc::string::String,
+    /// Optional. Specify how the results should be sorted. If not specified, the
+    /// results will be sorted in the default order.  For more information, see
+    /// [Sorting and filtering list
+    /// results](<https://cloud.google.com/kms/docs/sorting-and-filtering>).
+    #[prost(string, tag = "5")]
+    pub order_by: ::prost::alloc::string::String,
+    /// Optional. If set to true,
+    /// [HsmManagement.ListSingleTenantHsmInstanceProposals][google.cloud.kms.v1.HsmManagement.ListSingleTenantHsmInstanceProposals]
+    /// will also return
+    /// [SingleTenantHsmInstanceProposals][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+    /// in DELETED state.
+    #[prost(bool, tag = "6")]
+    pub show_deleted: bool,
+}
+/// Response message for
+/// [HsmManagement.ListSingleTenantHsmInstanceProposals][google.cloud.kms.v1.HsmManagement.ListSingleTenantHsmInstanceProposals].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListSingleTenantHsmInstanceProposalsResponse {
+    /// The list of
+    /// [SingleTenantHsmInstanceProposals][google.cloud.kms.v1.SingleTenantHsmInstanceProposal].
+    #[prost(message, repeated, tag = "1")]
+    pub single_tenant_hsm_instance_proposals: ::prost::alloc::vec::Vec<
+        SingleTenantHsmInstanceProposal,
+    >,
+    /// A token to retrieve next page of results. Pass this value in
+    /// [ListSingleTenantHsmInstanceProposalsRequest.page_token][google.cloud.kms.v1.ListSingleTenantHsmInstanceProposalsRequest.page_token]
+    /// to retrieve the next page of results.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+    /// The total number of
+    /// [SingleTenantHsmInstanceProposals][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+    /// that matched the query.
+    ///
+    /// This field is not populated if
+    /// [ListSingleTenantHsmInstanceProposalsRequest.filter][google.cloud.kms.v1.ListSingleTenantHsmInstanceProposalsRequest.filter]
+    /// is applied.
+    #[prost(int32, tag = "3")]
+    pub total_size: i32,
+}
+/// Request message for
+/// [HsmManagement.DeleteSingleTenantHsmInstanceProposal][google.cloud.kms.v1.HsmManagement.DeleteSingleTenantHsmInstanceProposal].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteSingleTenantHsmInstanceProposalRequest {
+    /// Required. The
+    /// [name][google.cloud.kms.v1.SingleTenantHsmInstanceProposal.name] of the
+    /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+    /// to delete.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Generated client implementations.
+pub mod hsm_management_client {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value,
+    )]
+    use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
+    /// Google Cloud HSM Management Service
+    ///
+    /// Provides interfaces for managing HSM instances.
+    ///
+    /// Implements a REST model with the following objects:
+    /// * [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance]
+    /// * [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+    #[derive(Debug, Clone)]
+    pub struct HsmManagementClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl HsmManagementClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> HsmManagementClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> HsmManagementClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+        {
+            HsmManagementClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        /// Lists
+        /// [SingleTenantHsmInstances][google.cloud.kms.v1.SingleTenantHsmInstance].
+        pub async fn list_single_tenant_hsm_instances(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListSingleTenantHsmInstancesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListSingleTenantHsmInstancesResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.kms.v1.HsmManagement/ListSingleTenantHsmInstances",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.kms.v1.HsmManagement",
+                        "ListSingleTenantHsmInstances",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Returns metadata for a given
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance].
+        pub async fn get_single_tenant_hsm_instance(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetSingleTenantHsmInstanceRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::SingleTenantHsmInstance>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.kms.v1.HsmManagement/GetSingleTenantHsmInstance",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.kms.v1.HsmManagement",
+                        "GetSingleTenantHsmInstance",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Creates a new
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance] in a
+        /// given Project and Location. User must create a RegisterTwoFactorAuthKeys
+        /// proposal with this single-tenant HSM instance to finish setup of the
+        /// instance.
+        pub async fn create_single_tenant_hsm_instance(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateSingleTenantHsmInstanceRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.kms.v1.HsmManagement/CreateSingleTenantHsmInstance",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.kms.v1.HsmManagement",
+                        "CreateSingleTenantHsmInstance",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Creates a new
+        /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+        /// for a given
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance].
+        pub async fn create_single_tenant_hsm_instance_proposal(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::CreateSingleTenantHsmInstanceProposalRequest,
+            >,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.kms.v1.HsmManagement/CreateSingleTenantHsmInstanceProposal",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.kms.v1.HsmManagement",
+                        "CreateSingleTenantHsmInstanceProposal",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Approves a
+        /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+        /// for a given
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance]. The
+        /// proposal must be in the
+        /// [PENDING][google.cloud.kms.v1.SingleTenantHsmInstanceProposal.State.PENDING]
+        /// state.
+        pub async fn approve_single_tenant_hsm_instance_proposal(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::ApproveSingleTenantHsmInstanceProposalRequest,
+            >,
+        ) -> std::result::Result<
+            tonic::Response<super::ApproveSingleTenantHsmInstanceProposalResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.kms.v1.HsmManagement/ApproveSingleTenantHsmInstanceProposal",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.kms.v1.HsmManagement",
+                        "ApproveSingleTenantHsmInstanceProposal",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Executes a
+        /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal]
+        /// for a given
+        /// [SingleTenantHsmInstance][google.cloud.kms.v1.SingleTenantHsmInstance]. The
+        /// proposal must be in the
+        /// [APPROVED][google.cloud.kms.v1.SingleTenantHsmInstanceProposal.State.APPROVED]
+        /// state.
+        pub async fn execute_single_tenant_hsm_instance_proposal(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::ExecuteSingleTenantHsmInstanceProposalRequest,
+            >,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.kms.v1.HsmManagement/ExecuteSingleTenantHsmInstanceProposal",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.kms.v1.HsmManagement",
+                        "ExecuteSingleTenantHsmInstanceProposal",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Returns metadata for a given
+        /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal].
+        pub async fn get_single_tenant_hsm_instance_proposal(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::GetSingleTenantHsmInstanceProposalRequest,
+            >,
+        ) -> std::result::Result<
+            tonic::Response<super::SingleTenantHsmInstanceProposal>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.kms.v1.HsmManagement/GetSingleTenantHsmInstanceProposal",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.kms.v1.HsmManagement",
+                        "GetSingleTenantHsmInstanceProposal",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Lists
+        /// [SingleTenantHsmInstanceProposals][google.cloud.kms.v1.SingleTenantHsmInstanceProposal].
+        pub async fn list_single_tenant_hsm_instance_proposals(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::ListSingleTenantHsmInstanceProposalsRequest,
+            >,
+        ) -> std::result::Result<
+            tonic::Response<super::ListSingleTenantHsmInstanceProposalsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.kms.v1.HsmManagement/ListSingleTenantHsmInstanceProposals",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.kms.v1.HsmManagement",
+                        "ListSingleTenantHsmInstanceProposals",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Deletes a
+        /// [SingleTenantHsmInstanceProposal][google.cloud.kms.v1.SingleTenantHsmInstanceProposal].
+        pub async fn delete_single_tenant_hsm_instance_proposal(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::DeleteSingleTenantHsmInstanceProposalRequest,
+            >,
+        ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.kms.v1.HsmManagement/DeleteSingleTenantHsmInstanceProposal",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.kms.v1.HsmManagement",
+                        "DeleteSingleTenantHsmInstanceProposal",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+    }
+}
 /// Request message for
 /// [KeyManagementService.ListKeyRings][google.cloud.kms.v1.KeyManagementService.ListKeyRings].
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -2689,6 +4185,10 @@ pub struct ListKeyRingsResponse {
     pub next_page_token: ::prost::alloc::string::String,
     /// The total number of [KeyRings][google.cloud.kms.v1.KeyRing] that matched
     /// the query.
+    ///
+    /// This field is not populated if
+    /// [ListKeyRingsRequest.filter][google.cloud.kms.v1.ListKeyRingsRequest.filter]
+    /// is applied.
     #[prost(int32, tag = "3")]
     pub total_size: i32,
 }
@@ -2706,6 +4206,10 @@ pub struct ListCryptoKeysResponse {
     pub next_page_token: ::prost::alloc::string::String,
     /// The total number of [CryptoKeys][google.cloud.kms.v1.CryptoKey] that
     /// matched the query.
+    ///
+    /// This field is not populated if
+    /// [ListCryptoKeysRequest.filter][google.cloud.kms.v1.ListCryptoKeysRequest.filter]
+    /// is applied.
     #[prost(int32, tag = "3")]
     pub total_size: i32,
 }
@@ -2724,6 +4228,10 @@ pub struct ListCryptoKeyVersionsResponse {
     /// The total number of
     /// [CryptoKeyVersions][google.cloud.kms.v1.CryptoKeyVersion] that matched the
     /// query.
+    ///
+    /// This field is not populated if
+    /// [ListCryptoKeyVersionsRequest.filter][google.cloud.kms.v1.ListCryptoKeyVersionsRequest.filter]
+    /// is applied.
     #[prost(int32, tag = "3")]
     pub total_size: i32,
 }
@@ -2741,6 +4249,10 @@ pub struct ListImportJobsResponse {
     pub next_page_token: ::prost::alloc::string::String,
     /// The total number of [ImportJobs][google.cloud.kms.v1.ImportJob] that
     /// matched the query.
+    ///
+    /// This field is not populated if
+    /// [ListImportJobsRequest.filter][google.cloud.kms.v1.ListImportJobsRequest.filter]
+    /// is applied.
     #[prost(int32, tag = "3")]
     pub total_size: i32,
 }
@@ -2779,6 +4291,15 @@ pub struct GetPublicKeyRequest {
     /// [CryptoKeyVersion][google.cloud.kms.v1.CryptoKeyVersion] public key to get.
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
+    /// Optional. The [PublicKey][google.cloud.kms.v1.PublicKey] format specified
+    /// by the user. This field is required for PQC algorithms. If specified, the
+    /// public key will be exported through the
+    /// [public_key][google.cloud.kms.v1.PublicKey.public_key] field in the
+    /// requested format. Otherwise, the [pem][google.cloud.kms.v1.PublicKey.pem]
+    /// field will be populated for non-PQC algorithms, and an error will be
+    /// returned for PQC algorithms.
+    #[prost(enumeration = "public_key::PublicKeyFormat", tag = "2")]
+    pub public_key_format: i32,
 }
 /// Request message for
 /// [KeyManagementService.GetImportJob][google.cloud.kms.v1.KeyManagementService.GetImportJob].
@@ -2871,7 +4392,9 @@ pub struct ImportCryptoKeyVersionRequest {
     /// [CryptoKeyVersion][google.cloud.kms.v1.CryptoKeyVersion], the
     /// [CryptoKeyVersion][google.cloud.kms.v1.CryptoKeyVersion] must be a child of
     /// [ImportCryptoKeyVersionRequest.parent][google.cloud.kms.v1.ImportCryptoKeyVersionRequest.parent],
-    /// have been previously created via [ImportCryptoKeyVersion][], and be in
+    /// have been previously created via
+    /// [ImportCryptoKeyVersion][google.cloud.kms.v1.KeyManagementService.ImportCryptoKeyVersion],
+    /// and be in
     /// [DESTROYED][google.cloud.kms.v1.CryptoKeyVersion.CryptoKeyVersionState.DESTROYED]
     /// or
     /// [IMPORT_FAILED][google.cloud.kms.v1.CryptoKeyVersion.CryptoKeyVersionState.IMPORT_FAILED]
@@ -3447,7 +4970,8 @@ pub struct MacVerifyRequest {
     /// checksum. [KeyManagementService][google.cloud.kms.v1.KeyManagementService]
     /// will report an error if the checksum verification fails. If you receive a
     /// checksum error, your client should verify that
-    /// CRC32C([MacVerifyRequest.tag][]) is equal to
+    /// CRC32C([MacVerifyRequest.mac][google.cloud.kms.v1.MacVerifyRequest.mac]) is
+    /// equal to
     /// [MacVerifyRequest.mac_crc32c][google.cloud.kms.v1.MacVerifyRequest.mac_crc32c],
     /// and if so, perform a limited number of retries. A persistent mismatch may
     /// indicate an issue in your computation of the CRC32C checksum. Note: This
@@ -3457,6 +4981,42 @@ pub struct MacVerifyRequest {
     /// this type.
     #[prost(message, optional, tag = "5")]
     pub mac_crc32c: ::core::option::Option<i64>,
+}
+/// Request message for
+/// [KeyManagementService.Decapsulate][google.cloud.kms.v1.KeyManagementService.Decapsulate].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DecapsulateRequest {
+    /// Required. The resource name of the
+    /// [CryptoKeyVersion][google.cloud.kms.v1.CryptoKeyVersion] to use for
+    /// decapsulation.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Required. The ciphertext produced from encapsulation with the
+    /// named [CryptoKeyVersion][google.cloud.kms.v1.CryptoKeyVersion] public
+    /// key(s).
+    #[prost(bytes = "vec", tag = "2")]
+    pub ciphertext: ::prost::alloc::vec::Vec<u8>,
+    /// Optional. A CRC32C checksum of the
+    /// [DecapsulateRequest.ciphertext][google.cloud.kms.v1.DecapsulateRequest.ciphertext].
+    /// If specified,
+    /// [KeyManagementService][google.cloud.kms.v1.KeyManagementService] will
+    /// verify the integrity of the received
+    /// [DecapsulateRequest.ciphertext][google.cloud.kms.v1.DecapsulateRequest.ciphertext]
+    /// using this checksum.
+    /// [KeyManagementService][google.cloud.kms.v1.KeyManagementService] will
+    /// report an error if the checksum verification fails. If you receive a
+    /// checksum error, your client should verify that
+    /// CRC32C([DecapsulateRequest.ciphertext][google.cloud.kms.v1.DecapsulateRequest.ciphertext])
+    /// is equal to
+    /// [DecapsulateRequest.ciphertext_crc32c][google.cloud.kms.v1.DecapsulateRequest.ciphertext_crc32c],
+    /// and if so, perform a limited number of retries. A persistent mismatch may
+    /// indicate an issue in your computation of the CRC32C checksum. Note: This
+    /// field is defined as int64 for reasons of compatibility across different
+    /// languages. However, it is a non-negative integer, which will never exceed
+    /// 2^32-1, and can be safely downconverted to uint32 in languages that support
+    /// this type.
+    #[prost(message, optional, tag = "3")]
+    pub ciphertext_crc32c: ::core::option::Option<i64>,
 }
 /// Request message for
 /// [KeyManagementService.GenerateRandomBytes][google.cloud.kms.v1.KeyManagementService.GenerateRandomBytes].
@@ -3935,6 +5495,61 @@ pub struct MacVerifyResponse {
     pub protection_level: i32,
 }
 /// Response message for
+/// [KeyManagementService.Decapsulate][google.cloud.kms.v1.KeyManagementService.Decapsulate].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DecapsulateResponse {
+    /// The resource name of the
+    /// [CryptoKeyVersion][google.cloud.kms.v1.CryptoKeyVersion] used for
+    /// decapsulation. Check this field to verify that the intended resource was
+    /// used for decapsulation.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// The decapsulated shared_secret originally encapsulated with the matching
+    /// public key.
+    #[prost(bytes = "vec", tag = "2")]
+    pub shared_secret: ::prost::alloc::vec::Vec<u8>,
+    /// Integrity verification field. A CRC32C checksum of the returned
+    /// [DecapsulateResponse.shared_secret][google.cloud.kms.v1.DecapsulateResponse.shared_secret].
+    /// An integrity check of
+    /// [DecapsulateResponse.shared_secret][google.cloud.kms.v1.DecapsulateResponse.shared_secret]
+    /// can be performed by computing the CRC32C checksum of
+    /// [DecapsulateResponse.shared_secret][google.cloud.kms.v1.DecapsulateResponse.shared_secret]
+    /// and comparing your results to this field. Discard the response in case of
+    /// non-matching checksum values, and perform a limited number of retries. A
+    /// persistent mismatch may indicate an issue in your computation of the CRC32C
+    /// checksum. Note: receiving this response message indicates that
+    /// [KeyManagementService][google.cloud.kms.v1.KeyManagementService] is able to
+    /// successfully decrypt the
+    /// [ciphertext][google.cloud.kms.v1.DecapsulateRequest.ciphertext]. Note: This
+    /// field is defined as int64 for reasons of compatibility across different
+    /// languages. However, it is a non-negative integer, which will never exceed
+    /// 2^32-1, and can be safely downconverted to uint32 in languages that support
+    /// this type.
+    #[prost(int64, optional, tag = "3")]
+    pub shared_secret_crc32c: ::core::option::Option<i64>,
+    /// Integrity verification field. A flag indicating whether
+    /// [DecapsulateRequest.ciphertext_crc32c][google.cloud.kms.v1.DecapsulateRequest.ciphertext_crc32c]
+    /// was received by
+    /// [KeyManagementService][google.cloud.kms.v1.KeyManagementService] and used
+    /// for the integrity verification of the
+    /// [ciphertext][google.cloud.kms.v1.DecapsulateRequest.ciphertext]. A false
+    /// value of this field indicates either that
+    /// [DecapsulateRequest.ciphertext_crc32c][google.cloud.kms.v1.DecapsulateRequest.ciphertext_crc32c]
+    /// was left unset or that it was not delivered to
+    /// [KeyManagementService][google.cloud.kms.v1.KeyManagementService]. If you've
+    /// set
+    /// [DecapsulateRequest.ciphertext_crc32c][google.cloud.kms.v1.DecapsulateRequest.ciphertext_crc32c]
+    /// but this field is still false, discard the response and perform a limited
+    /// number of retries.
+    #[prost(bool, tag = "4")]
+    pub verified_ciphertext_crc32c: bool,
+    /// The [ProtectionLevel][google.cloud.kms.v1.ProtectionLevel] of the
+    /// [CryptoKeyVersion][google.cloud.kms.v1.CryptoKeyVersion] used in
+    /// decapsulation.
+    #[prost(enumeration = "ProtectionLevel", tag = "5")]
+    pub protection_level: i32,
+}
+/// Response message for
 /// [KeyManagementService.GenerateRandomBytes][google.cloud.kms.v1.KeyManagementService.GenerateRandomBytes].
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GenerateRandomBytesResponse {
@@ -3996,6 +5611,12 @@ pub struct LocationMetadata {
     /// this location.
     #[prost(bool, tag = "2")]
     pub ekm_available: bool,
+    /// Indicates whether [CryptoKeys][google.cloud.kms.v1.CryptoKey] with
+    /// [protection_level][google.cloud.kms.v1.CryptoKeyVersionTemplate.protection_level]
+    /// [HSM_SINGLE_TENANT][google.cloud.kms.v1.ProtectionLevel.HSM_SINGLE_TENANT]
+    /// can be created in this location.
+    #[prost(bool, tag = "3")]
+    pub hsm_single_tenant_available: bool,
 }
 /// Generated client implementations.
 pub mod key_management_service_client {
@@ -4980,6 +6601,40 @@ pub mod key_management_service_client {
                     GrpcMethod::new(
                         "google.cloud.kms.v1.KeyManagementService",
                         "MacVerify",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Decapsulates data that was encapsulated with a public key retrieved from
+        /// [GetPublicKey][google.cloud.kms.v1.KeyManagementService.GetPublicKey]
+        /// corresponding to a [CryptoKeyVersion][google.cloud.kms.v1.CryptoKeyVersion]
+        /// with [CryptoKey.purpose][google.cloud.kms.v1.CryptoKey.purpose]
+        /// KEY_ENCAPSULATION.
+        pub async fn decapsulate(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DecapsulateRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::DecapsulateResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.kms.v1.KeyManagementService/Decapsulate",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.kms.v1.KeyManagementService",
+                        "Decapsulate",
                     ),
                 );
             self.inner.unary(req, path, codec).await

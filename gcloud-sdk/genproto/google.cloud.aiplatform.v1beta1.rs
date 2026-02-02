@@ -24,6 +24,16 @@ pub enum AcceleratorType {
     NvidiaL4 = 11,
     /// Nvidia H100 80Gb GPU.
     NvidiaH10080gb = 13,
+    /// Nvidia H100 Mega 80Gb GPU.
+    NvidiaH100Mega80gb = 14,
+    /// Nvidia H200 141Gb GPU.
+    NvidiaH200141gb = 15,
+    /// Nvidia B200 GPU.
+    NvidiaB200 = 16,
+    /// Nvidia GB200 GPU.
+    NvidiaGb200 = 17,
+    /// Nvidia RTX Pro 6000 GPU.
+    NvidiaRtxPro6000 = 18,
     /// TPU v2.
     TpuV2 = 6,
     /// TPU v3.
@@ -50,6 +60,11 @@ impl AcceleratorType {
             Self::NvidiaA10080gb => "NVIDIA_A100_80GB",
             Self::NvidiaL4 => "NVIDIA_L4",
             Self::NvidiaH10080gb => "NVIDIA_H100_80GB",
+            Self::NvidiaH100Mega80gb => "NVIDIA_H100_MEGA_80GB",
+            Self::NvidiaH200141gb => "NVIDIA_H200_141GB",
+            Self::NvidiaB200 => "NVIDIA_B200",
+            Self::NvidiaGb200 => "NVIDIA_GB200",
+            Self::NvidiaRtxPro6000 => "NVIDIA_RTX_PRO_6000",
             Self::TpuV2 => "TPU_V2",
             Self::TpuV3 => "TPU_V3",
             Self::TpuV4Pod => "TPU_V4_POD",
@@ -69,6 +84,11 @@ impl AcceleratorType {
             "NVIDIA_A100_80GB" => Some(Self::NvidiaA10080gb),
             "NVIDIA_L4" => Some(Self::NvidiaL4),
             "NVIDIA_H100_80GB" => Some(Self::NvidiaH10080gb),
+            "NVIDIA_H100_MEGA_80GB" => Some(Self::NvidiaH100Mega80gb),
+            "NVIDIA_H200_141GB" => Some(Self::NvidiaH200141gb),
+            "NVIDIA_B200" => Some(Self::NvidiaB200),
+            "NVIDIA_GB200" => Some(Self::NvidiaGb200),
+            "NVIDIA_RTX_PRO_6000" => Some(Self::NvidiaRtxPro6000),
             "TPU_V2" => Some(Self::TpuV2),
             "TPU_V3" => Some(Self::TpuV3),
             "TPU_V4_POD" => Some(Self::TpuV4Pod),
@@ -981,7 +1001,7 @@ pub struct CsvSource {
 pub struct GcsSource {
     /// Required. Google Cloud Storage URI(-s) to the input file(s). May contain
     /// wildcards. For more information on wildcards, see
-    /// <https://cloud.google.com/storage/docs/gsutil/addlhelp/WildcardNames.>
+    /// <https://cloud.google.com/storage/docs/wildcards.>
     #[prost(string, repeated, tag = "1")]
     pub uris: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
@@ -2180,39 +2200,60 @@ pub struct MachineSpec {
     /// The number of accelerators to attach to the machine.
     #[prost(int32, tag = "3")]
     pub accelerator_count: i32,
+    /// Optional. Immutable. The Nvidia GPU partition size.
+    ///
+    /// When specified, the requested accelerators will be partitioned into
+    /// smaller GPU partitions. For example, if the request is for 8 units of
+    /// NVIDIA A100 GPUs, and gpu_partition_size="1g.10gb", the service will
+    /// create 8 * 7 = 56 partitioned MIG instances.
+    ///
+    /// The partition size must be a value supported by the requested accelerator.
+    /// Refer to
+    /// [Nvidia GPU
+    /// Partitioning](<https://cloud.google.com/kubernetes-engine/docs/how-to/gpus-multi#multi-instance_gpu_partitions>)
+    /// for the available partition sizes.
+    ///
+    /// If set, the accelerator_count should be set to 1.
+    #[prost(string, tag = "7")]
+    pub gpu_partition_size: ::prost::alloc::string::String,
     /// Immutable. The topology of the TPUs. Corresponds to the TPU topologies
     /// available from GKE. (Example: tpu_topology: "2x2x1").
     #[prost(string, tag = "4")]
     pub tpu_topology: ::prost::alloc::string::String,
+    /// Optional. Immutable. The number of nodes per replica for multihost GPU
+    /// deployments.
+    #[prost(int32, tag = "6")]
+    pub multihost_gpu_node_count: i32,
     /// Optional. Immutable. Configuration controlling how this resource pool
     /// consumes reservation.
     #[prost(message, optional, tag = "5")]
     pub reservation_affinity: ::core::option::Option<ReservationAffinity>,
+    /// Optional. Immutable. The minimum GPU driver version that this machine
+    /// requires. For example, "535.104.06". If not specified, the default GPU
+    /// driver version will be used by the underlying infrastructure.
+    #[prost(string, tag = "9")]
+    pub min_gpu_driver_version: ::prost::alloc::string::String,
 }
-/// A description of resources that are dedicated to a DeployedModel, and
-/// that need a higher degree of manual configuration.
+/// A description of resources that are dedicated to a DeployedModel or
+/// DeployedIndex, and that need a higher degree of manual configuration.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DedicatedResources {
-    /// Required. Immutable. The specification of a single machine used by the
-    /// prediction.
+    /// Required. Immutable. The specification of a single machine being used.
     #[prost(message, optional, tag = "1")]
     pub machine_spec: ::core::option::Option<MachineSpec>,
-    /// Required. Immutable. The minimum number of machine replicas this
-    /// DeployedModel will be always deployed on. This value must be greater than
-    /// or equal to 1.
+    /// Required. Immutable. The minimum number of machine replicas that will be
+    /// always deployed on. This value must be greater than or equal to 1.
     ///
-    /// If traffic against the DeployedModel increases, it may dynamically be
-    /// deployed onto more replicas, and as traffic decreases, some of these extra
-    /// replicas may be freed.
+    /// If traffic increases, it may dynamically be deployed onto more replicas,
+    /// and as traffic decreases, some of these extra replicas may be freed.
     #[prost(int32, tag = "2")]
     pub min_replica_count: i32,
-    /// Immutable. The maximum number of replicas this DeployedModel may be
-    /// deployed on when the traffic against it increases. If the requested value
-    /// is too large, the deployment will error, but if deployment succeeds then
-    /// the ability to scale the model to that many replicas is guaranteed (barring
-    /// service outages). If traffic against the DeployedModel increases beyond
-    /// what its replicas at maximum may handle, a portion of the traffic will be
-    /// dropped. If this value is not provided, will use
+    /// Immutable. The maximum number of replicas that may be deployed on when the
+    /// traffic against it increases. If the requested value is too large, the
+    /// deployment will error, but if deployment succeeds then the ability to scale
+    /// to that many replicas is guaranteed (barring service outages). If traffic
+    /// increases beyond what its replicas at maximum may handle, a portion of the
+    /// traffic will be dropped. If this value is not provided, will use
     /// [min_replica_count][google.cloud.aiplatform.v1beta1.DedicatedResources.min_replica_count]
     /// as the default value.
     ///
@@ -2223,13 +2264,28 @@ pub struct DedicatedResources {
     #[prost(int32, tag = "3")]
     pub max_replica_count: i32,
     /// Optional. Number of required available replicas for the deployment to
-    /// succeed. This field is only needed when partial model deployment/mutation
-    /// is desired. If set, the model deploy/mutate operation will succeed once
+    /// succeed. This field is only needed when partial deployment/mutation is
+    /// desired. If set, the deploy/mutate operation will succeed once
     /// available_replica_count reaches required_replica_count, and the rest of
     /// the replicas will be retried. If not set, the default
     /// required_replica_count will be min_replica_count.
     #[prost(int32, tag = "9")]
     pub required_replica_count: i32,
+    /// Immutable. Number of initial replicas being deployed on when scaling the
+    /// workload up from zero or when creating the workload in case
+    /// [min_replica_count][google.cloud.aiplatform.v1beta1.DedicatedResources.min_replica_count]
+    /// = 0. When
+    /// [min_replica_count][google.cloud.aiplatform.v1beta1.DedicatedResources.min_replica_count]
+    /// > 0 (meaning that the scale-to-zero feature is not enabled),
+    /// [initial_replica_count][google.cloud.aiplatform.v1beta1.DedicatedResources.initial_replica_count]
+    /// should not be set. When
+    /// [min_replica_count][google.cloud.aiplatform.v1beta1.DedicatedResources.min_replica_count]
+    /// = 0 (meaning that the scale-to-zero feature is enabled),
+    /// [initial_replica_count][google.cloud.aiplatform.v1beta1.DedicatedResources.initial_replica_count]
+    /// should be larger than zero, but no greater than
+    /// [max_replica_count][google.cloud.aiplatform.v1beta1.DedicatedResources.max_replica_count].
+    #[prost(int32, tag = "6")]
+    pub initial_replica_count: i32,
     /// Immutable. The metric specifications that overrides a resource
     /// utilization metric (CPU utilization, accelerator's duty cycle, and so on)
     /// target value (default to 60 if not set). At most one entry is allowed per
@@ -2259,29 +2315,53 @@ pub struct DedicatedResources {
     /// VMs](<https://cloud.google.com/kubernetes-engine/docs/concepts/spot-vms>).
     #[prost(bool, tag = "5")]
     pub spot: bool,
+    /// Optional. Immutable. If set, use DWS resource to schedule the deployment
+    /// workload. reference:
+    /// (<https://cloud.google.com/blog/products/compute/introducing-dynamic-workload-scheduler>)
+    #[prost(message, optional, tag = "10")]
+    pub flex_start: ::core::option::Option<FlexStart>,
+    /// Optional. Specification for scale-to-zero feature.
+    #[prost(message, optional, tag = "11")]
+    pub scale_to_zero_spec: ::core::option::Option<dedicated_resources::ScaleToZeroSpec>,
+}
+/// Nested message and enum types in `DedicatedResources`.
+pub mod dedicated_resources {
+    /// Specification for scale-to-zero feature.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct ScaleToZeroSpec {
+        /// Optional. Minimum duration that a deployment will be scaled up before
+        /// traffic is evaluated for potential scale-down. \[MinValue=300\] (5 minutes)
+        /// \[MaxValue=28800\] (8 hours)
+        #[prost(message, optional, tag = "1")]
+        pub min_scaleup_period: ::core::option::Option<::prost_types::Duration>,
+        /// Optional. Duration of no traffic before scaling to zero.
+        /// \[MinValue=300\] (5 minutes)
+        /// \[MaxValue=28800\] (8 hours)
+        #[prost(message, optional, tag = "2")]
+        pub idle_scaledown_period: ::core::option::Option<::prost_types::Duration>,
+    }
 }
 /// A description of resources that to large degree are decided by Vertex AI,
 /// and require only a modest additional configuration.
 /// Each Model supporting these resources documents its specific guidelines.
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct AutomaticResources {
-    /// Immutable. The minimum number of replicas this DeployedModel will be always
-    /// deployed on. If traffic against it increases, it may dynamically be
-    /// deployed onto more replicas up to
+    /// Immutable. The minimum number of replicas that will be always deployed on.
+    /// If traffic against it increases, it may dynamically be deployed onto more
+    /// replicas up to
     /// [max_replica_count][google.cloud.aiplatform.v1beta1.AutomaticResources.max_replica_count],
     /// and as traffic decreases, some of these extra replicas may be freed. If the
     /// requested value is too large, the deployment will error.
     #[prost(int32, tag = "1")]
     pub min_replica_count: i32,
-    /// Immutable. The maximum number of replicas this DeployedModel may be
-    /// deployed on when the traffic against it increases. If the requested value
-    /// is too large, the deployment will error, but if deployment succeeds then
-    /// the ability to scale the model to that many replicas is guaranteed (barring
-    /// service outages). If traffic against the DeployedModel increases beyond
-    /// what its replicas at maximum may handle, a portion of the traffic will be
-    /// dropped. If this value is not provided, a no upper bound for scaling under
-    /// heavy traffic will be assume, though Vertex AI may be unable to scale
-    /// beyond certain replica number.
+    /// Immutable. The maximum number of replicas that may be deployed on when the
+    /// traffic against it increases. If the requested value is too large, the
+    /// deployment will error, but if deployment succeeds then the ability to scale
+    /// to that many replicas is guaranteed (barring service outages). If traffic
+    /// increases beyond what its replicas at maximum may handle, a portion of the
+    /// traffic will be dropped. If this value is not provided, a no upper bound
+    /// for scaling under heavy traffic will be assume, though Vertex AI may be
+    /// unable to scale beyond certain replica number.
     #[prost(int32, tag = "2")]
     pub max_replica_count: i32,
 }
@@ -2301,6 +2381,86 @@ pub struct BatchDedicatedResources {
     /// be scaled to. The default value is 10.
     #[prost(int32, tag = "3")]
     pub max_replica_count: i32,
+    /// Optional. Immutable. If set, use DWS resource to schedule the deployment
+    /// workload. reference:
+    /// (<https://cloud.google.com/blog/products/compute/introducing-dynamic-workload-scheduler>)
+    #[prost(message, optional, tag = "4")]
+    pub flex_start: ::core::option::Option<FlexStart>,
+    /// Optional. If true, schedule the deployment workload on [spot
+    /// VMs](<https://cloud.google.com/kubernetes-engine/docs/concepts/spot-vms>).
+    #[prost(bool, tag = "5")]
+    pub spot: bool,
+}
+/// Resources for an fft model.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct FullFineTunedResources {
+    /// Required. The kind of deployment.
+    #[prost(enumeration = "full_fine_tuned_resources::DeploymentType", tag = "1")]
+    pub deployment_type: i32,
+    /// Optional. The number of model inference units to use for this deployment.
+    /// This can only be specified for DEPLOYMENT_TYPE_PROD.
+    /// The following table lists the number of model inference units for different
+    /// model types:
+    /// * Gemini 2.5 Flash
+    ///    * Foundation FMIU: 25
+    ///    * Expansion FMIU: 4
+    /// * Gemini 2.5 Pro
+    ///    * Foundation FMIU: 32
+    ///    * Expansion FMIU: 16
+    /// * Veo 3.0 (undistilled)
+    ///    * Foundation FMIU: 63
+    ///    * Expansion FMIU: 7
+    /// * Veo 3.0 (distilled)
+    ///    * Foundation FMIU: 30
+    ///    * Expansion FMIU: 10
+    #[prost(int32, tag = "2")]
+    pub model_inference_unit_count: i32,
+}
+/// Nested message and enum types in `FullFineTunedResources`.
+pub mod full_fine_tuned_resources {
+    /// The type of deployment.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum DeploymentType {
+        /// Unspecified deployment type.
+        Unspecified = 0,
+        /// Eval deployment type.
+        Eval = 1,
+        /// Prod deployment type.
+        Prod = 2,
+    }
+    impl DeploymentType {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "DEPLOYMENT_TYPE_UNSPECIFIED",
+                Self::Eval => "DEPLOYMENT_TYPE_EVAL",
+                Self::Prod => "DEPLOYMENT_TYPE_PROD",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "DEPLOYMENT_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+                "DEPLOYMENT_TYPE_EVAL" => Some(Self::Eval),
+                "DEPLOYMENT_TYPE_PROD" => Some(Self::Prod),
+                _ => None,
+            }
+        }
+    }
 }
 /// Statistics information about resource consumption.
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
@@ -2314,9 +2474,10 @@ pub struct ResourcesConsumed {
 /// Represents the spec of disk options.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DiskSpec {
-    /// Type of the boot disk (default is "pd-ssd").
-    /// Valid values: "pd-ssd" (Persistent Disk Solid State Drive) or
-    /// "pd-standard" (Persistent Disk Hard Disk Drive).
+    /// Type of the boot disk. For non-A3U machines, the default value is
+    /// "pd-ssd", for A3U machines, the default value is "hyperdisk-balanced".
+    /// Valid values: "pd-ssd" (Persistent Disk Solid State Drive),
+    /// "pd-standard" (Persistent Disk Hard Disk Drive) or "hyperdisk-balanced".
     #[prost(string, tag = "1")]
     pub boot_disk_type: ::prost::alloc::string::String,
     /// Size in GB of the boot disk (default is 100GB).
@@ -2354,6 +2515,23 @@ pub struct NfsMount {
     #[prost(string, tag = "3")]
     pub mount_point: ::prost::alloc::string::String,
 }
+/// Represents a mount configuration for Lustre file system.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct LustreMount {
+    /// Required. IP address of the Lustre instance.
+    #[prost(string, tag = "1")]
+    pub instance_ip: ::prost::alloc::string::String,
+    /// Required. The unique identifier of the Lustre volume.
+    #[prost(string, tag = "2")]
+    pub volume_handle: ::prost::alloc::string::String,
+    /// Required. The name of the Lustre filesystem.
+    #[prost(string, tag = "3")]
+    pub filesystem: ::prost::alloc::string::String,
+    /// Required. Destination mount path. The Lustre file system will be mounted
+    /// for the user under /mnt/lustre/<mount_point>
+    #[prost(string, tag = "4")]
+    pub mount_point: ::prost::alloc::string::String,
+}
 /// The metric specification that defines the target resource utilization
 /// (CPU utilization, accelerator's duty cycle, and so on) for calculating the
 /// desired replica count.
@@ -2365,6 +2543,7 @@ pub struct AutoscalingMetricSpec {
     /// * For Online Prediction:
     /// * `aiplatform.googleapis.com/prediction/online/accelerator/duty_cycle`
     /// * `aiplatform.googleapis.com/prediction/online/cpu/utilization`
+    /// * `aiplatform.googleapis.com/prediction/online/request_count`
     #[prost(string, tag = "1")]
     pub metric_name: ::prost::alloc::string::String,
     /// The target resource utilization in percentage (1% - 100%) for the given
@@ -2373,6 +2552,14 @@ pub struct AutoscalingMetricSpec {
     /// (representing 60%) if not provided.
     #[prost(int32, tag = "2")]
     pub target: i32,
+    /// Optional. The Cloud Monitoring monitored resource labels as key value pairs
+    /// used for metrics filtering. See Cloud Monitoring Labels
+    /// <https://cloud.google.com/monitoring/api/v3/metric-model#generic-label-info>
+    #[prost(map = "string, string", tag = "3")]
+    pub monitored_resource_labels: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
 }
 /// A set of Shielded Instance options.
 /// See [Images using supported Shielded VM
@@ -2388,6 +2575,16 @@ pub struct ShieldedVmConfig {
     /// boot process if signature verification fails.
     #[prost(bool, tag = "1")]
     pub enable_secure_boot: bool,
+}
+/// FlexStart is used to schedule the deployment workload on DWS resource. It
+/// contains the max duration of the deployment.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct FlexStart {
+    /// The max duration of the deployment is max_runtime_duration. The
+    /// deployment will be terminated after the duration. The
+    /// max_runtime_duration can be set up to 7 days.
+    #[prost(message, optional, tag = "1")]
+    pub max_runtime_duration: ::core::option::Option<::prost_types::Duration>,
 }
 /// Manual batch tuning parameters.
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
@@ -3241,6 +3438,32 @@ pub struct EnvVar {
     #[prost(string, tag = "2")]
     pub value: ::prost::alloc::string::String,
 }
+/// Reference to a secret stored in the Cloud Secret Manager that will
+/// provide the value for this environment variable.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SecretRef {
+    /// Required. The name of the secret in Cloud Secret Manager.
+    /// Format: {secret_name}.
+    #[prost(string, tag = "1")]
+    pub secret: ::prost::alloc::string::String,
+    /// The Cloud Secret Manager secret version.
+    /// Can be 'latest' for the latest version, an integer for a specific
+    /// version, or a version alias.
+    #[prost(string, tag = "2")]
+    pub version: ::prost::alloc::string::String,
+}
+/// Represents an environment variable where the value is a secret in Cloud
+/// Secret Manager.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SecretEnvVar {
+    /// Required. Name of the secret environment variable.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Required. Reference to a secret stored in the Cloud Secret Manager that
+    /// will provide the value for this environment variable.
+    #[prost(message, optional, tag = "2")]
+    pub secret_ref: ::core::option::Option<SecretRef>,
+}
 /// A trained machine learning Model.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Model {
@@ -3281,6 +3504,9 @@ pub struct Model {
     /// The description of this version.
     #[prost(string, tag = "30")]
     pub version_description: ::prost::alloc::string::String,
+    /// The default checkpoint id of a model version.
+    #[prost(string, tag = "53")]
+    pub default_checkpoint_id: ::prost::alloc::string::String,
     /// The schemata that describe formats of the Model's predictions and
     /// explanations as given and returned via
     /// [PredictionService.Predict][google.cloud.aiplatform.v1beta1.PredictionService.Predict]
@@ -3532,6 +3758,9 @@ pub struct Model {
     /// Output only. Reserved for future use.
     #[prost(bool, tag = "52")]
     pub satisfies_pzi: bool,
+    /// Optional. Output only. The checkpoints of the model.
+    #[prost(message, repeated, tag = "57")]
+    pub checkpoints: ::prost::alloc::vec::Vec<Checkpoint>,
 }
 /// Nested message and enum types in `Model`.
 pub mod model {
@@ -3723,6 +3952,12 @@ pub struct ModelGardenSource {
     /// Required. The model garden source model resource name.
     #[prost(string, tag = "1")]
     pub public_model_name: ::prost::alloc::string::String,
+    /// Optional. The model garden source model version ID.
+    #[prost(string, tag = "3")]
+    pub version_id: ::prost::alloc::string::String,
+    /// Optional. Whether to avoid pulling the model from the HF cache.
+    #[prost(bool, tag = "4")]
+    pub skip_hf_model_cache: bool,
 }
 /// Contains information about the source of the models generated from Generative
 /// AI Studio.
@@ -4006,6 +4241,16 @@ pub struct ModelContainerSpec {
     ///    variable](<https://cloud.google.com/vertex-ai/docs/predictions/custom-container-requirements#aip-variables>).)
     #[prost(string, tag = "7")]
     pub health_route: ::prost::alloc::string::String,
+    /// Immutable. Invoke route prefix for the custom container. "/*" is the only
+    /// supported value right now. By setting this field, any non-root route on
+    /// this model will be accessible with \[PredictionService.Invoke\] eg:
+    /// "/invoke/foo/bar".
+    ///
+    /// Only one of `predict_route` or `invoke_route_prefix` can be set, and we
+    /// default to using `predict_route` if this field is not set. If this field
+    /// is set, the Model can only be deployed to dedicated endpoint.
+    #[prost(string, tag = "15")]
+    pub invoke_route_prefix: ::prost::alloc::string::String,
     /// Immutable. List of ports to expose from the container. Vertex AI sends gRPC
     /// prediction requests that it receives to the first port on this list. Vertex
     /// AI also sends liveness and health checks to this port.
@@ -4031,6 +4276,9 @@ pub struct ModelContainerSpec {
     /// Immutable. Specification for Kubernetes readiness probe.
     #[prost(message, optional, tag = "13")]
     pub health_probe: ::core::option::Option<Probe>,
+    /// Immutable. Specification for Kubernetes liveness probe.
+    #[prost(message, optional, tag = "14")]
+    pub liveness_probe: ::core::option::Option<Probe>,
 }
 /// Represents a network port in a container.
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
@@ -4138,7 +4386,25 @@ pub struct Probe {
     /// Maps to Kubernetes probe argument 'timeoutSeconds'.
     #[prost(int32, tag = "3")]
     pub timeout_seconds: i32,
-    #[prost(oneof = "probe::ProbeType", tags = "1")]
+    /// Number of consecutive failures before the probe is considered failed.
+    /// Defaults to 3. Minimum value is 1.
+    ///
+    /// Maps to Kubernetes probe argument 'failureThreshold'.
+    #[prost(int32, tag = "7")]
+    pub failure_threshold: i32,
+    /// Number of consecutive successes before the probe is considered successful.
+    /// Defaults to 1. Minimum value is 1.
+    ///
+    /// Maps to Kubernetes probe argument 'successThreshold'.
+    #[prost(int32, tag = "8")]
+    pub success_threshold: i32,
+    /// Number of seconds to wait before starting the probe. Defaults to 0.
+    /// Minimum value is 0.
+    ///
+    /// Maps to Kubernetes probe argument 'initialDelaySeconds'.
+    #[prost(int32, tag = "9")]
+    pub initial_delay_seconds: i32,
+    #[prost(oneof = "probe::ProbeType", tags = "1, 4, 5, 6")]
     pub probe_type: ::core::option::Option<probe::ProbeType>,
 }
 /// Nested message and enum types in `Probe`.
@@ -4155,12 +4421,97 @@ pub mod probe {
         #[prost(string, repeated, tag = "1")]
         pub command: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
     }
+    /// HttpGetAction describes an action based on HTTP Get requests.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct HttpGetAction {
+        /// Path to access on the HTTP server.
+        #[prost(string, tag = "1")]
+        pub path: ::prost::alloc::string::String,
+        /// Number of the port to access on the container.
+        /// Number must be in the range 1 to 65535.
+        #[prost(int32, tag = "2")]
+        pub port: i32,
+        /// Host name to connect to, defaults to the model serving container's IP.
+        /// You probably want to set "Host" in httpHeaders instead.
+        #[prost(string, tag = "3")]
+        pub host: ::prost::alloc::string::String,
+        /// Scheme to use for connecting to the host.
+        /// Defaults to HTTP. Acceptable values are "HTTP" or "HTTPS".
+        #[prost(string, tag = "4")]
+        pub scheme: ::prost::alloc::string::String,
+        /// Custom headers to set in the request. HTTP allows repeated headers.
+        #[prost(message, repeated, tag = "5")]
+        pub http_headers: ::prost::alloc::vec::Vec<HttpHeader>,
+    }
+    /// GrpcAction checks the health of a container using a gRPC service.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct GrpcAction {
+        /// Port number of the gRPC service. Number must be in the range 1 to 65535.
+        #[prost(int32, tag = "1")]
+        pub port: i32,
+        /// Service is the name of the service to place in the gRPC
+        /// HealthCheckRequest (see
+        /// <https://github.com/grpc/grpc/blob/master/doc/health-checking.md>).
+        ///
+        /// If this is not specified, the default behavior is defined by gRPC.
+        #[prost(string, tag = "2")]
+        pub service: ::prost::alloc::string::String,
+    }
+    /// TcpSocketAction probes the health of a container by opening a TCP socket
+    /// connection.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct TcpSocketAction {
+        /// Number of the port to access on the container.
+        /// Number must be in the range 1 to 65535.
+        #[prost(int32, tag = "1")]
+        pub port: i32,
+        /// Optional: Host name to connect to, defaults to the model serving
+        /// container's IP.
+        #[prost(string, tag = "2")]
+        pub host: ::prost::alloc::string::String,
+    }
+    /// HttpHeader describes a custom header to be used in HTTP probes
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct HttpHeader {
+        /// The header field name.
+        /// This will be canonicalized upon output, so case-variant names will be
+        /// understood as the same header.
+        #[prost(string, tag = "1")]
+        pub name: ::prost::alloc::string::String,
+        /// The header field value
+        #[prost(string, tag = "2")]
+        pub value: ::prost::alloc::string::String,
+    }
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum ProbeType {
         /// ExecAction probes the health of a container by executing a command.
         #[prost(message, tag = "1")]
         Exec(ExecAction),
+        /// HttpGetAction probes the health of a container by sending an HTTP GET
+        /// request.
+        #[prost(message, tag = "4")]
+        HttpGet(HttpGetAction),
+        /// GrpcAction probes the health of a container by sending a gRPC request.
+        #[prost(message, tag = "5")]
+        Grpc(GrpcAction),
+        /// TcpSocketAction probes the health of a container by opening a TCP socket
+        /// connection.
+        #[prost(message, tag = "6")]
+        TcpSocket(TcpSocketAction),
     }
+}
+/// Describes the machine learning model version checkpoint.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Checkpoint {
+    /// The ID of the checkpoint.
+    #[prost(string, tag = "1")]
+    pub checkpoint_id: ::prost::alloc::string::String,
+    /// The epoch of the checkpoint.
+    #[prost(int64, tag = "2")]
+    pub epoch: i64,
+    /// The step of the checkpoint.
+    #[prost(int64, tag = "3")]
+    pub step: i64,
 }
 /// Contains model information necessary to perform batch prediction without
 /// requiring a full model import.
@@ -4726,6 +5077,37 @@ pub struct Schema {
     /// subschemas in the list.
     #[prost(message, repeated, tag = "11")]
     pub any_of: ::prost::alloc::vec::Vec<Schema>,
+    /// Optional. Can either be a boolean or an object; controls the presence of
+    /// additional properties.
+    #[prost(message, optional, tag = "26")]
+    pub additional_properties: ::core::option::Option<::prost_types::Value>,
+    /// Optional. Allows indirect references between schema nodes. The value should
+    /// be a valid reference to a child of the root `defs`.
+    ///
+    /// For example, the following schema defines a reference to a schema node
+    /// named "Pet":
+    ///
+    /// type: object
+    /// properties:
+    ///    pet:
+    ///      ref: #/defs/Pet
+    /// defs:
+    ///    Pet:
+    ///      type: object
+    ///      properties:
+    ///        name:
+    ///          type: string
+    ///
+    /// The value of the "pet" property is a reference to the schema node
+    /// named "Pet".
+    /// See details in
+    /// <https://json-schema.org/understanding-json-schema/structuring>
+    #[prost(string, tag = "27")]
+    pub r#ref: ::prost::alloc::string::String,
+    /// Optional. A map of definitions for use by `ref`
+    /// Only allowed at the root of the schema.
+    #[prost(map = "string, message", tag = "28")]
+    pub defs: ::std::collections::HashMap<::prost::alloc::string::String, Schema>,
 }
 /// Type contains the list of OpenAPI data types as defined by
 /// <https://swagger.io/docs/specification/data-models/data-types/>
@@ -4789,8 +5171,10 @@ pub struct Tool {
     /// Optional. Function tool type.
     /// One or more function declarations to be passed to the model along with the
     /// current user query. Model may decide to call a subset of these functions
-    /// by populating [FunctionCall][content.part.function_call] in the response.
-    /// User should provide a [FunctionResponse][content.part.function_response]
+    /// by populating
+    /// [FunctionCall][google.cloud.aiplatform.v1beta1.Part.function_call] in the
+    /// response. User should provide a
+    /// [FunctionResponse][google.cloud.aiplatform.v1beta1.Part.function_response]
     /// for each function call in the next turn. Based on the function responses,
     /// Model will generate the final response back to the user.
     /// Maximum 128 function declarations can be provided.
@@ -4802,18 +5186,51 @@ pub struct Tool {
     /// model for generation.
     #[prost(message, optional, tag = "2")]
     pub retrieval: ::core::option::Option<Retrieval>,
+    /// Optional. GoogleSearch tool type.
+    /// Tool to support Google Search in Model. Powered by Google.
+    #[prost(message, optional, tag = "7")]
+    pub google_search: ::core::option::Option<tool::GoogleSearch>,
     /// Optional. GoogleSearchRetrieval tool type.
     /// Specialized retrieval tool that is powered by Google search.
     #[prost(message, optional, tag = "3")]
     pub google_search_retrieval: ::core::option::Option<GoogleSearchRetrieval>,
+    /// Optional. GoogleMaps tool type.
+    /// Tool to support Google Maps in Model.
+    #[prost(message, optional, tag = "5")]
+    pub google_maps: ::core::option::Option<GoogleMaps>,
+    /// Optional. Tool to support searching public web data, powered by Vertex AI
+    /// Search and Sec4 compliance.
+    #[prost(message, optional, tag = "6")]
+    pub enterprise_web_search: ::core::option::Option<EnterpriseWebSearch>,
     /// Optional. CodeExecution tool type.
     /// Enables the model to execute code as part of generation.
-    /// This field is only used by the Gemini Developer API services.
     #[prost(message, optional, tag = "4")]
     pub code_execution: ::core::option::Option<tool::CodeExecution>,
+    /// Optional. Tool to support URL context retrieval.
+    #[prost(message, optional, tag = "10")]
+    pub url_context: ::core::option::Option<UrlContext>,
+    /// Optional. Tool to support the model interacting directly with the computer.
+    /// If enabled, it automatically populates computer-use specific Function
+    /// Declarations.
+    #[prost(message, optional, tag = "11")]
+    pub computer_use: ::core::option::Option<tool::ComputerUse>,
 }
 /// Nested message and enum types in `Tool`.
 pub mod tool {
+    /// GoogleSearch tool type.
+    /// Tool to support Google Search in Model. Powered by Google.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct GoogleSearch {
+        /// Optional. List of domains to be excluded from the search results.
+        /// The default limit is 2000 domains.
+        /// Example: \["amazon.com", "facebook.com"\].
+        #[prost(string, repeated, tag = "3")]
+        pub exclude_domains: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+        /// Optional. Sites with confidence level chosen & above this value will be
+        /// blocked from the search results.
+        #[prost(enumeration = "PhishBlockThreshold", optional, tag = "4")]
+        pub blocking_confidence: ::core::option::Option<i32>,
+    }
     /// Tool that executes code generated by the model, and automatically returns
     /// the result to the model.
     ///
@@ -4821,7 +5238,131 @@ pub mod tool {
     /// output to this tool.
     #[derive(Clone, Copy, PartialEq, ::prost::Message)]
     pub struct CodeExecution {}
+    /// Tool to support computer use.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct ComputerUse {
+        /// Required. The environment being operated.
+        #[prost(enumeration = "computer_use::Environment", tag = "1")]
+        pub environment: i32,
+        /// Optional. By default, [predefined
+        /// functions](<https://cloud.google.com/vertex-ai/generative-ai/docs/computer-use#supported-actions>)
+        /// are included in the final model call. Some of them can be explicitly
+        /// excluded from being automatically included. This can serve two purposes:
+        /// 1. Using a more restricted / different action space.
+        /// 2. Improving the definitions / instructions of predefined functions.
+        #[prost(string, repeated, tag = "2")]
+        pub excluded_predefined_functions: ::prost::alloc::vec::Vec<
+            ::prost::alloc::string::String,
+        >,
+    }
+    /// Nested message and enum types in `ComputerUse`.
+    pub mod computer_use {
+        /// Represents the environment being operated, such as a web browser.
+        #[derive(
+            Clone,
+            Copy,
+            Debug,
+            PartialEq,
+            Eq,
+            Hash,
+            PartialOrd,
+            Ord,
+            ::prost::Enumeration
+        )]
+        #[repr(i32)]
+        pub enum Environment {
+            /// Defaults to browser.
+            Unspecified = 0,
+            /// Operates in a web browser.
+            Browser = 1,
+        }
+        impl Environment {
+            /// String value of the enum field names used in the ProtoBuf definition.
+            ///
+            /// The values are not transformed in any way and thus are considered stable
+            /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+            pub fn as_str_name(&self) -> &'static str {
+                match self {
+                    Self::Unspecified => "ENVIRONMENT_UNSPECIFIED",
+                    Self::Browser => "ENVIRONMENT_BROWSER",
+                }
+            }
+            /// Creates an enum from field names used in the ProtoBuf definition.
+            pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+                match value {
+                    "ENVIRONMENT_UNSPECIFIED" => Some(Self::Unspecified),
+                    "ENVIRONMENT_BROWSER" => Some(Self::Browser),
+                    _ => None,
+                }
+            }
+        }
+    }
+    /// These are available confidence level user can set to block malicious urls
+    /// with chosen confidence and above. For understanding different confidence of
+    /// webrisk, please refer to
+    /// <https://cloud.google.com/web-risk/docs/reference/rpc/google.cloud.webrisk.v1eap1#confidencelevel>
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum PhishBlockThreshold {
+        /// Defaults to unspecified.
+        Unspecified = 0,
+        /// Blocks Low and above confidence URL that is risky.
+        BlockLowAndAbove = 30,
+        /// Blocks Medium and above confidence URL that is risky.
+        BlockMediumAndAbove = 40,
+        /// Blocks High and above confidence URL that is risky.
+        BlockHighAndAbove = 50,
+        /// Blocks Higher and above confidence URL that is risky.
+        BlockHigherAndAbove = 55,
+        /// Blocks Very high and above confidence URL that is risky.
+        BlockVeryHighAndAbove = 60,
+        /// Blocks Extremely high confidence URL that is risky.
+        BlockOnlyExtremelyHigh = 100,
+    }
+    impl PhishBlockThreshold {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "PHISH_BLOCK_THRESHOLD_UNSPECIFIED",
+                Self::BlockLowAndAbove => "BLOCK_LOW_AND_ABOVE",
+                Self::BlockMediumAndAbove => "BLOCK_MEDIUM_AND_ABOVE",
+                Self::BlockHighAndAbove => "BLOCK_HIGH_AND_ABOVE",
+                Self::BlockHigherAndAbove => "BLOCK_HIGHER_AND_ABOVE",
+                Self::BlockVeryHighAndAbove => "BLOCK_VERY_HIGH_AND_ABOVE",
+                Self::BlockOnlyExtremelyHigh => "BLOCK_ONLY_EXTREMELY_HIGH",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "PHISH_BLOCK_THRESHOLD_UNSPECIFIED" => Some(Self::Unspecified),
+                "BLOCK_LOW_AND_ABOVE" => Some(Self::BlockLowAndAbove),
+                "BLOCK_MEDIUM_AND_ABOVE" => Some(Self::BlockMediumAndAbove),
+                "BLOCK_HIGH_AND_ABOVE" => Some(Self::BlockHighAndAbove),
+                "BLOCK_HIGHER_AND_ABOVE" => Some(Self::BlockHigherAndAbove),
+                "BLOCK_VERY_HIGH_AND_ABOVE" => Some(Self::BlockVeryHighAndAbove),
+                "BLOCK_ONLY_EXTREMELY_HIGH" => Some(Self::BlockOnlyExtremelyHigh),
+                _ => None,
+            }
+        }
+    }
 }
+/// Tool to support URL context.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct UrlContext {}
 /// A single example of the tool usage.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ToolUseExample {
@@ -4869,9 +5410,9 @@ pub mod tool_use_example {
 }
 /// Structured representation of a function declaration as defined by the
 /// [OpenAPI 3.0 specification](<https://spec.openapis.org/oas/v3.0.3>). Included
-/// in this declaration are the function name and parameters. This
-/// FunctionDeclaration is a representation of a block of code that can be used
-/// as a `Tool` by the model and executed by the client.
+/// in this declaration are the function name, description, parameters and
+/// response type. This FunctionDeclaration is a representation of a block of
+/// code that can be used as a `Tool` by the model and executed by the client.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FunctionDeclaration {
     /// Required. The name of the function to call.
@@ -4900,25 +5441,168 @@ pub struct FunctionDeclaration {
     ///   - param1
     #[prost(message, optional, tag = "3")]
     pub parameters: ::core::option::Option<Schema>,
+    /// Optional. Describes the parameters to the function in JSON Schema format.
+    /// The schema must describe an object where the properties are the parameters
+    /// to the function. For example:
+    ///
+    /// ```
+    /// {
+    ///    "type": "object",
+    ///    "properties": {
+    ///      "name": { "type": "string" },
+    ///      "age": { "type": "integer" }
+    ///    },
+    ///    "additionalProperties": false,
+    ///    "required": \["name", "age"\],
+    ///    "propertyOrdering": \["name", "age"\]
+    /// }
+    /// ```
+    ///
+    /// This field is mutually exclusive with `parameters`.
+    #[prost(message, optional, tag = "5")]
+    pub parameters_json_schema: ::core::option::Option<::prost_types::Value>,
     /// Optional. Describes the output from this function in JSON Schema format.
     /// Reflects the Open API 3.03 Response Object. The Schema defines the type
     /// used for the response value of the function.
     #[prost(message, optional, tag = "4")]
     pub response: ::core::option::Option<Schema>,
+    /// Optional. Describes the output from this function in JSON Schema format.
+    /// The value specified by the schema is the response value of the function.
+    ///
+    /// This field is mutually exclusive with `response`.
+    #[prost(message, optional, tag = "6")]
+    pub response_json_schema: ::core::option::Option<::prost_types::Value>,
 }
 /// A predicted \[FunctionCall\] returned from the model that contains a string
 /// representing the \[FunctionDeclaration.name\] and a structured JSON object
 /// containing the parameters and their values.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FunctionCall {
-    /// Required. The name of the function to call.
+    /// Optional. The unique id of the function call. If populated, the client to
+    /// execute the `function_call` and return the response with the matching `id`.
+    #[prost(string, tag = "3")]
+    pub id: ::prost::alloc::string::String,
+    /// Optional. The name of the function to call.
     /// Matches \[FunctionDeclaration.name\].
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
-    /// Optional. Required. The function parameters and values in JSON object
-    /// format. See \[FunctionDeclaration.parameters\] for parameter details.
+    /// Optional. The function parameters and values in JSON object format.
+    /// See \[FunctionDeclaration.parameters\] for parameter details.
     #[prost(message, optional, tag = "2")]
     pub args: ::core::option::Option<::prost_types::Struct>,
+    /// Optional. The partial argument value of the function call.
+    /// If provided, represents the arguments/fields that are streamed
+    /// incrementally.
+    #[prost(message, repeated, tag = "4")]
+    pub partial_args: ::prost::alloc::vec::Vec<PartialArg>,
+    /// Optional. Whether this is the last part of the FunctionCall.
+    /// If true, another partial message for the current FunctionCall is expected
+    /// to follow.
+    #[prost(bool, tag = "5")]
+    pub will_continue: bool,
+}
+/// Partial argument value of the function call.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PartialArg {
+    /// Required. A JSON Path (RFC 9535) to the argument being streamed.
+    /// <https://datatracker.ietf.org/doc/html/rfc9535.> e.g. "$.foo.bar\[0\].data".
+    #[prost(string, tag = "1")]
+    pub json_path: ::prost::alloc::string::String,
+    /// Optional. Whether this is not the last part of the same json_path.
+    /// If true, another PartialArg message for the current json_path is expected
+    /// to follow.
+    #[prost(bool, tag = "6")]
+    pub will_continue: bool,
+    /// The delta of field value being streamed.
+    #[prost(oneof = "partial_arg::Delta", tags = "2, 3, 4, 5")]
+    pub delta: ::core::option::Option<partial_arg::Delta>,
+}
+/// Nested message and enum types in `PartialArg`.
+pub mod partial_arg {
+    /// The delta of field value being streamed.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Delta {
+        /// Optional. Represents a null value.
+        #[prost(enumeration = "::prost_types::NullValue", tag = "2")]
+        NullValue(i32),
+        /// Optional. Represents a double value.
+        #[prost(double, tag = "3")]
+        NumberValue(f64),
+        /// Optional. Represents a string value.
+        #[prost(string, tag = "4")]
+        StringValue(::prost::alloc::string::String),
+        /// Optional. Represents a boolean value.
+        #[prost(bool, tag = "5")]
+        BoolValue(bool),
+    }
+}
+/// A datatype containing media that is part of a `FunctionResponse` message.
+///
+/// A `FunctionResponsePart` consists of data which has an associated datatype. A
+/// `FunctionResponsePart` can only contain one of the accepted types in
+/// `FunctionResponsePart.data`.
+///
+/// A `FunctionResponsePart` must have a fixed IANA MIME type identifying the
+/// type and subtype of the media if the `inline_data` field is filled with raw
+/// bytes.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FunctionResponsePart {
+    /// The data of the function response part.
+    #[prost(oneof = "function_response_part::Data", tags = "1, 2")]
+    pub data: ::core::option::Option<function_response_part::Data>,
+}
+/// Nested message and enum types in `FunctionResponsePart`.
+pub mod function_response_part {
+    /// The data of the function response part.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Data {
+        /// Inline media bytes.
+        #[prost(message, tag = "1")]
+        InlineData(super::FunctionResponseBlob),
+        /// URI based data.
+        #[prost(message, tag = "2")]
+        FileData(super::FunctionResponseFileData),
+    }
+}
+/// Raw media bytes for function response.
+///
+/// Text should not be sent as raw bytes, use the 'text' field.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FunctionResponseBlob {
+    /// Required. The IANA standard MIME type of the source data.
+    #[prost(string, tag = "1")]
+    pub mime_type: ::prost::alloc::string::String,
+    /// Required. Raw bytes.
+    #[prost(bytes = "vec", tag = "2")]
+    pub data: ::prost::alloc::vec::Vec<u8>,
+    /// Optional. Display name of the blob.
+    ///
+    /// Used to provide a label or filename to distinguish blobs.
+    ///
+    /// This field is only returned in PromptMessage for prompt management.
+    /// It is currently used in the Gemini GenerateContent calls only when server
+    /// side tools (code_execution, google_search, and url_context) are enabled.
+    #[prost(string, tag = "4")]
+    pub display_name: ::prost::alloc::string::String,
+}
+/// URI based data for function response.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FunctionResponseFileData {
+    /// Required. The IANA standard MIME type of the source data.
+    #[prost(string, tag = "1")]
+    pub mime_type: ::prost::alloc::string::String,
+    /// Required. URI.
+    #[prost(string, tag = "2")]
+    pub file_uri: ::prost::alloc::string::String,
+    /// Optional. Display name of the file data.
+    ///
+    /// Used to provide a label or filename to distinguish file datas.
+    ///
+    /// This field is only returned in PromptMessage for prompt management.
+    /// It is currently used in the Gemini GenerateContent calls only when server
+    /// side tools (code_execution, google_search, and url_context) are enabled.
+    #[prost(string, tag = "3")]
+    pub display_name: ::prost::alloc::string::String,
 }
 /// The result output from a \[FunctionCall\] that contains a string representing
 /// the \[FunctionDeclaration.name\] and a structured JSON object containing any
@@ -4926,6 +5610,10 @@ pub struct FunctionCall {
 /// the result of a \[FunctionCall\] made based on model prediction.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FunctionResponse {
+    /// Optional. The id of the function call this response is for. Populated by
+    /// the client to match the corresponding function call `id`.
+    #[prost(string, tag = "3")]
+    pub id: ::prost::alloc::string::String,
     /// Required. The name of the function to call.
     /// Matches \[FunctionDeclaration.name\] and \[FunctionCall.name\].
     #[prost(string, tag = "1")]
@@ -4936,6 +5624,10 @@ pub struct FunctionResponse {
     /// then whole "response" is treated as function output.
     #[prost(message, optional, tag = "2")]
     pub response: ::core::option::Option<::prost_types::Struct>,
+    /// Optional. Ordered `Parts` that constitute a function response. Parts may
+    /// have different IANA MIME types.
+    #[prost(message, repeated, tag = "4")]
+    pub parts: ::prost::alloc::vec::Vec<FunctionResponsePart>,
 }
 /// Code generated by the model that is meant to be executed, and the result
 /// returned to the model.
@@ -5108,6 +5800,15 @@ pub struct VertexRagStore {
     /// Optional. The retrieval config for the Rag query.
     #[prost(message, optional, tag = "6")]
     pub rag_retrieval_config: ::core::option::Option<RagRetrievalConfig>,
+    /// Optional. Currently only supported for Gemini Multimodal Live API.
+    ///
+    /// In Gemini Multimodal Live API, if `store_context` bool is
+    /// true, Gemini will leverage it to automatically memorize the
+    /// interactions between the client and Gemini, and retrieve context when
+    /// needed to augment the response generation for users' ongoing and future
+    /// interactions.
+    #[prost(bool, tag = "7")]
+    pub store_context: bool,
 }
 /// Nested message and enum types in `VertexRagStore`.
 pub mod vertex_rag_store {
@@ -5125,15 +5826,54 @@ pub mod vertex_rag_store {
         pub rag_file_ids: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
     }
 }
-/// Retrieve from Vertex AI Search datastore for grounding.
+/// Retrieve from Vertex AI Search datastore or engine for grounding.
+/// datastore and engine are mutually exclusive.
 /// See <https://cloud.google.com/products/agent-builder>
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct VertexAiSearch {
-    /// Required. Fully-qualified Vertex AI Search data store resource ID.
+    /// Optional. Fully-qualified Vertex AI Search data store resource ID.
     /// Format:
     /// `projects/{project}/locations/{location}/collections/{collection}/dataStores/{dataStore}`
     #[prost(string, tag = "1")]
     pub datastore: ::prost::alloc::string::String,
+    /// Optional. Fully-qualified Vertex AI Search engine resource ID.
+    /// Format:
+    /// `projects/{project}/locations/{location}/collections/{collection}/engines/{engine}`
+    #[prost(string, tag = "2")]
+    pub engine: ::prost::alloc::string::String,
+    /// Optional. Number of search results to return per query.
+    /// The default value is 10.
+    /// The maximumm allowed value is 10.
+    #[prost(int32, tag = "3")]
+    pub max_results: i32,
+    /// Optional. Filter strings to be passed to the search API.
+    #[prost(string, tag = "4")]
+    pub filter: ::prost::alloc::string::String,
+    /// Specifications that define the specific DataStores to be searched, along
+    /// with configurations for those data stores. This is only considered for
+    /// Engines with multiple data stores.
+    /// It should only be set if engine is used.
+    #[prost(message, repeated, tag = "5")]
+    pub data_store_specs: ::prost::alloc::vec::Vec<vertex_ai_search::DataStoreSpec>,
+}
+/// Nested message and enum types in `VertexAISearch`.
+pub mod vertex_ai_search {
+    /// Define data stores within engine to filter on in a search call and
+    /// configurations for those data stores. For more information, see
+    /// <https://cloud.google.com/generative-ai-app-builder/docs/reference/rpc/google.cloud.discoveryengine.v1#datastorespec>
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct DataStoreSpec {
+        /// Full resource name of DataStore, such as
+        /// Format:
+        /// `projects/{project}/locations/{location}/collections/{collection}/dataStores/{dataStore}`
+        #[prost(string, tag = "1")]
+        pub data_store: ::prost::alloc::string::String,
+        /// Optional. Filter specification to filter documents in the data store
+        /// specified by data_store field. For more information on filtering, see
+        /// [Filtering](<https://cloud.google.com/generative-ai-app-builder/docs/filter-search-metadata>)
+        #[prost(string, tag = "2")]
+        pub filter: ::prost::alloc::string::String,
+    }
 }
 /// Tool to retrieve public web data for grounding, powered by Google.
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
@@ -5141,6 +5881,26 @@ pub struct GoogleSearchRetrieval {
     /// Specifies the dynamic retrieval configuration for the given source.
     #[prost(message, optional, tag = "2")]
     pub dynamic_retrieval_config: ::core::option::Option<DynamicRetrievalConfig>,
+}
+/// Tool to retrieve public maps data for grounding, powered by Google.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct GoogleMaps {
+    /// If true, include the widget context token in the response.
+    #[prost(bool, tag = "1")]
+    pub enable_widget: bool,
+}
+/// Tool to search public web data, powered by Vertex AI Search and Sec4
+/// compliance.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EnterpriseWebSearch {
+    /// Optional. List of domains to be excluded from the search results.
+    /// The default limit is 2000 domains.
+    #[prost(string, repeated, tag = "1")]
+    pub exclude_domains: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Optional. Sites with confidence level chosen & above this value will be
+    /// blocked from the search results.
+    #[prost(enumeration = "tool::PhishBlockThreshold", optional, tag = "4")]
+    pub blocking_confidence: ::core::option::Option<i32>,
 }
 /// Describes the options to customize dynamic retrieval.
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
@@ -5201,6 +5961,9 @@ pub struct ToolConfig {
     /// Optional. Function calling config.
     #[prost(message, optional, tag = "1")]
     pub function_calling_config: ::core::option::Option<FunctionCallingConfig>,
+    /// Optional. Retrieval config.
+    #[prost(message, optional, tag = "2")]
+    pub retrieval_config: ::core::option::Option<RetrievalConfig>,
 }
 /// Function calling config.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -5213,6 +5976,11 @@ pub struct FunctionCallingConfig {
     /// will predict a function call from the set of function names provided.
     #[prost(string, repeated, tag = "2")]
     pub allowed_function_names: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Optional. When set to true, arguments of a single function call will be
+    /// streamed out in multiple parts/contents/responses. Partial parameter
+    /// results will be returned in the \[FunctionCall.partial_args\] field.
+    #[prost(bool, tag = "4")]
+    pub stream_function_call_arguments: bool,
 }
 /// Nested message and enum types in `FunctionCallingConfig`.
 pub mod function_calling_config {
@@ -5236,13 +6004,21 @@ pub mod function_calling_config {
         /// or natural language response.
         Auto = 1,
         /// Model is constrained to always predicting function calls only.
-        /// If "allowed_function_names" are set, the predicted function calls will be
-        /// limited to any one of "allowed_function_names", else the predicted
-        /// function calls will be any one of the provided "function_declarations".
+        /// If [allowed_function_names][FunctionCallingConfig.allowed_function_names]
+        /// are set, the predicted function calls will be limited to any one of
+        /// `allowed_function_names`, else the predicted function calls will be any
+        /// one of the provided \[FunctionDeclaration\].
         Any = 2,
         /// Model will not predict any function calls. Model behavior is same as when
         /// not passing any function declarations.
         None = 3,
+        /// Model is constrained to predict either function calls or natural language
+        /// response.
+        /// If [allowed_function_names][FunctionCallingConfig.allowed_function_names]
+        /// are set, the predicted function calls will be limited to any one of
+        /// `allowed_function_names`, else the predicted function calls will be any
+        /// one of the provided \[FunctionDeclaration\].
+        Validated = 5,
     }
     impl Mode {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -5255,6 +6031,7 @@ pub mod function_calling_config {
                 Self::Auto => "AUTO",
                 Self::Any => "ANY",
                 Self::None => "NONE",
+                Self::Validated => "VALIDATED",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -5264,10 +6041,21 @@ pub mod function_calling_config {
                 "AUTO" => Some(Self::Auto),
                 "ANY" => Some(Self::Any),
                 "NONE" => Some(Self::None),
+                "VALIDATED" => Some(Self::Validated),
                 _ => None,
             }
         }
     }
+}
+/// Retrieval config.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RetrievalConfig {
+    /// The location of the user.
+    #[prost(message, optional, tag = "1")]
+    pub lat_lng: ::core::option::Option<super::super::super::r#type::LatLng>,
+    /// The language code of the user.
+    #[prost(string, optional, tag = "2")]
+    pub language_code: ::core::option::Option<::prost::alloc::string::String>,
 }
 /// Specifies the context retrieval config.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -5361,6 +6149,1063 @@ pub mod rag_retrieval_config {
         }
     }
 }
+/// Config for the embedding model to use for RAG.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RagEmbeddingModelConfig {
+    /// The model config to use.
+    #[prost(oneof = "rag_embedding_model_config::ModelConfig", tags = "1, 2")]
+    pub model_config: ::core::option::Option<rag_embedding_model_config::ModelConfig>,
+}
+/// Nested message and enum types in `RagEmbeddingModelConfig`.
+pub mod rag_embedding_model_config {
+    /// Config representing a model hosted on Vertex Prediction Endpoint.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct VertexPredictionEndpoint {
+        /// Required. The endpoint resource name.
+        /// Format:
+        /// `projects/{project}/locations/{location}/publishers/{publisher}/models/{model}`
+        /// or
+        /// `projects/{project}/locations/{location}/endpoints/{endpoint}`
+        #[prost(string, tag = "1")]
+        pub endpoint: ::prost::alloc::string::String,
+        /// Output only. The resource name of the model that is deployed on the
+        /// endpoint. Present only when the endpoint is not a publisher model.
+        /// Pattern:
+        /// `projects/{project}/locations/{location}/models/{model}`
+        #[prost(string, tag = "2")]
+        pub model: ::prost::alloc::string::String,
+        /// Output only. Version ID of the model that is deployed on the endpoint.
+        /// Present only when the endpoint is not a publisher model.
+        #[prost(string, tag = "3")]
+        pub model_version_id: ::prost::alloc::string::String,
+    }
+    /// Configuration for sparse emebdding generation.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct SparseEmbeddingConfig {
+        /// The model to use for sparse embedding generation.
+        #[prost(oneof = "sparse_embedding_config::Model", tags = "1")]
+        pub model: ::core::option::Option<sparse_embedding_config::Model>,
+    }
+    /// Nested message and enum types in `SparseEmbeddingConfig`.
+    pub mod sparse_embedding_config {
+        /// Message for BM25 parameters.
+        #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+        pub struct Bm25 {
+            /// Optional. Use multilingual tokenizer if set to true.
+            #[prost(bool, tag = "1")]
+            pub multilingual: bool,
+            /// Optional. The parameter to control term frequency saturation. It
+            /// determines the scaling between the matching term frequency and final
+            /// score. k1 is in the range of \[1.2, 3\]. The default value is 1.2.
+            #[prost(float, optional, tag = "2")]
+            pub k1: ::core::option::Option<f32>,
+            /// Optional. The parameter to control document length normalization. It
+            /// determines how much the document length affects the final score. b is
+            /// in the range of \[0, 1\]. The default value is 0.75.
+            #[prost(float, optional, tag = "3")]
+            pub b: ::core::option::Option<f32>,
+        }
+        /// The model to use for sparse embedding generation.
+        #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
+        pub enum Model {
+            /// Use BM25 scoring algorithm.
+            #[prost(message, tag = "1")]
+            Bm25(Bm25),
+        }
+    }
+    /// Config for hybrid search.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct HybridSearchConfig {
+        /// Optional. The configuration for sparse embedding generation. This field
+        /// is optional the default behavior depends on the vector database choice on
+        /// the RagCorpus.
+        #[prost(message, optional, tag = "1")]
+        pub sparse_embedding_config: ::core::option::Option<SparseEmbeddingConfig>,
+        /// Required. The Vertex AI Prediction Endpoint that hosts the embedding
+        /// model for dense embedding generations.
+        #[prost(message, optional, tag = "2")]
+        pub dense_embedding_model_prediction_endpoint: ::core::option::Option<
+            VertexPredictionEndpoint,
+        >,
+    }
+    /// The model config to use.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum ModelConfig {
+        /// The Vertex AI Prediction Endpoint that either refers to a publisher model
+        /// or an endpoint that is hosting a 1P fine-tuned text embedding model.
+        /// Endpoints hosting non-1P fine-tuned text embedding models are
+        /// currently not supported.
+        /// This is used for dense vector search.
+        #[prost(message, tag = "1")]
+        VertexPredictionEndpoint(VertexPredictionEndpoint),
+        /// Configuration for hybrid search.
+        #[prost(message, tag = "2")]
+        HybridSearchConfig(HybridSearchConfig),
+    }
+}
+/// Config for the Vector DB to use for RAG.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RagVectorDbConfig {
+    /// Authentication config for the chosen Vector DB.
+    #[prost(message, optional, tag = "5")]
+    pub api_auth: ::core::option::Option<ApiAuth>,
+    /// Optional. Immutable. The embedding model config of the Vector DB.
+    #[prost(message, optional, tag = "7")]
+    pub rag_embedding_model_config: ::core::option::Option<RagEmbeddingModelConfig>,
+    /// The config for the Vector DB.
+    #[prost(oneof = "rag_vector_db_config::VectorDb", tags = "1, 2, 3, 4, 6, 8")]
+    pub vector_db: ::core::option::Option<rag_vector_db_config::VectorDb>,
+}
+/// Nested message and enum types in `RagVectorDbConfig`.
+pub mod rag_vector_db_config {
+    /// The config for the default RAG-managed Vector DB.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct RagManagedDb {
+        /// Choice of retrieval strategy.
+        #[prost(oneof = "rag_managed_db::RetrievalStrategy", tags = "1, 2")]
+        pub retrieval_strategy: ::core::option::Option<
+            rag_managed_db::RetrievalStrategy,
+        >,
+    }
+    /// Nested message and enum types in `RagManagedDb`.
+    pub mod rag_managed_db {
+        /// Config for KNN search.
+        #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+        pub struct Knn {}
+        /// Config for ANN search.
+        ///
+        /// RagManagedDb uses a tree-based structure to partition data and
+        /// facilitate faster searches. As a tradeoff, it requires longer indexing
+        /// time and manual triggering of index rebuild via the ImportRagFiles and
+        /// UpdateRagCorpus API.
+        #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+        pub struct Ann {
+            /// The depth of the tree-based structure. Only depth values of 2 and 3 are
+            /// supported.
+            ///
+            /// Recommended value is 2 if you have if you have O(10K) files in the
+            /// RagCorpus and set this to 3 if more than that.
+            ///
+            /// Default value is 2.
+            #[prost(int32, tag = "1")]
+            pub tree_depth: i32,
+            /// Number of leaf nodes in the tree-based structure. Each leaf node
+            /// contains groups of closely related vectors along with their
+            /// corresponding centroid.
+            ///
+            /// Recommended value is 10 * sqrt(num of RagFiles in your RagCorpus).
+            ///
+            /// Default value is 500.
+            #[prost(int32, tag = "2")]
+            pub leaf_count: i32,
+        }
+        /// Choice of retrieval strategy.
+        #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
+        pub enum RetrievalStrategy {
+            /// Performs a KNN search on RagCorpus.
+            /// Default choice if not specified.
+            #[prost(message, tag = "1")]
+            Knn(Knn),
+            /// Performs an ANN search on RagCorpus. Use this if you have a lot of
+            /// files (> 10K) in your RagCorpus and want to reduce the search latency.
+            #[prost(message, tag = "2")]
+            Ann(Ann),
+        }
+    }
+    /// The config for the Weaviate.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Weaviate {
+        /// Weaviate DB instance HTTP endpoint. e.g. 34.56.78.90:8080
+        /// Vertex RAG only supports HTTP connection to Weaviate.
+        /// This value cannot be changed after it's set.
+        #[prost(string, tag = "1")]
+        pub http_endpoint: ::prost::alloc::string::String,
+        /// The corresponding collection this corpus maps to.
+        /// This value cannot be changed after it's set.
+        #[prost(string, tag = "2")]
+        pub collection_name: ::prost::alloc::string::String,
+    }
+    /// The config for the Pinecone.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Pinecone {
+        /// Pinecone index name.
+        /// This value cannot be changed after it's set.
+        #[prost(string, tag = "1")]
+        pub index_name: ::prost::alloc::string::String,
+    }
+    /// The config for the Vertex Feature Store.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct VertexFeatureStore {
+        /// The resource name of the FeatureView.
+        /// Format:
+        /// `projects/{project}/locations/{location}/featureOnlineStores/{feature_online_store}/featureViews/{feature_view}`
+        #[prost(string, tag = "1")]
+        pub feature_view_resource_name: ::prost::alloc::string::String,
+    }
+    /// The config for the Vertex Vector Search.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct VertexVectorSearch {
+        /// The resource name of the Index Endpoint.
+        /// Format:
+        /// `projects/{project}/locations/{location}/indexEndpoints/{index_endpoint}`
+        #[prost(string, tag = "1")]
+        pub index_endpoint: ::prost::alloc::string::String,
+        /// The resource name of the Index.
+        /// Format:
+        /// `projects/{project}/locations/{location}/indexes/{index}`
+        #[prost(string, tag = "2")]
+        pub index: ::prost::alloc::string::String,
+    }
+    /// The config for the RAG-managed Vertex Vector Search 2.0.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct RagManagedVertexVectorSearch {
+        /// Output only. The resource name of the Vector Search 2.0 Collection that
+        /// RAG Created for the corpus. Only populated after the corpus is
+        /// successfully created. Format:
+        /// `projects/{project}/locations/{location}/collections/{collection_id}`
+        #[prost(string, tag = "1")]
+        pub collection_name: ::prost::alloc::string::String,
+    }
+    /// The config for the Vector DB.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum VectorDb {
+        /// The config for the RAG-managed Vector DB.
+        #[prost(message, tag = "1")]
+        RagManagedDb(RagManagedDb),
+        /// The config for the Weaviate.
+        #[prost(message, tag = "2")]
+        Weaviate(Weaviate),
+        /// The config for the Pinecone.
+        #[prost(message, tag = "3")]
+        Pinecone(Pinecone),
+        /// The config for the Vertex Feature Store.
+        #[prost(message, tag = "4")]
+        VertexFeatureStore(VertexFeatureStore),
+        /// The config for the Vertex Vector Search.
+        #[prost(message, tag = "6")]
+        VertexVectorSearch(VertexVectorSearch),
+        /// The config for the RAG-managed Vertex Vector Search 2.0.
+        #[prost(message, tag = "8")]
+        RagManagedVertexVectorSearch(RagManagedVertexVectorSearch),
+    }
+}
+/// RagFile status.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FileStatus {
+    /// Output only. RagFile state.
+    #[prost(enumeration = "file_status::State", tag = "1")]
+    pub state: i32,
+    /// Output only. Only when the `state` field is ERROR.
+    #[prost(string, tag = "2")]
+    pub error_status: ::prost::alloc::string::String,
+}
+/// Nested message and enum types in `FileStatus`.
+pub mod file_status {
+    /// RagFile state.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum State {
+        /// RagFile state is unspecified.
+        Unspecified = 0,
+        /// RagFile resource has been created and indexed successfully.
+        Active = 1,
+        /// RagFile resource is in a problematic state.
+        /// See `error_message` field for details.
+        Error = 2,
+    }
+    impl State {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "STATE_UNSPECIFIED",
+                Self::Active => "ACTIVE",
+                Self::Error => "ERROR",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "STATE_UNSPECIFIED" => Some(Self::Unspecified),
+                "ACTIVE" => Some(Self::Active),
+                "ERROR" => Some(Self::Error),
+                _ => None,
+            }
+        }
+    }
+}
+/// Config for the Vertex AI Search.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct VertexAiSearchConfig {
+    /// Vertex AI Search Serving Config resource full name. For example,
+    /// `projects/{project}/locations/{location}/collections/{collection}/engines/{engine}/servingConfigs/{serving_config}`
+    /// or
+    /// `projects/{project}/locations/{location}/collections/{collection}/dataStores/{data_store}/servingConfigs/{serving_config}`.
+    #[prost(string, tag = "1")]
+    pub serving_config: ::prost::alloc::string::String,
+}
+/// RagCorpus status.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CorpusStatus {
+    /// Output only. RagCorpus life state.
+    #[prost(enumeration = "corpus_status::State", tag = "1")]
+    pub state: i32,
+    /// Output only. Only when the `state` field is ERROR.
+    #[prost(string, tag = "2")]
+    pub error_status: ::prost::alloc::string::String,
+}
+/// Nested message and enum types in `CorpusStatus`.
+pub mod corpus_status {
+    /// RagCorpus life state.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum State {
+        /// This state is not supposed to happen.
+        Unknown = 0,
+        /// RagCorpus resource entry is initialized, but hasn't done validation.
+        Initialized = 1,
+        /// RagCorpus is provisioned successfully and is ready to serve.
+        Active = 2,
+        /// RagCorpus is in a problematic situation.
+        /// See `error_message` field for details.
+        Error = 3,
+    }
+    impl State {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unknown => "UNKNOWN",
+                Self::Initialized => "INITIALIZED",
+                Self::Active => "ACTIVE",
+                Self::Error => "ERROR",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNKNOWN" => Some(Self::Unknown),
+                "INITIALIZED" => Some(Self::Initialized),
+                "ACTIVE" => Some(Self::Active),
+                "ERROR" => Some(Self::Error),
+                _ => None,
+            }
+        }
+    }
+}
+/// A RagCorpus is a RagFile container and a project can have multiple
+/// RagCorpora.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RagCorpus {
+    /// Output only. The resource name of the RagCorpus.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Required. The display name of the RagCorpus.
+    /// The name can be up to 128 characters long and can consist of any UTF-8
+    /// characters.
+    #[prost(string, tag = "2")]
+    pub display_name: ::prost::alloc::string::String,
+    /// Optional. The description of the RagCorpus.
+    #[prost(string, tag = "3")]
+    pub description: ::prost::alloc::string::String,
+    /// Optional. Immutable. The embedding model config of the RagCorpus.
+    #[deprecated]
+    #[prost(message, optional, tag = "6")]
+    pub rag_embedding_model_config: ::core::option::Option<RagEmbeddingModelConfig>,
+    /// Optional. Immutable. The Vector DB config of the RagCorpus.
+    #[deprecated]
+    #[prost(message, optional, tag = "7")]
+    pub rag_vector_db_config: ::core::option::Option<RagVectorDbConfig>,
+    /// Output only. Timestamp when this RagCorpus was created.
+    #[prost(message, optional, tag = "4")]
+    pub create_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. Timestamp when this RagCorpus was last updated.
+    #[prost(message, optional, tag = "5")]
+    pub update_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. RagCorpus state.
+    #[prost(message, optional, tag = "8")]
+    pub corpus_status: ::core::option::Option<CorpusStatus>,
+    /// Output only. Number of RagFiles in the RagCorpus.
+    ///
+    /// NOTE: This field is not populated in the response of
+    /// [VertexRagDataService.ListRagCorpora][google.cloud.aiplatform.v1beta1.VertexRagDataService.ListRagCorpora].
+    #[prost(int32, tag = "11")]
+    pub rag_files_count: i32,
+    /// Optional. Immutable. The CMEK key name used to encrypt at-rest data related
+    /// to this Corpus. Only applicable to RagManagedDb option for Vector DB. This
+    /// field can only be set at corpus creation time, and cannot be updated or
+    /// deleted.
+    #[prost(message, optional, tag = "12")]
+    pub encryption_spec: ::core::option::Option<EncryptionSpec>,
+    /// Optional. The corpus type config of the RagCorpus.
+    #[prost(message, optional, tag = "13")]
+    pub corpus_type_config: ::core::option::Option<rag_corpus::CorpusTypeConfig>,
+    /// Output only. Reserved for future use.
+    #[prost(bool, tag = "19")]
+    pub satisfies_pzs: bool,
+    /// Output only. Reserved for future use.
+    #[prost(bool, tag = "20")]
+    pub satisfies_pzi: bool,
+    /// The backend config of the RagCorpus.
+    /// It can be data store and/or retrieval engine.
+    #[prost(oneof = "rag_corpus::BackendConfig", tags = "9, 10")]
+    pub backend_config: ::core::option::Option<rag_corpus::BackendConfig>,
+}
+/// Nested message and enum types in `RagCorpus`.
+pub mod rag_corpus {
+    /// The config for the corpus type of the RagCorpus.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct CorpusTypeConfig {
+        /// Optional.
+        /// Whether the RagCorpus is used as document store or memory store.
+        #[prost(oneof = "corpus_type_config::CorpusTypeConfig", tags = "1, 2")]
+        pub corpus_type_config: ::core::option::Option<
+            corpus_type_config::CorpusTypeConfig,
+        >,
+    }
+    /// Nested message and enum types in `CorpusTypeConfig`.
+    pub mod corpus_type_config {
+        /// Config for the document corpus.
+        #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+        pub struct DocumentCorpus {}
+        /// Config for the memory corpus.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct MemoryCorpus {
+            /// The LLM parser to use for the memory corpus.
+            #[prost(message, optional, tag = "1")]
+            pub llm_parser: ::core::option::Option<
+                super::super::rag_file_parsing_config::LlmParser,
+            >,
+        }
+        /// Optional.
+        /// Whether the RagCorpus is used as document store or memory store.
+        #[derive(Clone, PartialEq, ::prost::Oneof)]
+        pub enum CorpusTypeConfig {
+            /// Optional. Config for the document corpus.
+            #[prost(message, tag = "1")]
+            DocumentCorpus(DocumentCorpus),
+            /// Optional. Config for the memory corpus.
+            #[prost(message, tag = "2")]
+            MemoryCorpus(MemoryCorpus),
+        }
+    }
+    /// The backend config of the RagCorpus.
+    /// It can be data store and/or retrieval engine.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum BackendConfig {
+        /// Optional. Immutable. The config for the Vector DBs.
+        #[prost(message, tag = "9")]
+        VectorDbConfig(super::RagVectorDbConfig),
+        /// Optional. Immutable. The config for the Vertex AI Search.
+        #[prost(message, tag = "10")]
+        VertexAiSearchConfig(super::VertexAiSearchConfig),
+    }
+}
+/// A RagFile contains user data for chunking, embedding and indexing.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RagFile {
+    /// Output only. The resource name of the RagFile.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Required. The display name of the RagFile.
+    /// The name can be up to 128 characters long and can consist of any UTF-8
+    /// characters.
+    #[prost(string, tag = "2")]
+    pub display_name: ::prost::alloc::string::String,
+    /// Optional. The description of the RagFile.
+    #[prost(string, tag = "3")]
+    pub description: ::prost::alloc::string::String,
+    /// Output only. The size of the RagFile in bytes.
+    #[prost(int64, tag = "4")]
+    pub size_bytes: i64,
+    /// Output only. The type of the RagFile.
+    #[prost(enumeration = "rag_file::RagFileType", tag = "5")]
+    pub rag_file_type: i32,
+    /// Output only. Timestamp when this RagFile was created.
+    #[prost(message, optional, tag = "6")]
+    pub create_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. Timestamp when this RagFile was last updated.
+    #[prost(message, optional, tag = "7")]
+    pub update_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. State of the RagFile.
+    #[prost(message, optional, tag = "13")]
+    pub file_status: ::core::option::Option<FileStatus>,
+    /// Output only. The metadata for metadata search. The user_metadata Needs to
+    /// be in JSON format.
+    #[prost(string, tag = "15")]
+    pub user_metadata: ::prost::alloc::string::String,
+    /// The origin location of the RagFile if it is imported from Google Cloud
+    /// Storage or Google Drive.
+    #[prost(oneof = "rag_file::RagFileSource", tags = "8, 9, 10, 11, 12, 14")]
+    pub rag_file_source: ::core::option::Option<rag_file::RagFileSource>,
+}
+/// Nested message and enum types in `RagFile`.
+pub mod rag_file {
+    /// The type of the RagFile.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum RagFileType {
+        /// RagFile type is unspecified.
+        Unspecified = 0,
+        /// RagFile type is TXT.
+        Txt = 1,
+        /// RagFile type is PDF.
+        Pdf = 2,
+    }
+    impl RagFileType {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "RAG_FILE_TYPE_UNSPECIFIED",
+                Self::Txt => "RAG_FILE_TYPE_TXT",
+                Self::Pdf => "RAG_FILE_TYPE_PDF",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "RAG_FILE_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+                "RAG_FILE_TYPE_TXT" => Some(Self::Txt),
+                "RAG_FILE_TYPE_PDF" => Some(Self::Pdf),
+                _ => None,
+            }
+        }
+    }
+    /// The origin location of the RagFile if it is imported from Google Cloud
+    /// Storage or Google Drive.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum RagFileSource {
+        /// Output only. Google Cloud Storage location of the RagFile.
+        /// It does not support wildcards in the Cloud Storage uri for now.
+        #[prost(message, tag = "8")]
+        GcsSource(super::GcsSource),
+        /// Output only. Google Drive location. Supports importing individual files
+        /// as well as Google Drive folders.
+        #[prost(message, tag = "9")]
+        GoogleDriveSource(super::GoogleDriveSource),
+        /// Output only. The RagFile is encapsulated and uploaded in the
+        /// UploadRagFile request.
+        #[prost(message, tag = "10")]
+        DirectUploadSource(super::DirectUploadSource),
+        /// The RagFile is imported from a Slack channel.
+        #[prost(message, tag = "11")]
+        SlackSource(super::SlackSource),
+        /// The RagFile is imported from a Jira query.
+        #[prost(message, tag = "12")]
+        JiraSource(super::JiraSource),
+        /// The RagFile is imported from a SharePoint source.
+        #[prost(message, tag = "14")]
+        SharePointSources(super::SharePointSources),
+    }
+}
+/// A RagChunk includes the content of a chunk of a RagFile, and associated
+/// metadata.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RagChunk {
+    /// The content of the chunk.
+    #[prost(string, tag = "1")]
+    pub text: ::prost::alloc::string::String,
+    /// If populated, represents where the chunk starts and ends in the document.
+    #[prost(message, optional, tag = "2")]
+    pub page_span: ::core::option::Option<rag_chunk::PageSpan>,
+}
+/// Nested message and enum types in `RagChunk`.
+pub mod rag_chunk {
+    /// Represents where the chunk starts and ends in the document.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct PageSpan {
+        /// Page where chunk starts in the document. Inclusive. 1-indexed.
+        #[prost(int32, tag = "1")]
+        pub first_page: i32,
+        /// Page where chunk ends in the document. Inclusive. 1-indexed.
+        #[prost(int32, tag = "2")]
+        pub last_page: i32,
+    }
+}
+/// Specifies the size and overlap of chunks for RagFiles.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct RagFileChunkingConfig {
+    /// The size of the chunks.
+    #[deprecated]
+    #[prost(int32, tag = "1")]
+    pub chunk_size: i32,
+    /// The overlap between chunks.
+    #[deprecated]
+    #[prost(int32, tag = "2")]
+    pub chunk_overlap: i32,
+    /// Specifies the chunking config for RagFiles.
+    #[prost(oneof = "rag_file_chunking_config::ChunkingConfig", tags = "3")]
+    pub chunking_config: ::core::option::Option<
+        rag_file_chunking_config::ChunkingConfig,
+    >,
+}
+/// Nested message and enum types in `RagFileChunkingConfig`.
+pub mod rag_file_chunking_config {
+    /// Specifies the fixed length chunking config.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct FixedLengthChunking {
+        /// The size of the chunks.
+        #[prost(int32, tag = "1")]
+        pub chunk_size: i32,
+        /// The overlap between chunks.
+        #[prost(int32, tag = "2")]
+        pub chunk_overlap: i32,
+    }
+    /// Specifies the chunking config for RagFiles.
+    #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
+    pub enum ChunkingConfig {
+        /// Specifies the fixed length chunking config.
+        #[prost(message, tag = "3")]
+        FixedLengthChunking(FixedLengthChunking),
+    }
+}
+/// Specifies the transformation config for RagFiles.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct RagFileTransformationConfig {
+    /// Specifies the chunking config for RagFiles.
+    #[prost(message, optional, tag = "1")]
+    pub rag_file_chunking_config: ::core::option::Option<RagFileChunkingConfig>,
+}
+/// Specifies the parsing config for RagFiles.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RagFileParsingConfig {
+    /// Whether to use advanced PDF parsing.
+    #[deprecated]
+    #[prost(bool, tag = "2")]
+    pub use_advanced_pdf_parsing: bool,
+    /// The parser to use for RagFiles.
+    #[prost(oneof = "rag_file_parsing_config::Parser", tags = "3, 4, 5")]
+    pub parser: ::core::option::Option<rag_file_parsing_config::Parser>,
+}
+/// Nested message and enum types in `RagFileParsingConfig`.
+pub mod rag_file_parsing_config {
+    /// Specifies the advanced parsing for RagFiles.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct AdvancedParser {
+        /// Whether to use advanced PDF parsing.
+        #[prost(bool, tag = "1")]
+        pub use_advanced_pdf_parsing: bool,
+    }
+    /// Document AI Layout Parser config.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct LayoutParser {
+        /// The full resource name of a Document AI processor or processor version.
+        /// The processor must have type `LAYOUT_PARSER_PROCESSOR`. If specified, the
+        /// `additional_config.parse_as_scanned_pdf` field must be false.
+        /// Format:
+        /// * `projects/{project_id}/locations/{location}/processors/{processor_id}`
+        /// * `projects/{project_id}/locations/{location}/processors/{processor_id}/processorVersions/{processor_version_id}`
+        #[prost(string, tag = "1")]
+        pub processor_name: ::prost::alloc::string::String,
+        /// The maximum number of requests the job is allowed to make to the Document
+        /// AI processor per minute. Consult
+        /// <https://cloud.google.com/document-ai/quotas> and the Quota page for your
+        /// project to set an appropriate value here. If unspecified, a default value
+        /// of 120 QPM would be used.
+        #[prost(int32, tag = "2")]
+        pub max_parsing_requests_per_min: i32,
+        /// The maximum number of requests the job is allowed to make to the Document
+        /// AI processor per minute in this project. Consult
+        /// <https://cloud.google.com/document-ai/quotas> and the Quota page for your
+        /// project to set an appropriate value here.
+        /// If this value is not specified,
+        /// max_parsing_requests_per_min will be used by indexing
+        /// pipeline as the global limit.
+        #[prost(int32, tag = "3")]
+        pub global_max_parsing_requests_per_min: i32,
+    }
+    /// Specifies the LLM parsing for RagFiles.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct LlmParser {
+        /// The name of a LLM model used for parsing.
+        /// Format:
+        /// * `projects/{project_id}/locations/{location}/publishers/{publisher}/models/{model}`
+        #[prost(string, tag = "1")]
+        pub model_name: ::prost::alloc::string::String,
+        /// The maximum number of requests the job is allowed to make to the
+        /// LLM model per minute. Consult
+        /// <https://cloud.google.com/vertex-ai/generative-ai/docs/quotas>
+        /// and your document size to set an appropriate value here. If unspecified,
+        /// a default value of 5000 QPM would be used.
+        #[prost(int32, tag = "2")]
+        pub max_parsing_requests_per_min: i32,
+        /// The maximum number of requests the job is allowed to make to the
+        /// LLM model per minute in this project. Consult
+        /// <https://cloud.google.com/vertex-ai/generative-ai/docs/quotas>
+        /// and your document size to set an appropriate value here.
+        /// If this value is not specified,
+        /// max_parsing_requests_per_min will be used by indexing pipeline job as the
+        /// global limit.
+        #[prost(int32, tag = "4")]
+        pub global_max_parsing_requests_per_min: i32,
+        /// The prompt to use for parsing. If not specified, a default prompt will
+        /// be used.
+        #[prost(string, tag = "3")]
+        pub custom_parsing_prompt: ::prost::alloc::string::String,
+    }
+    /// The parser to use for RagFiles.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Parser {
+        /// The Advanced Parser to use for RagFiles.
+        #[prost(message, tag = "3")]
+        AdvancedParser(AdvancedParser),
+        /// The Layout Parser to use for RagFiles.
+        #[prost(message, tag = "4")]
+        LayoutParser(LayoutParser),
+        /// The LLM Parser to use for RagFiles.
+        #[prost(message, tag = "5")]
+        LlmParser(LlmParser),
+    }
+}
+/// Metadata config for RagFile.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RagFileMetadataConfig {
+    /// Specifies the metadata schema source.
+    #[prost(oneof = "rag_file_metadata_config::MetadataSchemaSource", tags = "1, 2, 3")]
+    pub metadata_schema_source: ::core::option::Option<
+        rag_file_metadata_config::MetadataSchemaSource,
+    >,
+    /// Specifies the metadata source.
+    #[prost(oneof = "rag_file_metadata_config::MetadataSource", tags = "4, 5, 6")]
+    pub metadata_source: ::core::option::Option<
+        rag_file_metadata_config::MetadataSource,
+    >,
+}
+/// Nested message and enum types in `RagFileMetadataConfig`.
+pub mod rag_file_metadata_config {
+    /// Specifies the metadata schema source.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum MetadataSchemaSource {
+        /// Google Cloud Storage location. Supports importing individual files as
+        /// well as entire Google Cloud Storage directories. Sample formats:
+        /// - `gs://bucket_name/my_directory/object_name/metadata_schema.json`
+        /// - `gs://bucket_name/my_directory`
+        /// If the user provides a directory, the metadata schema will be read from
+        /// the files that ends with "metadata_schema.json" in the directory.
+        #[prost(message, tag = "1")]
+        GcsMetadataSchemaSource(super::GcsSource),
+        /// Google Drive location. Supports importing individual files as
+        /// well as Google Drive folders.
+        /// If the user provides a folder, the metadata schema will be read from
+        /// the files that ends with "metadata_schema.json" in the directory.
+        #[prost(message, tag = "2")]
+        GoogleDriveMetadataSchemaSource(super::GoogleDriveSource),
+        /// Inline metadata schema source. Must be a JSON string.
+        #[prost(string, tag = "3")]
+        InlineMetadataSchemaSource(::prost::alloc::string::String),
+    }
+    /// Specifies the metadata source.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum MetadataSource {
+        /// Google Cloud Storage location. Supports importing individual files as
+        /// well as entire Google Cloud Storage directories. Sample formats:
+        /// - `gs://bucket_name/my_directory/object_name/metadata.json`
+        /// - `gs://bucket_name/my_directory`
+        /// If the user provides a directory, the metadata will be read from
+        /// the files that ends with "metadata.json" in the directory.
+        #[prost(message, tag = "4")]
+        GcsMetadataSource(super::GcsSource),
+        /// Google Drive location. Supports importing individual files as
+        /// well as Google Drive folders.
+        /// If the user provides a directory, the metadata will be read from
+        /// the files that ends with "metadata.json" in the directory.
+        #[prost(message, tag = "5")]
+        GoogleDriveMetadataSource(super::GoogleDriveSource),
+        /// Inline metadata source. Must be a JSON string.
+        #[prost(string, tag = "6")]
+        InlineMetadataSource(::prost::alloc::string::String),
+    }
+}
+/// Config for uploading RagFile.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UploadRagFileConfig {
+    /// Specifies the size and overlap of chunks after uploading RagFile.
+    #[deprecated]
+    #[prost(message, optional, tag = "1")]
+    pub rag_file_chunking_config: ::core::option::Option<RagFileChunkingConfig>,
+    /// Specifies the transformation config for RagFiles.
+    #[prost(message, optional, tag = "3")]
+    pub rag_file_transformation_config: ::core::option::Option<
+        RagFileTransformationConfig,
+    >,
+    /// Specifies the metadata config for RagFiles.
+    /// Including paths for metadata schema and metadata.
+    /// Alteratively, inline metadata schema and metadata can be provided.
+    #[prost(message, optional, tag = "4")]
+    pub rag_file_metadata_config: ::core::option::Option<RagFileMetadataConfig>,
+    /// Optional. Specifies the parsing config for RagFiles.
+    /// RAG will use the default parser if this field is not set.
+    #[prost(message, optional, tag = "5")]
+    pub rag_file_parsing_config: ::core::option::Option<RagFileParsingConfig>,
+}
+/// Config for importing RagFiles.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ImportRagFilesConfig {
+    /// Specifies the size and overlap of chunks after importing RagFiles.
+    #[deprecated]
+    #[prost(message, optional, tag = "4")]
+    pub rag_file_chunking_config: ::core::option::Option<RagFileChunkingConfig>,
+    /// Specifies the transformation config for RagFiles.
+    #[prost(message, optional, tag = "16")]
+    pub rag_file_transformation_config: ::core::option::Option<
+        RagFileTransformationConfig,
+    >,
+    /// Optional. Specifies the parsing config for RagFiles.
+    /// RAG will use the default parser if this field is not set.
+    #[prost(message, optional, tag = "8")]
+    pub rag_file_parsing_config: ::core::option::Option<RagFileParsingConfig>,
+    /// Specifies the metadata config for RagFiles.
+    /// Including paths for metadata schema and metadata.
+    #[prost(message, optional, tag = "17")]
+    pub rag_file_metadata_config: ::core::option::Option<RagFileMetadataConfig>,
+    /// Optional. The max number of queries per minute that this job is allowed to
+    /// make to the embedding model specified on the corpus. This value is specific
+    /// to this job and not shared across other import jobs. Consult the Quotas
+    /// page on the project to set an appropriate value here.
+    /// If unspecified, a default value of 1,000 QPM would be used.
+    #[prost(int32, tag = "5")]
+    pub max_embedding_requests_per_min: i32,
+    /// Optional. The max number of queries per minute that the indexing pipeline
+    /// job is allowed to make to the embedding model specified in the project.
+    /// Please follow the quota usage guideline of the embedding model you use to
+    /// set the value properly.If this value is not specified,
+    /// max_embedding_requests_per_min will be used by indexing pipeline job as the
+    /// global limit.
+    #[prost(int32, tag = "18")]
+    pub global_max_embedding_requests_per_min: i32,
+    /// Rebuilds the ANN index to optimize for recall on the imported data.
+    /// Only applicable for RagCorpora running on RagManagedDb with
+    /// `retrieval_strategy` set to `ANN`. The rebuild will be performed using the
+    /// existing ANN config set on the RagCorpus. To change the ANN config, please
+    /// use the UpdateRagCorpus API.
+    ///
+    /// Default is false, i.e., index is not rebuilt.
+    #[prost(bool, tag = "19")]
+    pub rebuild_ann_index: bool,
+    /// The source of the import.
+    #[prost(oneof = "import_rag_files_config::ImportSource", tags = "2, 3, 6, 7, 13")]
+    pub import_source: ::core::option::Option<import_rag_files_config::ImportSource>,
+    /// Optional. If provided, all partial failures are written to the sink.
+    /// Deprecated. Prefer to use the `import_result_sink`.
+    #[prost(oneof = "import_rag_files_config::PartialFailureSink", tags = "11, 12")]
+    pub partial_failure_sink: ::core::option::Option<
+        import_rag_files_config::PartialFailureSink,
+    >,
+    /// Optional. If provided, all successfully imported files and all partial
+    /// failures are written to the sink.
+    #[prost(oneof = "import_rag_files_config::ImportResultSink", tags = "14, 15")]
+    pub import_result_sink: ::core::option::Option<
+        import_rag_files_config::ImportResultSink,
+    >,
+}
+/// Nested message and enum types in `ImportRagFilesConfig`.
+pub mod import_rag_files_config {
+    /// The source of the import.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum ImportSource {
+        /// Google Cloud Storage location. Supports importing individual files as
+        /// well as entire Google Cloud Storage directories. Sample formats:
+        /// - `gs://bucket_name/my_directory/object_name/my_file.txt`
+        /// - `gs://bucket_name/my_directory`
+        #[prost(message, tag = "2")]
+        GcsSource(super::GcsSource),
+        /// Google Drive location. Supports importing individual files as
+        /// well as Google Drive folders.
+        #[prost(message, tag = "3")]
+        GoogleDriveSource(super::GoogleDriveSource),
+        /// Slack channels with their corresponding access tokens.
+        #[prost(message, tag = "6")]
+        SlackSource(super::SlackSource),
+        /// Jira queries with their corresponding authentication.
+        #[prost(message, tag = "7")]
+        JiraSource(super::JiraSource),
+        /// SharePoint sources.
+        #[prost(message, tag = "13")]
+        SharePointSources(super::SharePointSources),
+    }
+    /// Optional. If provided, all partial failures are written to the sink.
+    /// Deprecated. Prefer to use the `import_result_sink`.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum PartialFailureSink {
+        /// The Cloud Storage path to write partial failures to.
+        /// Deprecated. Prefer to use `import_result_gcs_sink`.
+        #[prost(message, tag = "11")]
+        PartialFailureGcsSink(super::GcsDestination),
+        /// The BigQuery destination to write partial failures to. It should be a
+        /// bigquery table resource name (e.g.
+        /// "bq://projectId.bqDatasetId.bqTableId"). The dataset must exist. If the
+        /// table does not exist, it will be created with the expected schema. If the
+        /// table exists, the schema will be validated and data will be added to this
+        /// existing table.
+        /// Deprecated. Prefer to use `import_result_bq_sink`.
+        #[prost(message, tag = "12")]
+        PartialFailureBigquerySink(super::BigQueryDestination),
+    }
+    /// Optional. If provided, all successfully imported files and all partial
+    /// failures are written to the sink.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum ImportResultSink {
+        /// The Cloud Storage path to write import result to.
+        #[prost(message, tag = "14")]
+        ImportResultGcsSink(super::GcsDestination),
+        /// The BigQuery destination to write import result to. It should be a
+        /// bigquery table resource name (e.g.
+        /// "bq://projectId.bqDatasetId.bqTableId"). The dataset must exist. If the
+        /// table does not exist, it will be created with the expected schema. If the
+        /// table exists, the schema will be validated and data will be added to this
+        /// existing table.
+        #[prost(message, tag = "15")]
+        ImportResultBigquerySink(super::BigQueryDestination),
+    }
+}
+/// Configuration message for RagManagedDb used by RagEngine.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct RagManagedDbConfig {
+    /// The tier of the RagManagedDb.
+    #[prost(oneof = "rag_managed_db_config::Tier", tags = "1, 4, 2, 3")]
+    pub tier: ::core::option::Option<rag_managed_db_config::Tier>,
+    /// The choice of backend for your RagEngine.
+    #[prost(oneof = "rag_managed_db_config::Mode", tags = "5, 6")]
+    pub mode: ::core::option::Option<rag_managed_db_config::Mode>,
+}
+/// Nested message and enum types in `RagManagedDbConfig`.
+pub mod rag_managed_db_config {
+    /// Enterprise tier offers production grade performance along with
+    /// autoscaling functionality. It is suitable for customers with large
+    /// amounts of data or performance sensitive workloads.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct Enterprise {}
+    /// Scaled tier offers production grade performance along with
+    /// autoscaling functionality. It is suitable for customers with large
+    /// amounts of data or performance sensitive workloads.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct Scaled {}
+    /// Basic tier is a cost-effective and low compute tier suitable for
+    /// the following cases:
+    /// * Experimenting with RagManagedDb.
+    /// * Small data size.
+    /// * Latency insensitive workload.
+    /// * Only using RAG Engine with external vector DBs.
+    ///
+    /// NOTE: This is the default tier under Spanner mode if not explicitly chosen.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct Basic {}
+    /// Disables the RAG Engine service and deletes all your data held
+    /// within this service. This will halt the billing of the service.
+    ///
+    /// NOTE: Once deleted the data cannot be recovered. To start using
+    /// RAG Engine again, you will need to update the tier by calling the
+    /// UpdateRagEngineConfig API.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct Unprovisioned {}
+    /// Message to configure the Spanner database used by RagManagedDb.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct Spanner {
+        /// The tier of the RagManagedDb, built on top of Spanner.
+        #[prost(oneof = "spanner::Tier", tags = "1, 2, 3")]
+        pub tier: ::core::option::Option<spanner::Tier>,
+    }
+    /// Nested message and enum types in `Spanner`.
+    pub mod spanner {
+        /// The tier of the RagManagedDb, built on top of Spanner.
+        #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
+        pub enum Tier {
+            /// Sets the RagManagedDb to the Scaled tier.
+            #[prost(message, tag = "1")]
+            Scaled(super::Scaled),
+            /// Sets the RagManagedDb to the Basic tier. This is the default tier for
+            /// Spanner mode if not explicitly chosen.
+            #[prost(message, tag = "2")]
+            Basic(super::Basic),
+            /// Sets the RagManagedDb to the Unprovisioned tier.
+            #[prost(message, tag = "3")]
+            Unprovisioned(super::Unprovisioned),
+        }
+    }
+    /// Message to configure the serverless mode offered by RAG Engine.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct Serverless {}
+    /// The tier of the RagManagedDb.
+    #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
+    pub enum Tier {
+        /// Sets the RagManagedDb to the Enterprise tier.
+        #[prost(message, tag = "1")]
+        Enterprise(Enterprise),
+        /// Deprecated: Use `mode` instead to set the tier under Spanner.
+        /// Sets the RagManagedDb to the Scaled tier.
+        #[prost(message, tag = "4")]
+        Scaled(Scaled),
+        /// Deprecated: Use `mode` instead to set the tier under Spanner.
+        /// Sets the RagManagedDb to the Basic tier.
+        #[prost(message, tag = "2")]
+        Basic(Basic),
+        /// Deprecated: Use `mode` instead to set the tier under Spanner.
+        /// Sets the RagManagedDb to the Unprovisioned tier.
+        #[prost(message, tag = "3")]
+        Unprovisioned(Unprovisioned),
+    }
+    /// The choice of backend for your RagEngine.
+    #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
+    pub enum Mode {
+        /// Sets the backend to be the serverless mode offered by RAG Engine.
+        #[prost(message, tag = "5")]
+        Serverless(Serverless),
+        /// Sets the RAG Engine backend to be RagManagedDb, built on top of Spanner.
+        ///
+        /// NOTE: This is the default mode (w/ Basic Tier) if not explicitly chosen.
+        #[prost(message, tag = "6")]
+        Spanner(Spanner),
+    }
+}
+/// Config for RagEngine.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RagEngineConfig {
+    /// Identifier. The name of the RagEngineConfig.
+    /// Format:
+    /// `projects/{project}/locations/{location}/ragEngineConfig`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// The config of the RagManagedDb used by RagEngine.
+    #[prost(message, optional, tag = "2")]
+    pub rag_managed_db_config: ::core::option::Option<RagManagedDbConfig>,
+}
 /// The base structured datatype containing multi-part content of a message.
 ///
 /// A `Content` includes a `role` field designating the producer of the `Content`
@@ -5388,6 +7233,13 @@ pub struct Content {
 /// of the media if `inline_data` or `file_data` field is filled with raw bytes.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Part {
+    /// Indicates if the part is thought from the model.
+    #[prost(bool, tag = "10")]
+    pub thought: bool,
+    /// An opaque signature for the thought so it can be reused in subsequent
+    /// requests.
+    #[prost(bytes = "vec", tag = "11")]
+    pub thought_signature: ::prost::alloc::vec::Vec<u8>,
     #[prost(oneof = "part::Data", tags = "1, 2, 3, 5, 6, 8, 9")]
     pub data: ::core::option::Option<part::Data>,
     #[prost(oneof = "part::Metadata", tags = "4")]
@@ -5465,6 +7317,95 @@ pub struct VideoMetadata {
     #[prost(message, optional, tag = "2")]
     pub end_offset: ::core::option::Option<::prost_types::Duration>,
 }
+/// The configuration for the prebuilt speaker to use.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PrebuiltVoiceConfig {
+    /// The name of the preset voice to use.
+    #[prost(string, optional, tag = "1")]
+    pub voice_name: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// The configuration for the replicated voice to use.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReplicatedVoiceConfig {
+    /// Optional. The mimetype of the voice sample. The only currently supported
+    /// value is `audio/wav`. This represents 16-bit signed little-endian wav data,
+    /// with a 24kHz sampling rate. `mime_type` will default to `audio/wav` if not
+    /// set.
+    #[prost(string, tag = "1")]
+    pub mime_type: ::prost::alloc::string::String,
+    /// Optional. The sample of the custom voice.
+    #[prost(bytes = "vec", tag = "2")]
+    pub voice_sample_audio: ::prost::alloc::vec::Vec<u8>,
+}
+/// Configuration for a voice.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct VoiceConfig {
+    /// The configuration for the speaker to use.
+    #[prost(oneof = "voice_config::VoiceConfig", tags = "1, 3")]
+    pub voice_config: ::core::option::Option<voice_config::VoiceConfig>,
+}
+/// Nested message and enum types in `VoiceConfig`.
+pub mod voice_config {
+    /// The configuration for the speaker to use.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum VoiceConfig {
+        /// The configuration for a prebuilt voice.
+        #[prost(message, tag = "1")]
+        PrebuiltVoiceConfig(super::PrebuiltVoiceConfig),
+        /// Optional. The configuration for a replicated voice. This enables users to
+        /// replicate a voice from an audio sample.
+        #[prost(message, tag = "3")]
+        ReplicatedVoiceConfig(super::ReplicatedVoiceConfig),
+    }
+}
+/// Configuration for a single speaker in a multi-speaker setup.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SpeakerVoiceConfig {
+    /// Required. The name of the speaker. This should be the same as the speaker
+    /// name used in the prompt.
+    #[prost(string, tag = "1")]
+    pub speaker: ::prost::alloc::string::String,
+    /// Required. The configuration for the voice of this speaker.
+    #[prost(message, optional, tag = "2")]
+    pub voice_config: ::core::option::Option<VoiceConfig>,
+}
+/// Configuration for a multi-speaker text-to-speech request.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MultiSpeakerVoiceConfig {
+    /// Required. A list of configurations for the voices of the speakers. Exactly
+    /// two speaker voice configurations must be provided.
+    #[prost(message, repeated, tag = "2")]
+    pub speaker_voice_configs: ::prost::alloc::vec::Vec<SpeakerVoiceConfig>,
+}
+/// Configuration for speech generation.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SpeechConfig {
+    /// The configuration for the voice to use.
+    #[prost(message, optional, tag = "1")]
+    pub voice_config: ::core::option::Option<VoiceConfig>,
+    /// Optional. The language code (ISO 639-1) for the speech synthesis.
+    #[prost(string, tag = "2")]
+    pub language_code: ::prost::alloc::string::String,
+    /// The configuration for a multi-speaker text-to-speech request.
+    /// This field is mutually exclusive with `voice_config`.
+    #[prost(message, optional, tag = "3")]
+    pub multi_speaker_voice_config: ::core::option::Option<MultiSpeakerVoiceConfig>,
+}
+/// Config for image generation features.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ImageConfig {
+    /// Optional. The desired aspect ratio for the generated images. The following
+    /// aspect ratios are supported:
+    ///
+    /// "1:1"
+    /// "2:3", "3:2"
+    /// "3:4", "4:3"
+    /// "4:5", "5:4"
+    /// "9:16", "16:9"
+    /// "21:9"
+    #[prost(string, optional, tag = "2")]
+    pub aspect_ratio: ::core::option::Option<::prost::alloc::string::String>,
+}
 /// Generation config.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GenerationConfig {
@@ -5519,6 +7460,44 @@ pub struct GenerationConfig {
     /// `application/json`: Schema for JSON response.
     #[prost(message, optional, tag = "16")]
     pub response_schema: ::core::option::Option<Schema>,
+    /// Optional. Output schema of the generated response. This is an alternative
+    /// to `response_schema` that accepts [JSON Schema](<https://json-schema.org/>).
+    ///
+    /// If set, `response_schema` must be omitted, but `response_mime_type` is
+    /// required.
+    ///
+    /// While the full JSON Schema may be sent, not all features are supported.
+    /// Specifically, only the following properties are supported:
+    ///
+    /// - `$id`
+    /// - `$defs`
+    /// - `$ref`
+    /// - `$anchor`
+    /// - `type`
+    /// - `format`
+    /// - `title`
+    /// - `description`
+    /// - `enum` (for strings and numbers)
+    /// - `items`
+    /// - `prefixItems`
+    /// - `minItems`
+    /// - `maxItems`
+    /// - `minimum`
+    /// - `maximum`
+    /// - `anyOf`
+    /// - `oneOf` (interpreted the same as `anyOf`)
+    /// - `properties`
+    /// - `additionalProperties`
+    /// - `required`
+    ///
+    /// The non-standard `propertyOrdering` property may also be set.
+    ///
+    /// Cyclic references are unrolled to a limited degree and, as such, may only
+    /// be used within non-required properties. (Nullable properties are not
+    /// sufficient.) If `$ref` is set on a sub-schema, no other properties, except
+    /// for than those starting as a `$`, may be set.
+    #[prost(message, optional, tag = "28")]
+    pub response_json_schema: ::core::option::Option<::prost_types::Value>,
     /// Optional. Routing configuration.
     #[prost(message, optional, tag = "17")]
     pub routing_config: ::core::option::Option<generation_config::RoutingConfig>,
@@ -5526,6 +7505,31 @@ pub struct GenerationConfig {
     /// the model.
     #[prost(bool, optional, tag = "20")]
     pub audio_timestamp: ::core::option::Option<bool>,
+    /// Optional. The modalities of the response.
+    #[prost(
+        enumeration = "generation_config::Modality",
+        repeated,
+        packed = "false",
+        tag = "21"
+    )]
+    pub response_modalities: ::prost::alloc::vec::Vec<i32>,
+    /// Optional. If specified, the media resolution specified will be used.
+    #[prost(enumeration = "generation_config::MediaResolution", optional, tag = "22")]
+    pub media_resolution: ::core::option::Option<i32>,
+    /// Optional. The speech generation config.
+    #[prost(message, optional, tag = "23")]
+    pub speech_config: ::core::option::Option<SpeechConfig>,
+    /// Optional. Config for thinking features.
+    /// An error will be returned if this field is set for models that don't
+    /// support thinking.
+    #[prost(message, optional, tag = "25")]
+    pub thinking_config: ::core::option::Option<generation_config::ThinkingConfig>,
+    /// Optional. Config for model selection.
+    #[prost(message, optional, tag = "27")]
+    pub model_config: ::core::option::Option<generation_config::ModelConfig>,
+    /// Optional. Config for image generation features.
+    #[prost(message, optional, tag = "30")]
+    pub image_config: ::core::option::Option<ImageConfig>,
 }
 /// Nested message and enum types in `GenerationConfig`.
 pub mod generation_config {
@@ -5618,6 +7622,169 @@ pub mod generation_config {
             /// Manual routing.
             #[prost(message, tag = "2")]
             ManualMode(ManualRoutingMode),
+        }
+    }
+    /// Config for thinking features.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct ThinkingConfig {
+        /// Indicates whether to include thoughts in the response.
+        /// If true, thoughts are returned only when available.
+        #[prost(bool, optional, tag = "1")]
+        pub include_thoughts: ::core::option::Option<bool>,
+        /// Optional. Indicates the thinking budget in tokens.
+        /// This is only applied when enable_thinking is true.
+        #[prost(int32, optional, tag = "3")]
+        pub thinking_budget: ::core::option::Option<i32>,
+    }
+    /// Config for model selection.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct ModelConfig {
+        /// Required. Feature selection preference.
+        #[prost(enumeration = "model_config::FeatureSelectionPreference", tag = "1")]
+        pub feature_selection_preference: i32,
+    }
+    /// Nested message and enum types in `ModelConfig`.
+    pub mod model_config {
+        /// Options for feature selection preference.
+        #[derive(
+            Clone,
+            Copy,
+            Debug,
+            PartialEq,
+            Eq,
+            Hash,
+            PartialOrd,
+            Ord,
+            ::prost::Enumeration
+        )]
+        #[repr(i32)]
+        pub enum FeatureSelectionPreference {
+            /// Unspecified feature selection preference.
+            Unspecified = 0,
+            /// Prefer higher quality over lower cost.
+            PrioritizeQuality = 1,
+            /// Balanced feature selection preference.
+            Balanced = 2,
+            /// Prefer lower cost over higher quality.
+            PrioritizeCost = 3,
+        }
+        impl FeatureSelectionPreference {
+            /// String value of the enum field names used in the ProtoBuf definition.
+            ///
+            /// The values are not transformed in any way and thus are considered stable
+            /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+            pub fn as_str_name(&self) -> &'static str {
+                match self {
+                    Self::Unspecified => "FEATURE_SELECTION_PREFERENCE_UNSPECIFIED",
+                    Self::PrioritizeQuality => "PRIORITIZE_QUALITY",
+                    Self::Balanced => "BALANCED",
+                    Self::PrioritizeCost => "PRIORITIZE_COST",
+                }
+            }
+            /// Creates an enum from field names used in the ProtoBuf definition.
+            pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+                match value {
+                    "FEATURE_SELECTION_PREFERENCE_UNSPECIFIED" => Some(Self::Unspecified),
+                    "PRIORITIZE_QUALITY" => Some(Self::PrioritizeQuality),
+                    "BALANCED" => Some(Self::Balanced),
+                    "PRIORITIZE_COST" => Some(Self::PrioritizeCost),
+                    _ => None,
+                }
+            }
+        }
+    }
+    /// The modalities of the response.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Modality {
+        /// Unspecified modality. Will be processed as text.
+        Unspecified = 0,
+        /// Text modality.
+        Text = 1,
+        /// Image modality.
+        Image = 2,
+        /// Audio modality.
+        Audio = 3,
+    }
+    impl Modality {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "MODALITY_UNSPECIFIED",
+                Self::Text => "TEXT",
+                Self::Image => "IMAGE",
+                Self::Audio => "AUDIO",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "MODALITY_UNSPECIFIED" => Some(Self::Unspecified),
+                "TEXT" => Some(Self::Text),
+                "IMAGE" => Some(Self::Image),
+                "AUDIO" => Some(Self::Audio),
+                _ => None,
+            }
+        }
+    }
+    /// Media resolution for the input media.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum MediaResolution {
+        /// Media resolution has not been set.
+        Unspecified = 0,
+        /// Media resolution set to low (64 tokens).
+        Low = 1,
+        /// Media resolution set to medium (256 tokens).
+        Medium = 2,
+        /// Media resolution set to high (zoomed reframing with 256 tokens).
+        High = 3,
+    }
+    impl MediaResolution {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "MEDIA_RESOLUTION_UNSPECIFIED",
+                Self::Low => "MEDIA_RESOLUTION_LOW",
+                Self::Medium => "MEDIA_RESOLUTION_MEDIUM",
+                Self::High => "MEDIA_RESOLUTION_HIGH",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "MEDIA_RESOLUTION_UNSPECIFIED" => Some(Self::Unspecified),
+                "MEDIA_RESOLUTION_LOW" => Some(Self::Low),
+                "MEDIA_RESOLUTION_MEDIUM" => Some(Self::Medium),
+                "MEDIA_RESOLUTION_HIGH" => Some(Self::High),
+                _ => None,
+            }
         }
     }
 }
@@ -5927,6 +8094,9 @@ pub struct Candidate {
     /// Output only. Metadata specifies sources used to ground generated content.
     #[prost(message, optional, tag = "7")]
     pub grounding_metadata: ::core::option::Option<GroundingMetadata>,
+    /// Output only. Metadata related to url context retrieval tool.
+    #[prost(message, optional, tag = "11")]
+    pub url_context_metadata: ::core::option::Option<UrlContextMetadata>,
 }
 /// Nested message and enum types in `Candidate`.
 pub mod candidate {
@@ -5971,6 +8141,8 @@ pub mod candidate {
         Spii = 8,
         /// The function call generated by the model is invalid.
         MalformedFunctionCall = 9,
+        /// The model response was blocked by Model Armor.
+        ModelArmor = 10,
     }
     impl FinishReason {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -5989,6 +8161,7 @@ pub mod candidate {
                 Self::ProhibitedContent => "PROHIBITED_CONTENT",
                 Self::Spii => "SPII",
                 Self::MalformedFunctionCall => "MALFORMED_FUNCTION_CALL",
+                Self::ModelArmor => "MODEL_ARMOR",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -6004,6 +8177,70 @@ pub mod candidate {
                 "PROHIBITED_CONTENT" => Some(Self::ProhibitedContent),
                 "SPII" => Some(Self::Spii),
                 "MALFORMED_FUNCTION_CALL" => Some(Self::MalformedFunctionCall),
+                "MODEL_ARMOR" => Some(Self::ModelArmor),
+                _ => None,
+            }
+        }
+    }
+}
+/// Metadata related to url context retrieval tool.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UrlContextMetadata {
+    /// Output only. List of url context.
+    #[prost(message, repeated, tag = "1")]
+    pub url_metadata: ::prost::alloc::vec::Vec<UrlMetadata>,
+}
+/// Context of the a single url retrieval.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UrlMetadata {
+    /// Retrieved url by the tool.
+    #[prost(string, tag = "1")]
+    pub retrieved_url: ::prost::alloc::string::String,
+    /// Status of the url retrieval.
+    #[prost(enumeration = "url_metadata::UrlRetrievalStatus", tag = "2")]
+    pub url_retrieval_status: i32,
+}
+/// Nested message and enum types in `UrlMetadata`.
+pub mod url_metadata {
+    /// Status of the url retrieval.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum UrlRetrievalStatus {
+        /// Default value. This value is unused.
+        Unspecified = 0,
+        /// Url retrieval is successful.
+        Success = 1,
+        /// Url retrieval is failed due to error.
+        Error = 2,
+    }
+    impl UrlRetrievalStatus {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "URL_RETRIEVAL_STATUS_UNSPECIFIED",
+                Self::Success => "URL_RETRIEVAL_STATUS_SUCCESS",
+                Self::Error => "URL_RETRIEVAL_STATUS_ERROR",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "URL_RETRIEVAL_STATUS_UNSPECIFIED" => Some(Self::Unspecified),
+                "URL_RETRIEVAL_STATUS_SUCCESS" => Some(Self::Success),
+                "URL_RETRIEVAL_STATUS_ERROR" => Some(Self::Error),
                 _ => None,
             }
         }
@@ -6065,7 +8302,7 @@ pub struct Segment {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GroundingChunk {
     /// Chunk type.
-    #[prost(oneof = "grounding_chunk::ChunkType", tags = "1, 2")]
+    #[prost(oneof = "grounding_chunk::ChunkType", tags = "1, 2, 3")]
     pub chunk_type: ::core::option::Option<grounding_chunk::ChunkType>,
 }
 /// Nested message and enum types in `GroundingChunk`.
@@ -6092,6 +8329,73 @@ pub mod grounding_chunk {
         /// Text of the attribution.
         #[prost(string, optional, tag = "3")]
         pub text: ::core::option::Option<::prost::alloc::string::String>,
+        /// Output only. The full document name for the referenced Vertex AI Search
+        /// document.
+        #[prost(string, optional, tag = "6")]
+        pub document_name: ::core::option::Option<::prost::alloc::string::String>,
+        /// Tool-specific details about the retrieved context.
+        #[prost(oneof = "retrieved_context::ContextDetails", tags = "4")]
+        pub context_details: ::core::option::Option<retrieved_context::ContextDetails>,
+    }
+    /// Nested message and enum types in `RetrievedContext`.
+    pub mod retrieved_context {
+        /// Tool-specific details about the retrieved context.
+        #[derive(Clone, PartialEq, ::prost::Oneof)]
+        pub enum ContextDetails {
+            /// Additional context for the RAG retrieval result. This is only populated
+            /// when using the RAG retrieval tool.
+            #[prost(message, tag = "4")]
+            RagChunk(super::super::RagChunk),
+        }
+    }
+    /// Chunk from Google Maps.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Maps {
+        /// URI reference of the chunk.
+        #[prost(string, optional, tag = "1")]
+        pub uri: ::core::option::Option<::prost::alloc::string::String>,
+        /// Title of the chunk.
+        #[prost(string, optional, tag = "2")]
+        pub title: ::core::option::Option<::prost::alloc::string::String>,
+        /// Text of the chunk.
+        #[prost(string, optional, tag = "3")]
+        pub text: ::core::option::Option<::prost::alloc::string::String>,
+        /// This Place's resource name, in `places/{place_id}` format.  Can be used
+        /// to look up the Place.
+        #[prost(string, optional, tag = "4")]
+        pub place_id: ::core::option::Option<::prost::alloc::string::String>,
+        /// Sources used to generate the place answer.
+        /// This includes review snippets and photos that were used to generate the
+        /// answer, as well as uris to flag content.
+        #[prost(message, optional, tag = "5")]
+        pub place_answer_sources: ::core::option::Option<maps::PlaceAnswerSources>,
+    }
+    /// Nested message and enum types in `Maps`.
+    pub mod maps {
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct PlaceAnswerSources {
+            /// Snippets of reviews that are used to generate the answer.
+            #[prost(message, repeated, tag = "1")]
+            pub review_snippets: ::prost::alloc::vec::Vec<
+                place_answer_sources::ReviewSnippet,
+            >,
+        }
+        /// Nested message and enum types in `PlaceAnswerSources`.
+        pub mod place_answer_sources {
+            /// Encapsulates a review snippet.
+            #[derive(Clone, PartialEq, ::prost::Message)]
+            pub struct ReviewSnippet {
+                /// Id of the review referencing the place.
+                #[prost(string, tag = "1")]
+                pub review_id: ::prost::alloc::string::String,
+                /// A link to show the review on Google Maps.
+                #[prost(string, tag = "2")]
+                pub google_maps_uri: ::prost::alloc::string::String,
+                /// Title of the review.
+                #[prost(string, tag = "3")]
+                pub title: ::prost::alloc::string::String,
+            }
+        }
     }
     /// Chunk type.
     #[derive(Clone, PartialEq, ::prost::Oneof)]
@@ -6102,6 +8406,9 @@ pub mod grounding_chunk {
         /// Grounding chunk from context retrieved by the retrieval tools.
         #[prost(message, tag = "2")]
         RetrievedContext(RetrievedContext),
+        /// Grounding chunk from Google Maps.
+        #[prost(message, tag = "3")]
+        Maps(Maps),
     }
 }
 /// Grounding support.
@@ -6143,6 +8450,36 @@ pub struct GroundingMetadata {
     /// Optional. Output only. Retrieval metadata.
     #[prost(message, optional, tag = "7")]
     pub retrieval_metadata: ::core::option::Option<RetrievalMetadata>,
+    /// Optional. Output only. Resource name of the Google Maps widget context
+    /// token to be used with the PlacesContextElement widget to render contextual
+    /// data. This is populated only for Google Maps grounding.
+    #[prost(string, optional, tag = "8")]
+    pub google_maps_widget_context_token: ::core::option::Option<
+        ::prost::alloc::string::String,
+    >,
+    /// List of source flagging uris. This is currently populated only for Google
+    /// Maps grounding.
+    #[prost(message, repeated, tag = "9")]
+    pub source_flagging_uris: ::prost::alloc::vec::Vec<
+        grounding_metadata::SourceFlaggingUri,
+    >,
+}
+/// Nested message and enum types in `GroundingMetadata`.
+pub mod grounding_metadata {
+    /// Source content flagging uri for a place or review. This is currently
+    /// populated only for Google Maps grounding.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct SourceFlaggingUri {
+        /// Id of the place or review.
+        #[prost(string, tag = "1")]
+        pub source_id: ::prost::alloc::string::String,
+        /// A link where users can flag a problem with the source (place or review).
+        /// (-- The link is generated by Google and it does not contain
+        /// information from the user query. It may contain information of the
+        /// content it is flagging, which can be used to identify places. --)
+        #[prost(string, tag = "2")]
+        pub flag_content_uri: ::prost::alloc::string::String,
+    }
 }
 /// Google search entry point.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -6167,6 +8504,28 @@ pub struct RetrievalMetadata {
     #[prost(float, tag = "2")]
     pub google_search_dynamic_retrieval_score: f32,
 }
+/// Configuration for Model Armor integrations of prompt and responses.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ModelArmorConfig {
+    /// Optional. The name of the Model Armor template to use for prompt
+    /// sanitization.
+    #[prost(string, tag = "1")]
+    pub prompt_template_name: ::prost::alloc::string::String,
+    /// Optional. The name of the Model Armor template to use for response
+    /// sanitization.
+    #[prost(string, tag = "2")]
+    pub response_template_name: ::prost::alloc::string::String,
+}
+/// Represents token counting info for a single modality.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct ModalityTokenCount {
+    /// The modality associated with this token count.
+    #[prost(enumeration = "Modality", tag = "1")]
+    pub modality: i32,
+    /// Number of tokens.
+    #[prost(int32, tag = "2")]
+    pub token_count: i32,
+}
 /// Harm categories that will block the content.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
@@ -6181,8 +8540,11 @@ pub enum HarmCategory {
     Harassment = 3,
     /// The harm category is sexually explicit content.
     SexuallyExplicit = 4,
+    /// Deprecated: Election filter is not longer supported.
     /// The harm category is civic integrity.
     CivicIntegrity = 5,
+    /// The harm category is for jailbreak prompts.
+    Jailbreak = 6,
 }
 impl HarmCategory {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -6197,6 +8559,7 @@ impl HarmCategory {
             Self::Harassment => "HARM_CATEGORY_HARASSMENT",
             Self::SexuallyExplicit => "HARM_CATEGORY_SEXUALLY_EXPLICIT",
             Self::CivicIntegrity => "HARM_CATEGORY_CIVIC_INTEGRITY",
+            Self::Jailbreak => "HARM_CATEGORY_JAILBREAK",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -6208,6 +8571,52 @@ impl HarmCategory {
             "HARM_CATEGORY_HARASSMENT" => Some(Self::Harassment),
             "HARM_CATEGORY_SEXUALLY_EXPLICIT" => Some(Self::SexuallyExplicit),
             "HARM_CATEGORY_CIVIC_INTEGRITY" => Some(Self::CivicIntegrity),
+            "HARM_CATEGORY_JAILBREAK" => Some(Self::Jailbreak),
+            _ => None,
+        }
+    }
+}
+/// Content Part modality
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum Modality {
+    /// Unspecified modality.
+    Unspecified = 0,
+    /// Plain text.
+    Text = 1,
+    /// Image.
+    Image = 2,
+    /// Video.
+    Video = 3,
+    /// Audio.
+    Audio = 4,
+    /// Document, e.g. PDF.
+    Document = 5,
+}
+impl Modality {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "MODALITY_UNSPECIFIED",
+            Self::Text => "TEXT",
+            Self::Image => "IMAGE",
+            Self::Video => "VIDEO",
+            Self::Audio => "AUDIO",
+            Self::Document => "DOCUMENT",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "MODALITY_UNSPECIFIED" => Some(Self::Unspecified),
+            "TEXT" => Some(Self::Text),
+            "IMAGE" => Some(Self::Image),
+            "VIDEO" => Some(Self::Video),
+            "AUDIO" => Some(Self::Audio),
+            "DOCUMENT" => Some(Self::Document),
             _ => None,
         }
     }
@@ -6225,9 +8634,9 @@ pub struct CachedContent {
     /// cached content.
     #[prost(string, tag = "11")]
     pub display_name: ::prost::alloc::string::String,
-    /// Immutable. The name of the publisher model to use for cached content.
-    /// Format:
-    /// projects/{project}/locations/{location}/publishers/{publisher}/models/{model}
+    /// Immutable. The name of the `Model` to use for cached content. Currently,
+    /// only the published Gemini base models are supported, in form of
+    /// projects/{PROJECT}/locations/{LOCATION}/publishers/google/models/{MODEL}
     #[prost(string, tag = "2")]
     pub model: ::prost::alloc::string::String,
     /// Optional. Input only. Immutable. Developer set system instruction.
@@ -6245,7 +8654,7 @@ pub struct CachedContent {
     /// tools
     #[prost(message, optional, tag = "6")]
     pub tool_config: ::core::option::Option<ToolConfig>,
-    /// Output only. Creatation time of the cache entry.
+    /// Output only. Creation time of the cache entry.
     #[prost(message, optional, tag = "7")]
     pub create_time: ::core::option::Option<::prost_types::Timestamp>,
     /// Output only. When the cache entry was last updated in UTC time.
@@ -6254,6 +8663,11 @@ pub struct CachedContent {
     /// Output only. Metadata on the usage of the cached content.
     #[prost(message, optional, tag = "12")]
     pub usage_metadata: ::core::option::Option<cached_content::UsageMetadata>,
+    /// Input only. Immutable. Customer-managed encryption key spec for a
+    /// `CachedContent`. If set, this `CachedContent` and all its sub-resources
+    /// will be secured by this key.
+    #[prost(message, optional, tag = "13")]
+    pub encryption_spec: ::core::option::Option<EncryptionSpec>,
     /// Expiration time of the cached content.
     #[prost(oneof = "cached_content::Expiration", tags = "9, 10")]
     pub expiration: ::core::option::Option<cached_content::Expiration>,
@@ -6352,8 +8766,8 @@ pub struct Context {
     #[prost(string, tag = "16")]
     pub description: ::prost::alloc::string::String,
 }
-/// PSC config that is used to automatically create forwarding rule via
-/// ServiceConnectionMap.
+/// PSC config that is used to automatically create PSC endpoints in the user
+/// projects.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PscAutomationConfig {
     /// Required. Project id used to create forwarding rule.
@@ -6361,12 +8775,22 @@ pub struct PscAutomationConfig {
     pub project_id: ::prost::alloc::string::String,
     /// Required. The full name of the Google Compute Engine
     /// [network](<https://cloud.google.com/compute/docs/networks-and-firewalls#networks>).
-    /// [Format](<https://cloud.google.com/compute/docs/reference/rest/v1/networks/insert>):
+    /// [Format](<https://cloud.google.com/compute/docs/reference/rest/v1/networks/get>):
     /// `projects/{project}/global/networks/{network}`.
-    /// Where {project} is a project number, as in '12345', and {network} is
-    /// network name.
     #[prost(string, tag = "2")]
     pub network: ::prost::alloc::string::String,
+    /// Output only. IP address rule created by the PSC service automation.
+    #[prost(string, tag = "3")]
+    pub ip_address: ::prost::alloc::string::String,
+    /// Output only. Forwarding rule created by the PSC service automation.
+    #[prost(string, tag = "4")]
+    pub forwarding_rule: ::prost::alloc::string::String,
+    /// Output only. The state of the PSC service automation.
+    #[prost(enumeration = "PscAutomationState", tag = "5")]
+    pub state: i32,
+    /// Output only. Error message if the PSC service automation failed.
+    #[prost(string, tag = "6")]
+    pub error_message: ::prost::alloc::string::String,
 }
 /// Represents configuration for private service connect.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -6378,6 +8802,10 @@ pub struct PrivateServiceConnectConfig {
     /// attachment.
     #[prost(string, repeated, tag = "2")]
     pub project_allowlist: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Optional. List of projects and networks where the PSC endpoints will be
+    /// created. This field is used by Online Inference(Prediction) only.
+    #[prost(message, repeated, tag = "3")]
+    pub psc_automation_configs: ::prost::alloc::vec::Vec<PscAutomationConfig>,
     /// Optional. If set to true, enable secure private service connect with IAM
     /// authorization. Otherwise, private service connect will be done without
     /// authorization. Note latency will be slightly increased if authorization is
@@ -6407,20 +8835,76 @@ pub struct PscAutomatedEndpoints {
 /// Configuration for PSC-I.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PscInterfaceConfig {
-    /// Optional. The full name of the Compute Engine
+    /// Optional. The name of the Compute Engine
     /// [network
     /// attachment](<https://cloud.google.com/vpc/docs/about-network-attachments>) to
-    /// attach to the resource.
-    /// For example, `projects/12345/regions/us-central1/networkAttachments/myNA`.
-    /// is of the form
-    /// `projects/{project}/regions/{region}/networkAttachments/{networkAttachment}`.
-    /// Where {project} is a project number, as in `12345`, and {networkAttachment}
-    /// is a network attachment name.
+    /// attach to the resource within the region and user project.
     /// To specify this field, you must have already \[created a network attachment\]
     /// (<https://cloud.google.com/vpc/docs/create-manage-network-attachments#create-network-attachments>).
     /// This field is only used for resources using PSC-I.
     #[prost(string, tag = "1")]
     pub network_attachment: ::prost::alloc::string::String,
+    /// Optional. DNS peering configurations. When specified, Vertex AI will
+    /// attempt to configure DNS peering zones in the tenant project VPC
+    /// to resolve the specified domains using the target network's Cloud DNS.
+    /// The user must grant the dns.peer role to the Vertex AI Service Agent
+    /// on the target project.
+    #[prost(message, repeated, tag = "2")]
+    pub dns_peering_configs: ::prost::alloc::vec::Vec<DnsPeeringConfig>,
+}
+/// DNS peering configuration. These configurations are used to create
+/// DNS peering zones in the Vertex tenant project VPC, enabling resolution
+/// of records within the specified domain hosted in the target network's
+/// Cloud DNS.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DnsPeeringConfig {
+    /// Required. The DNS name suffix of the zone being peered to, e.g.,
+    /// "my-internal-domain.corp.". Must end with a dot.
+    #[prost(string, tag = "1")]
+    pub domain: ::prost::alloc::string::String,
+    /// Required. The project ID hosting the Cloud DNS managed zone that
+    /// contains the 'domain'. The Vertex AI Service Agent requires the
+    /// dns.peer role on this project.
+    #[prost(string, tag = "2")]
+    pub target_project: ::prost::alloc::string::String,
+    /// Required. The VPC network name
+    /// in the target_project where the DNS zone specified by 'domain' is
+    /// visible.
+    #[prost(string, tag = "3")]
+    pub target_network: ::prost::alloc::string::String,
+}
+/// The state of the PSC service automation.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum PscAutomationState {
+    /// Should not be used.
+    Unspecified = 0,
+    /// The PSC service automation is successful.
+    Successful = 1,
+    /// The PSC service automation has failed.
+    Failed = 2,
+}
+impl PscAutomationState {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "PSC_AUTOMATION_STATE_UNSPECIFIED",
+            Self::Successful => "PSC_AUTOMATION_STATE_SUCCESSFUL",
+            Self::Failed => "PSC_AUTOMATION_STATE_FAILED",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "PSC_AUTOMATION_STATE_UNSPECIFIED" => Some(Self::Unspecified),
+            "PSC_AUTOMATION_STATE_SUCCESSFUL" => Some(Self::Successful),
+            "PSC_AUTOMATION_STATE_FAILED" => Some(Self::Failed),
+            _ => None,
+        }
+    }
 }
 /// Represents a job that runs custom workloads such as a Docker container or a
 /// Python package. A CustomJob can have multiple worker pools and each worker
@@ -6654,6 +9138,9 @@ pub struct WorkerPoolSpec {
     /// Optional. List of NFS mount spec.
     #[prost(message, repeated, tag = "4")]
     pub nfs_mounts: ::prost::alloc::vec::Vec<NfsMount>,
+    /// Optional. List of Lustre mounts.
+    #[prost(message, repeated, tag = "9")]
+    pub lustre_mounts: ::prost::alloc::vec::Vec<LustreMount>,
     /// Disk spec.
     #[prost(message, optional, tag = "5")]
     pub disk_spec: ::core::option::Option<DiskSpec>,
@@ -6723,10 +9210,10 @@ pub struct PythonPackageSpec {
 /// All parameters related to queuing and scheduling of custom jobs.
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct Scheduling {
-    /// The maximum job running time. The default is 7 days.
+    /// Optional. The maximum job running time. The default is 7 days.
     #[prost(message, optional, tag = "1")]
     pub timeout: ::core::option::Option<::prost_types::Duration>,
-    /// Restarts the entire CustomJob if a worker gets restarted.
+    /// Optional. Restarts the entire CustomJob if a worker gets restarted.
     /// This feature can be used by distributed training jobs that are not
     /// resilient to workers leaving and joining a job.
     #[prost(bool, tag = "3")]
@@ -7970,6 +10457,328 @@ pub struct ListAnnotationsResponse {
     #[prost(string, tag = "2")]
     pub next_page_token: ::prost::alloc::string::String,
 }
+/// Request message for
+/// [DatasetService.AssessData][google.cloud.aiplatform.v1beta1.DatasetService.AssessData].
+/// Used only for MULTIMODAL datasets.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AssessDataRequest {
+    /// Required. The name of the Dataset resource. Used only for MULTIMODAL
+    /// datasets. Format:
+    /// `projects/{project}/locations/{location}/datasets/{dataset}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Optional. The Gemini request read config for the dataset.
+    #[prost(message, optional, tag = "8")]
+    pub gemini_request_read_config: ::core::option::Option<GeminiRequestReadConfig>,
+    /// The assessment type.
+    #[prost(oneof = "assess_data_request::AssessmentConfig", tags = "2, 3, 6, 7")]
+    pub assessment_config: ::core::option::Option<assess_data_request::AssessmentConfig>,
+}
+/// Nested message and enum types in `AssessDataRequest`.
+pub mod assess_data_request {
+    /// Configuration for the tuning validation assessment.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct TuningValidationAssessmentConfig {
+        /// Required. The name of the model used for tuning.
+        #[prost(string, tag = "1")]
+        pub model_name: ::prost::alloc::string::String,
+        /// Required. The dataset usage (e.g. training/validation).
+        #[prost(
+            enumeration = "tuning_validation_assessment_config::DatasetUsage",
+            tag = "2"
+        )]
+        pub dataset_usage: i32,
+    }
+    /// Nested message and enum types in `TuningValidationAssessmentConfig`.
+    pub mod tuning_validation_assessment_config {
+        /// The dataset usage (e.g. training/validation).
+        #[derive(
+            Clone,
+            Copy,
+            Debug,
+            PartialEq,
+            Eq,
+            Hash,
+            PartialOrd,
+            Ord,
+            ::prost::Enumeration
+        )]
+        #[repr(i32)]
+        pub enum DatasetUsage {
+            /// Default value. Should not be used.
+            Unspecified = 0,
+            /// Supervised fine-tuning training dataset.
+            SftTraining = 1,
+            /// Supervised fine-tuning validation dataset.
+            SftValidation = 2,
+        }
+        impl DatasetUsage {
+            /// String value of the enum field names used in the ProtoBuf definition.
+            ///
+            /// The values are not transformed in any way and thus are considered stable
+            /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+            pub fn as_str_name(&self) -> &'static str {
+                match self {
+                    Self::Unspecified => "DATASET_USAGE_UNSPECIFIED",
+                    Self::SftTraining => "SFT_TRAINING",
+                    Self::SftValidation => "SFT_VALIDATION",
+                }
+            }
+            /// Creates an enum from field names used in the ProtoBuf definition.
+            pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+                match value {
+                    "DATASET_USAGE_UNSPECIFIED" => Some(Self::Unspecified),
+                    "SFT_TRAINING" => Some(Self::SftTraining),
+                    "SFT_VALIDATION" => Some(Self::SftValidation),
+                    _ => None,
+                }
+            }
+        }
+    }
+    /// Configuration for the tuning resource usage assessment.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct TuningResourceUsageAssessmentConfig {
+        /// Required. The name of the model used for tuning.
+        #[prost(string, tag = "1")]
+        pub model_name: ::prost::alloc::string::String,
+    }
+    /// Configuration for the batch prediction validation assessment.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct BatchPredictionValidationAssessmentConfig {
+        /// Required. The name of the model used for batch prediction.
+        #[prost(string, tag = "1")]
+        pub model_name: ::prost::alloc::string::String,
+    }
+    /// Configuration for the batch prediction resource usage assessment.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct BatchPredictionResourceUsageAssessmentConfig {
+        /// Required. The name of the model used for batch prediction.
+        #[prost(string, tag = "1")]
+        pub model_name: ::prost::alloc::string::String,
+    }
+    /// The assessment type.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum AssessmentConfig {
+        /// Optional. Configuration for the tuning validation assessment.
+        #[prost(message, tag = "2")]
+        TuningValidationAssessmentConfig(TuningValidationAssessmentConfig),
+        /// Optional. Configuration for the tuning resource usage assessment.
+        #[prost(message, tag = "3")]
+        TuningResourceUsageAssessmentConfig(TuningResourceUsageAssessmentConfig),
+        /// Optional. Configuration for the batch prediction validation assessment.
+        #[prost(message, tag = "6")]
+        BatchPredictionValidationAssessmentConfig(
+            BatchPredictionValidationAssessmentConfig,
+        ),
+        /// Optional. Configuration for the batch prediction resource usage
+        /// assessment.
+        #[prost(message, tag = "7")]
+        BatchPredictionResourceUsageAssessmentConfig(
+            BatchPredictionResourceUsageAssessmentConfig,
+        ),
+    }
+}
+/// Response message for
+/// [DatasetService.AssessData][google.cloud.aiplatform.v1beta1.DatasetService.AssessData].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AssessDataResponse {
+    /// The assessment result.
+    #[prost(oneof = "assess_data_response::AssessmentResult", tags = "1, 2, 3, 4")]
+    pub assessment_result: ::core::option::Option<
+        assess_data_response::AssessmentResult,
+    >,
+}
+/// Nested message and enum types in `AssessDataResponse`.
+pub mod assess_data_response {
+    /// The result of the tuning validation assessment.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct TuningValidationAssessmentResult {
+        /// Optional. A list containing the first validation errors.
+        #[prost(string, repeated, tag = "1")]
+        pub errors: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    }
+    /// The result of the tuning resource usage assessment.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct TuningResourceUsageAssessmentResult {
+        /// Number of tokens in the tuning dataset.
+        #[prost(int64, tag = "1")]
+        pub token_count: i64,
+        /// Number of billable tokens in the tuning dataset.
+        #[prost(int64, tag = "2")]
+        pub billable_character_count: i64,
+    }
+    /// The result of the batch prediction validation assessment.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct BatchPredictionValidationAssessmentResult {}
+    /// The result of the batch prediction resource usage assessment.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct BatchPredictionResourceUsageAssessmentResult {
+        /// Number of tokens in the batch prediction dataset.
+        #[prost(int64, tag = "1")]
+        pub token_count: i64,
+        /// Number of audio tokens in the batch prediction dataset.
+        #[prost(int64, tag = "2")]
+        pub audio_token_count: i64,
+    }
+    /// The assessment result.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum AssessmentResult {
+        /// Optional. The result of the tuning validation assessment.
+        #[prost(message, tag = "1")]
+        TuningValidationAssessmentResult(TuningValidationAssessmentResult),
+        /// Optional. The result of the tuning resource usage assessment.
+        #[prost(message, tag = "2")]
+        TuningResourceUsageAssessmentResult(TuningResourceUsageAssessmentResult),
+        /// Optional. The result of the batch prediction validation assessment.
+        #[prost(message, tag = "3")]
+        BatchPredictionValidationAssessmentResult(
+            BatchPredictionValidationAssessmentResult,
+        ),
+        /// Optional. The result of the batch prediction resource usage assessment.
+        #[prost(message, tag = "4")]
+        BatchPredictionResourceUsageAssessmentResult(
+            BatchPredictionResourceUsageAssessmentResult,
+        ),
+    }
+}
+/// Runtime operation information for
+/// [DatasetService.AssessData][google.cloud.aiplatform.v1beta1.DatasetService.AssessData].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AssessDataOperationMetadata {
+    /// The common part of the operation metadata.
+    #[prost(message, optional, tag = "1")]
+    pub generic_metadata: ::core::option::Option<GenericOperationMetadata>,
+}
+/// Template configuration to create Gemini examples from a multimodal dataset.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GeminiTemplateConfig {
+    /// Required. The template that will be used for assembling the request to use
+    /// for downstream applications.
+    #[prost(message, optional, tag = "1")]
+    pub gemini_example: ::core::option::Option<GeminiExample>,
+    /// Required. Map of template parameters to the columns in the dataset table.
+    #[prost(map = "string, string", tag = "2")]
+    pub field_mapping: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+}
+/// Configuration for how to read Gemini requests from a multimodal dataset.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GeminiRequestReadConfig {
+    /// The read config for the dataset.
+    #[prost(oneof = "gemini_request_read_config::ReadConfig", tags = "1, 4")]
+    pub read_config: ::core::option::Option<gemini_request_read_config::ReadConfig>,
+}
+/// Nested message and enum types in `GeminiRequestReadConfig`.
+pub mod gemini_request_read_config {
+    /// The read config for the dataset.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum ReadConfig {
+        /// Gemini request template with placeholders.
+        #[prost(message, tag = "1")]
+        TemplateConfig(super::GeminiTemplateConfig),
+        /// Optional. Column name in the dataset table that contains already fully
+        /// assembled Gemini requests.
+        #[prost(string, tag = "4")]
+        AssembledRequestColumnName(::prost::alloc::string::String),
+    }
+}
+/// Format for Gemini examples used for Vertex Multimodal datasets.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GeminiExample {
+    /// Optional. The fully qualified name of the publisher model or tuned model
+    /// endpoint to use.
+    ///
+    /// Publisher model format:
+    /// `projects/{project}/locations/{location}/publishers/*/models/*`
+    ///
+    /// Tuned model endpoint format:
+    /// `projects/{project}/locations/{location}/endpoints/{endpoint}`
+    #[prost(string, tag = "1")]
+    pub model: ::prost::alloc::string::String,
+    /// Required. The content of the current conversation with the model.
+    ///
+    /// For single-turn queries, this is a single instance. For multi-turn
+    /// queries, this is a repeated field that contains conversation history +
+    /// latest request.
+    #[prost(message, repeated, tag = "2")]
+    pub contents: ::prost::alloc::vec::Vec<Content>,
+    /// Optional. The user provided system instructions for the model.
+    /// Note: only text should be used in parts and content in each part will be
+    /// in a separate paragraph.
+    #[prost(message, optional, tag = "8")]
+    pub system_instruction: ::core::option::Option<Content>,
+    /// Optional. The name of the cached content used as context to serve the
+    /// prediction. Note: only used in explicit caching, where users can have
+    /// control over caching (e.g. what content to cache) and enjoy guaranteed cost
+    /// savings. Format:
+    /// `projects/{project}/locations/{location}/cachedContents/{cachedContent}`
+    #[prost(string, tag = "9")]
+    pub cached_content: ::prost::alloc::string::String,
+    /// Optional. A list of `Tools` the model may use to generate the next
+    /// response.
+    ///
+    /// A `Tool` is a piece of code that enables the system to interact with
+    /// external systems to perform an action, or set of actions, outside of
+    /// knowledge and scope of the model.
+    #[prost(message, repeated, tag = "6")]
+    pub tools: ::prost::alloc::vec::Vec<Tool>,
+    /// Optional. Tool config. This config is shared for all tools provided in the
+    /// request.
+    #[prost(message, optional, tag = "7")]
+    pub tool_config: ::core::option::Option<ToolConfig>,
+    /// Optional. The labels with user-defined metadata for the request. It is used
+    /// for billing and reporting only.
+    ///
+    /// Label keys and values can be no longer than 63 characters
+    /// (Unicode codepoints) and can only contain lowercase letters, numeric
+    /// characters, underscores, and dashes. International characters are
+    /// allowed. Label values are optional. Label keys must start with a letter.
+    #[prost(map = "string, string", tag = "10")]
+    pub labels: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+    /// Optional. Per request settings for blocking unsafe content.
+    /// Enforced on GenerateContentResponse.candidates.
+    #[prost(message, repeated, tag = "3")]
+    pub safety_settings: ::prost::alloc::vec::Vec<SafetySetting>,
+    /// Optional. Generation config.
+    #[prost(message, optional, tag = "4")]
+    pub generation_config: ::core::option::Option<GenerationConfig>,
+}
+/// Request message for
+/// [DatasetService.AssembleData][google.cloud.aiplatform.v1beta1.DatasetService.AssembleData].
+/// Used only for MULTIMODAL datasets.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AssembleDataRequest {
+    /// Required. The name of the Dataset resource (used only for MULTIMODAL
+    /// datasets). Format:
+    /// `projects/{project}/locations/{location}/datasets/{dataset}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Optional. The read config for the dataset.
+    #[prost(message, optional, tag = "6")]
+    pub gemini_request_read_config: ::core::option::Option<GeminiRequestReadConfig>,
+}
+/// Response message for
+/// [DatasetService.AssembleData][google.cloud.aiplatform.v1beta1.DatasetService.AssembleData].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AssembleDataResponse {
+    /// Destination BigQuery table path containing the assembled data as a single
+    /// column.
+    #[prost(string, tag = "1")]
+    pub bigquery_destination: ::prost::alloc::string::String,
+}
+/// Runtime operation information for
+/// [DatasetService.AssembleData][google.cloud.aiplatform.v1beta1.DatasetService.AssembleData].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AssembleDataOperationMetadata {
+    /// The common part of the operation metadata.
+    #[prost(message, optional, tag = "1")]
+    pub generic_metadata: ::core::option::Option<GenericOperationMetadata>,
+}
 /// Generated client implementations.
 pub mod dataset_service_client {
     #![allow(
@@ -8587,7 +11396,7 @@ pub mod dataset_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
-        /// Lists Annotations belongs to a dataitem
+        /// Lists Annotations belongs to a dataitem.
         pub async fn list_annotations(
             &mut self,
             request: impl tonic::IntoRequest<super::ListAnnotationsRequest>,
@@ -8613,6 +11422,68 @@ pub mod dataset_service_client {
                     GrpcMethod::new(
                         "google.cloud.aiplatform.v1beta1.DatasetService",
                         "ListAnnotations",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Assesses the state or validity of the dataset with respect to a given use
+        /// case.
+        pub async fn assess_data(
+            &mut self,
+            request: impl tonic::IntoRequest<super::AssessDataRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.DatasetService/AssessData",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.DatasetService",
+                        "AssessData",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Assembles each row of a multimodal dataset and writes the result into a
+        /// BigQuery table.
+        pub async fn assemble_data(
+            &mut self,
+            request: impl tonic::IntoRequest<super::AssembleDataRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.DatasetService/AssembleData",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.DatasetService",
+                        "AssembleData",
                     ),
                 );
             self.inner.unary(req, path, codec).await
@@ -8796,9 +11667,10 @@ pub struct Endpoint {
     #[prost(bool, tag = "24")]
     pub dedicated_endpoint_enabled: bool,
     /// Output only. DNS of the dedicated endpoint. Will only be populated if
-    /// dedicated_endpoint_enabled is true.
-    /// Format:
-    /// `<https://{endpoint_id}.{region}-{project_number}.prediction.vertexai.goog`.>
+    /// dedicated_endpoint_enabled is true. Depending on the features enabled, uid
+    /// might be a random number or a string. For example, if fast_tryout is
+    /// enabled, uid will be fasttryout. Format:
+    /// `<https://{endpoint_id}.{region}-{uid}.prediction.vertexai.goog`.>
     #[prost(string, tag = "25")]
     pub dedicated_endpoint_dns: ::prost::alloc::string::String,
     /// Configurations that are applied to the endpoint for online prediction.
@@ -8810,6 +11682,16 @@ pub struct Endpoint {
     /// Output only. Reserved for future use.
     #[prost(bool, tag = "28")]
     pub satisfies_pzi: bool,
+    /// Optional. Configuration for GenAiAdvancedFeatures. If the endpoint is
+    /// serving GenAI models, advanced features like native RAG integration can be
+    /// configured. Currently, only Model Garden models are supported.
+    #[prost(message, optional, tag = "29")]
+    pub gen_ai_advanced_features_config: ::core::option::Option<
+        GenAiAdvancedFeaturesConfig,
+    >,
+    /// If true, the model server will be isolated from the external internet.
+    #[prost(bool, tag = "30")]
+    pub private_model_server_enabled: bool,
 }
 /// A deployment of a Model. Endpoints contain one or more DeployedModels.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -8820,9 +11702,8 @@ pub struct DeployedModel {
     /// This value should be 1-10 characters, and valid characters are `/\[0-9\]/`.
     #[prost(string, tag = "1")]
     pub id: ::prost::alloc::string::String,
-    /// Required. The resource name of the Model that this is the deployment of.
-    /// Note that the Model may be in a different location than the DeployedModel's
-    /// Endpoint.
+    /// The resource name of the Model that this is the deployment of. Note that
+    /// the Model may be in a different location than the DeployedModel's Endpoint.
     ///
     /// The resource name may contain version id or version alias to specify the
     /// version.
@@ -8883,6 +11764,15 @@ pub struct DeployedModel {
     /// Only supported for custom-trained Models and AutoML Tabular Models.
     #[prost(bool, tag = "12")]
     pub enable_container_logging: bool,
+    /// For custom-trained Models and AutoML Tabular Models, the container of the
+    /// DeployedModel instances will send `stderr` and `stdout` streams to
+    /// Cloud Logging by default. Please note that the logs incur cost,
+    /// which are subject to [Cloud Logging
+    /// pricing](<https://cloud.google.com/logging/pricing>).
+    ///
+    /// User can disable container logging by setting this flag to true.
+    #[prost(bool, tag = "15")]
+    pub disable_container_logging: bool,
     /// If true, online prediction access logs are sent to Cloud
     /// Logging.
     /// These logs are like standard server access logs, containing
@@ -8902,6 +11792,9 @@ pub struct DeployedModel {
     /// Configuration for faster model deployment.
     #[prost(message, optional, tag = "23")]
     pub faster_deployment_config: ::core::option::Option<FasterDeploymentConfig>,
+    /// Options for configuring rolling deployments.
+    #[prost(message, optional, tag = "25")]
+    pub rollout_options: ::core::option::Option<RolloutOptions>,
     /// Output only. Runtime status of the deployed model.
     #[prost(message, optional, tag = "26")]
     pub status: ::core::option::Option<deployed_model::Status>,
@@ -8912,13 +11805,19 @@ pub struct DeployedModel {
         ::prost::alloc::string::String,
         ::prost::alloc::string::String,
     >,
+    /// The checkpoint id of the model.
+    #[prost(string, tag = "29")]
+    pub checkpoint_id: ::prost::alloc::string::String,
+    /// Optional. Spec for configuring speculative decoding.
+    #[prost(message, optional, tag = "30")]
+    pub speculative_decoding_spec: ::core::option::Option<SpeculativeDecodingSpec>,
     /// The prediction (for example, the machine) resources that the DeployedModel
     /// uses. The user is billed for the resources (at least their minimal amount)
     /// even if the DeployedModel receives no traffic.
     /// Not all Models support all resources types. See
     /// [Model.supported_deployment_resources_types][google.cloud.aiplatform.v1beta1.Model.supported_deployment_resources_types].
     /// Required except for Large Model Deploy use cases.
-    #[prost(oneof = "deployed_model::PredictionResources", tags = "7, 8, 17")]
+    #[prost(oneof = "deployed_model::PredictionResources", tags = "7, 8, 17, 36")]
     pub prediction_resources: ::core::option::Option<
         deployed_model::PredictionResources,
     >,
@@ -8959,6 +11858,9 @@ pub mod deployed_model {
         /// `projects/{project}/locations/{location}/deploymentResourcePools/{deployment_resource_pool}`
         #[prost(string, tag = "17")]
         SharedResources(::prost::alloc::string::String),
+        /// Optional. Resources for a full fine tuned model.
+        #[prost(message, tag = "36")]
+        FullFineTunedResources(super::FullFineTunedResources),
     }
 }
 /// PrivateEndpoints proto is used to provide paths for users to send
@@ -9000,6 +11902,23 @@ pub struct PredictRequestResponseLoggingConfig {
     /// given, a new table will be created with name `request_response_logging`
     #[prost(message, optional, tag = "3")]
     pub bigquery_destination: ::core::option::Option<BigQueryDestination>,
+    /// Output only. The schema version used in creating the BigQuery table for the
+    /// request response logging. The versions are "v1" and "v2". The current
+    /// default version is "v1".
+    #[prost(string, tag = "4")]
+    pub request_response_logging_schema_version: ::prost::alloc::string::String,
+    /// This field is used for large models. If true, in addition to the
+    /// original large model logs, logs will be converted in OTel schema format,
+    /// and saved in otel_log column. Default value is false.
+    #[prost(bool, tag = "6")]
+    pub enable_otel_logging: bool,
+}
+/// This message contains configs of a publisher model.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PublisherModelConfig {
+    /// The prediction request/response logging config.
+    #[prost(message, optional, tag = "3")]
+    pub logging_config: ::core::option::Option<PredictRequestResponseLoggingConfig>,
 }
 /// Configurations (e.g. inference timeout) that are applied on your endpoints.
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
@@ -9014,6 +11933,115 @@ pub struct FasterDeploymentConfig {
     /// If true, enable fast tryout feature for this deployed model.
     #[prost(bool, tag = "2")]
     pub fast_tryout_enabled: bool,
+}
+/// Configuration for rolling deployments.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RolloutOptions {
+    /// ID of the DeployedModel that this deployment should replace.
+    #[prost(string, tag = "1")]
+    pub previous_deployed_model: ::prost::alloc::string::String,
+    /// Output only. Read-only. Revision number determines the relative priority of
+    /// DeployedModels in the same rollout. The DeployedModel with the largest
+    /// revision number specifies the intended state of the deployment.
+    #[prost(int32, tag = "2")]
+    pub revision_number: i32,
+    /// Configures how many replicas are allowed to be unavailable during a rolling
+    /// deployment.
+    #[prost(oneof = "rollout_options::MaxUnavailable", tags = "3, 4")]
+    pub max_unavailable: ::core::option::Option<rollout_options::MaxUnavailable>,
+    /// Configures how many additional replicas can be provisioned during a rolling
+    /// deployment.
+    #[prost(oneof = "rollout_options::MaxSurge", tags = "5, 6")]
+    pub max_surge: ::core::option::Option<rollout_options::MaxSurge>,
+}
+/// Nested message and enum types in `RolloutOptions`.
+pub mod rollout_options {
+    /// Configures how many replicas are allowed to be unavailable during a rolling
+    /// deployment.
+    #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
+    pub enum MaxUnavailable {
+        /// Absolute count of replicas allowed to be unavailable.
+        #[prost(int32, tag = "3")]
+        MaxUnavailableReplicas(i32),
+        /// Percentage of replicas allowed to be unavailable.
+        /// For autoscaling deployments, this refers to the target replica count.
+        #[prost(int32, tag = "4")]
+        MaxUnavailablePercentage(i32),
+    }
+    /// Configures how many additional replicas can be provisioned during a rolling
+    /// deployment.
+    #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
+    pub enum MaxSurge {
+        /// Absolute count of allowed additional replicas.
+        #[prost(int32, tag = "5")]
+        MaxSurgeReplicas(i32),
+        /// Percentage of allowed additional replicas.
+        /// For autoscaling deployments, this refers to the target replica count.
+        #[prost(int32, tag = "6")]
+        MaxSurgePercentage(i32),
+    }
+}
+/// Configuration for GenAiAdvancedFeatures.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct GenAiAdvancedFeaturesConfig {
+    /// Configuration for Retrieval Augmented Generation feature.
+    #[prost(message, optional, tag = "1")]
+    pub rag_config: ::core::option::Option<gen_ai_advanced_features_config::RagConfig>,
+}
+/// Nested message and enum types in `GenAiAdvancedFeaturesConfig`.
+pub mod gen_ai_advanced_features_config {
+    /// Configuration for Retrieval Augmented Generation feature.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct RagConfig {
+        /// If true, enable Retrieval Augmented Generation in ChatCompletion request.
+        /// Once enabled, the endpoint will be identified as GenAI endpoint and
+        /// Arthedain router will be used.
+        #[prost(bool, tag = "1")]
+        pub enable_rag: bool,
+    }
+}
+/// Configuration for Speculative Decoding.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SpeculativeDecodingSpec {
+    /// The number of speculative tokens to generate at each step.
+    #[prost(int32, tag = "1")]
+    pub speculative_token_count: i32,
+    /// The type of speculation method to use.
+    #[prost(oneof = "speculative_decoding_spec::Speculation", tags = "2, 3")]
+    pub speculation: ::core::option::Option<speculative_decoding_spec::Speculation>,
+}
+/// Nested message and enum types in `SpeculativeDecodingSpec`.
+pub mod speculative_decoding_spec {
+    /// Draft model speculation works by using the smaller model to generate
+    /// candidate tokens for speculative decoding.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct DraftModelSpeculation {
+        /// Required. The resource name of the draft model.
+        #[prost(string, tag = "1")]
+        pub draft_model: ::prost::alloc::string::String,
+    }
+    /// N-Gram speculation works by trying to find matching tokens in the
+    /// previous prompt sequence and use those as speculation for generating
+    /// new tokens.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct NgramSpeculation {
+        /// The number of last N input tokens used as ngram to search/match
+        /// against the previous prompt sequence.
+        /// This is equal to the N in N-Gram.
+        /// The default value is 3 if not specified.
+        #[prost(int32, tag = "1")]
+        pub ngram_size: i32,
+    }
+    /// The type of speculation method to use.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Speculation {
+        /// draft model speculation.
+        #[prost(message, tag = "2")]
+        DraftModelSpeculation(DraftModelSpeculation),
+        /// N-Gram speculation.
+        #[prost(message, tag = "3")]
+        NgramSpeculation(NgramSpeculation),
+    }
 }
 /// Request message for CreateDeploymentResourcePool method.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -9432,6 +12460,71 @@ pub mod deployment_resource_pool_service_client {
         }
     }
 }
+/// Stage field indicating the current progress of a deployment.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum DeploymentStage {
+    /// Default value. This value is unused.
+    Unspecified = 0,
+    /// The deployment is initializing and setting up the environment.
+    StartingDeployment = 5,
+    /// The deployment is preparing the model assets.
+    PreparingModel = 6,
+    /// The deployment is creating the underlying serving cluster.
+    CreatingServingCluster = 7,
+    /// The deployment is adding nodes to the serving cluster.
+    AddingNodesToCluster = 8,
+    /// The deployment is getting the container image for the model server.
+    GettingContainerImage = 9,
+    /// The deployment is starting the model server.
+    StartingModelServer = 3,
+    /// The deployment is performing finalization steps.
+    FinishingUp = 4,
+    /// The deployment has terminated.
+    DeploymentTerminated = 10,
+    /// The deployment has succeeded.
+    SuccessfullyDeployed = 11,
+    /// The deployment has failed.
+    FailedToDeploy = 12,
+}
+impl DeploymentStage {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "DEPLOYMENT_STAGE_UNSPECIFIED",
+            Self::StartingDeployment => "STARTING_DEPLOYMENT",
+            Self::PreparingModel => "PREPARING_MODEL",
+            Self::CreatingServingCluster => "CREATING_SERVING_CLUSTER",
+            Self::AddingNodesToCluster => "ADDING_NODES_TO_CLUSTER",
+            Self::GettingContainerImage => "GETTING_CONTAINER_IMAGE",
+            Self::StartingModelServer => "STARTING_MODEL_SERVER",
+            Self::FinishingUp => "FINISHING_UP",
+            Self::DeploymentTerminated => "DEPLOYMENT_TERMINATED",
+            Self::SuccessfullyDeployed => "SUCCESSFULLY_DEPLOYED",
+            Self::FailedToDeploy => "FAILED_TO_DEPLOY",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "DEPLOYMENT_STAGE_UNSPECIFIED" => Some(Self::Unspecified),
+            "STARTING_DEPLOYMENT" => Some(Self::StartingDeployment),
+            "PREPARING_MODEL" => Some(Self::PreparingModel),
+            "CREATING_SERVING_CLUSTER" => Some(Self::CreatingServingCluster),
+            "ADDING_NODES_TO_CLUSTER" => Some(Self::AddingNodesToCluster),
+            "GETTING_CONTAINER_IMAGE" => Some(Self::GettingContainerImage),
+            "STARTING_MODEL_SERVER" => Some(Self::StartingModelServer),
+            "FINISHING_UP" => Some(Self::FinishingUp),
+            "DEPLOYMENT_TERMINATED" => Some(Self::DeploymentTerminated),
+            "SUCCESSFULLY_DEPLOYED" => Some(Self::SuccessfullyDeployed),
+            "FAILED_TO_DEPLOY" => Some(Self::FailedToDeploy),
+            _ => None,
+        }
+    }
+}
 /// Request message for
 /// [EndpointService.CreateEndpoint][google.cloud.aiplatform.v1beta1.EndpointService.CreateEndpoint].
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -9467,6 +12560,10 @@ pub struct CreateEndpointOperationMetadata {
     /// The operation generic information.
     #[prost(message, optional, tag = "1")]
     pub generic_metadata: ::core::option::Option<GenericOperationMetadata>,
+    /// Output only. The deployment stage of the model. Only populated if this
+    /// CreateEndpoint request deploys a model at the same time.
+    #[prost(enumeration = "DeploymentStage", tag = "2")]
+    pub deployment_stage: i32,
 }
 /// Request message for
 /// [EndpointService.GetEndpoint][google.cloud.aiplatform.v1beta1.EndpointService.GetEndpoint]
@@ -9623,6 +12720,9 @@ pub struct DeployModelOperationMetadata {
     /// The operation generic information.
     #[prost(message, optional, tag = "1")]
     pub generic_metadata: ::core::option::Option<GenericOperationMetadata>,
+    /// Output only. The deployment stage of the model.
+    #[prost(enumeration = "DeploymentStage", tag = "2")]
+    pub deployment_stage: i32,
 }
 /// Request message for
 /// [EndpointService.UndeployModel][google.cloud.aiplatform.v1beta1.EndpointService.UndeployModel].
@@ -9650,6 +12750,35 @@ pub struct UndeployModelRequest {
 /// [EndpointService.UndeployModel][google.cloud.aiplatform.v1beta1.EndpointService.UndeployModel].
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct UndeployModelResponse {}
+/// Request message for
+/// [EndpointService.SetPublisherModelConfig][google.cloud.aiplatform.v1beta1.EndpointService.SetPublisherModelConfig].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SetPublisherModelConfigRequest {
+    /// Required. The name of the publisher model, in the format of
+    /// `projects/{project}/locations/{location}/publishers/{publisher}/models/{model}`.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Required. The publisher model config.
+    #[prost(message, optional, tag = "2")]
+    pub publisher_model_config: ::core::option::Option<PublisherModelConfig>,
+}
+/// Runtime operation information for
+/// [EndpointService.SetPublisherModelConfig][google.cloud.aiplatform.v1beta1.EndpointService.SetPublisherModelConfig].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SetPublisherModelConfigOperationMetadata {
+    /// The operation generic information.
+    #[prost(message, optional, tag = "1")]
+    pub generic_metadata: ::core::option::Option<GenericOperationMetadata>,
+}
+/// Request message for
+/// [EndpointService.FetchPublisherModelConfig][google.cloud.aiplatform.v1beta1.EndpointService.FetchPublisherModelConfig].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FetchPublisherModelConfigRequest {
+    /// Required. The name of the publisher model, in the format of
+    /// `projects/{project}/locations/{location}/publishers/{publisher}/models/{model}`.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
 /// Runtime operation information for
 /// [EndpointService.UndeployModel][google.cloud.aiplatform.v1beta1.EndpointService.UndeployModel].
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -9676,6 +12805,8 @@ pub struct MutateDeployedModelRequest {
     /// * `max_replica_count` in either
     /// [DedicatedResources][google.cloud.aiplatform.v1beta1.DedicatedResources] or
     /// [AutomaticResources][google.cloud.aiplatform.v1beta1.AutomaticResources]
+    /// * `required_replica_count` in
+    /// [DedicatedResources][google.cloud.aiplatform.v1beta1.DedicatedResources]
     /// * [autoscaling_metric_specs][google.cloud.aiplatform.v1beta1.DedicatedResources.autoscaling_metric_specs]
     /// * `disable_container_logging` (v1 only)
     /// * `enable_container_logging` (v1beta1 only)
@@ -10030,9 +13161,9 @@ pub mod endpoint_service_client {
             self.inner.unary(req, path, codec).await
         }
         /// Updates an existing deployed model. Updatable fields include
-        /// `min_replica_count`, `max_replica_count`, `autoscaling_metric_specs`,
-        /// `disable_container_logging` (v1 only), and `enable_container_logging`
-        /// (v1beta1 only).
+        /// `min_replica_count`, `max_replica_count`, `required_replica_count`,
+        /// `autoscaling_metric_specs`, `disable_container_logging` (v1 only), and
+        /// `enable_container_logging` (v1beta1 only).
         pub async fn mutate_deployed_model(
             &mut self,
             request: impl tonic::IntoRequest<super::MutateDeployedModelRequest>,
@@ -10058,6 +13189,67 @@ pub mod endpoint_service_client {
                     GrpcMethod::new(
                         "google.cloud.aiplatform.v1beta1.EndpointService",
                         "MutateDeployedModel",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Sets (creates or updates) configs of publisher models. For example, sets
+        /// the request/response logging config.
+        pub async fn set_publisher_model_config(
+            &mut self,
+            request: impl tonic::IntoRequest<super::SetPublisherModelConfigRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.EndpointService/SetPublisherModelConfig",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.EndpointService",
+                        "SetPublisherModelConfig",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Fetches the configs of publisher models.
+        pub async fn fetch_publisher_model_config(
+            &mut self,
+            request: impl tonic::IntoRequest<super::FetchPublisherModelConfigRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::PublisherModelConfig>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.EndpointService/FetchPublisherModelConfig",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.EndpointService",
+                        "FetchPublisherModelConfig",
                     ),
                 );
             self.inner.unary(req, path, codec).await
@@ -10585,6 +13777,286 @@ pub mod error_analysis_annotation {
         }
     }
 }
+/// Operation metadata for Dataset Evaluation.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EvaluateDatasetOperationMetadata {
+    /// Generic operation metadata.
+    #[prost(message, optional, tag = "1")]
+    pub generic_metadata: ::core::option::Option<GenericOperationMetadata>,
+}
+/// Response in LRO for EvaluationService.EvaluateDataset.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EvaluateDatasetResponse {
+    /// Output only. Aggregation statistics derived from results of
+    /// EvaluationService.EvaluateDataset.
+    #[prost(message, optional, tag = "1")]
+    pub aggregation_output: ::core::option::Option<AggregationOutput>,
+    /// Output only. Output info for EvaluationService.EvaluateDataset.
+    #[prost(message, optional, tag = "3")]
+    pub output_info: ::core::option::Option<OutputInfo>,
+}
+/// Describes the info for output of EvaluationService.EvaluateDataset.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OutputInfo {
+    /// The output location into which evaluation output is written.
+    #[prost(oneof = "output_info::OutputLocation", tags = "1")]
+    pub output_location: ::core::option::Option<output_info::OutputLocation>,
+}
+/// Nested message and enum types in `OutputInfo`.
+pub mod output_info {
+    /// The output location into which evaluation output is written.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum OutputLocation {
+        /// Output only. The full path of the Cloud Storage directory created, into
+        /// which the evaluation results and aggregation results are written.
+        #[prost(string, tag = "1")]
+        GcsOutputDirectory(::prost::alloc::string::String),
+    }
+}
+/// The aggregation result for the entire dataset and all metrics.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AggregationOutput {
+    /// The dataset used for evaluation & aggregation.
+    #[prost(message, optional, tag = "1")]
+    pub dataset: ::core::option::Option<EvaluationDataset>,
+    /// One AggregationResult per metric.
+    #[prost(message, repeated, tag = "2")]
+    pub aggregation_results: ::prost::alloc::vec::Vec<AggregationResult>,
+}
+/// The aggregation result for a single metric.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AggregationResult {
+    /// Aggregation metric.
+    #[prost(enumeration = "metric::AggregationMetric", tag = "4")]
+    pub aggregation_metric: i32,
+    /// The aggregation result.
+    #[prost(oneof = "aggregation_result::AggregationResult", tags = "5, 6, 7, 8, 9")]
+    pub aggregation_result: ::core::option::Option<
+        aggregation_result::AggregationResult,
+    >,
+}
+/// Nested message and enum types in `AggregationResult`.
+pub mod aggregation_result {
+    /// The aggregation result.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum AggregationResult {
+        /// Result for pointwise metric.
+        #[prost(message, tag = "5")]
+        PointwiseMetricResult(super::PointwiseMetricResult),
+        /// Result for pairwise metric.
+        #[prost(message, tag = "6")]
+        PairwiseMetricResult(super::PairwiseMetricResult),
+        /// Results for exact match metric.
+        #[prost(message, tag = "7")]
+        ExactMatchMetricValue(super::ExactMatchMetricValue),
+        /// Results for bleu metric.
+        #[prost(message, tag = "8")]
+        BleuMetricValue(super::BleuMetricValue),
+        /// Results for rouge metric.
+        #[prost(message, tag = "9")]
+        RougeMetricValue(super::RougeMetricValue),
+    }
+}
+/// Request message for EvaluationService.EvaluateDataset.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EvaluateDatasetRequest {
+    /// Required. The resource name of the Location to evaluate the dataset.
+    /// Format: `projects/{project}/locations/{location}`
+    #[prost(string, tag = "1")]
+    pub location: ::prost::alloc::string::String,
+    /// Required. The dataset used for evaluation.
+    #[prost(message, optional, tag = "2")]
+    pub dataset: ::core::option::Option<EvaluationDataset>,
+    /// Required. The metrics used for evaluation.
+    #[prost(message, repeated, tag = "3")]
+    pub metrics: ::prost::alloc::vec::Vec<Metric>,
+    /// Required. Config for evaluation output.
+    #[prost(message, optional, tag = "4")]
+    pub output_config: ::core::option::Option<OutputConfig>,
+    /// Optional. Autorater config used for evaluation. Currently only publisher
+    /// Gemini models are supported. Format:
+    /// `projects/{PROJECT}/locations/{LOCATION}/publishers/google/models/{MODEL}.`
+    #[prost(message, optional, tag = "5")]
+    pub autorater_config: ::core::option::Option<AutoraterConfig>,
+}
+/// Config for evaluation output.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OutputConfig {
+    /// The destination for evaluation output.
+    #[prost(oneof = "output_config::Destination", tags = "1")]
+    pub destination: ::core::option::Option<output_config::Destination>,
+}
+/// Nested message and enum types in `OutputConfig`.
+pub mod output_config {
+    /// The destination for evaluation output.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Destination {
+        /// Cloud storage destination for evaluation output.
+        #[prost(message, tag = "1")]
+        GcsDestination(super::GcsDestination),
+    }
+}
+/// The metric used for dataset level evaluation.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Metric {
+    /// Optional. The aggregation metrics to use.
+    #[prost(
+        enumeration = "metric::AggregationMetric",
+        repeated,
+        packed = "false",
+        tag = "1"
+    )]
+    pub aggregation_metrics: ::prost::alloc::vec::Vec<i32>,
+    /// The metric spec used for evaluation.
+    #[prost(oneof = "metric::MetricSpec", tags = "2, 3, 4, 5, 6")]
+    pub metric_spec: ::core::option::Option<metric::MetricSpec>,
+}
+/// Nested message and enum types in `Metric`.
+pub mod metric {
+    /// The aggregation metrics supported by EvaluationService.EvaluateDataset.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AggregationMetric {
+        /// Unspecified aggregation metric.
+        Unspecified = 0,
+        /// Average aggregation metric. Not supported for Pairwise metric.
+        Average = 1,
+        /// Mode aggregation metric.
+        Mode = 2,
+        /// Standard deviation aggregation metric. Not supported for pairwise metric.
+        StandardDeviation = 3,
+        /// Variance aggregation metric. Not supported for pairwise metric.
+        Variance = 4,
+        /// Minimum aggregation metric. Not supported for pairwise metric.
+        Minimum = 5,
+        /// Maximum aggregation metric. Not supported for pairwise metric.
+        Maximum = 6,
+        /// Median aggregation metric. Not supported for pairwise metric.
+        Median = 7,
+        /// 90th percentile aggregation metric. Not supported for pairwise metric.
+        PercentileP90 = 8,
+        /// 95th percentile aggregation metric. Not supported for pairwise metric.
+        PercentileP95 = 9,
+        /// 99th percentile aggregation metric. Not supported for pairwise metric.
+        PercentileP99 = 10,
+    }
+    impl AggregationMetric {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "AGGREGATION_METRIC_UNSPECIFIED",
+                Self::Average => "AVERAGE",
+                Self::Mode => "MODE",
+                Self::StandardDeviation => "STANDARD_DEVIATION",
+                Self::Variance => "VARIANCE",
+                Self::Minimum => "MINIMUM",
+                Self::Maximum => "MAXIMUM",
+                Self::Median => "MEDIAN",
+                Self::PercentileP90 => "PERCENTILE_P90",
+                Self::PercentileP95 => "PERCENTILE_P95",
+                Self::PercentileP99 => "PERCENTILE_P99",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "AGGREGATION_METRIC_UNSPECIFIED" => Some(Self::Unspecified),
+                "AVERAGE" => Some(Self::Average),
+                "MODE" => Some(Self::Mode),
+                "STANDARD_DEVIATION" => Some(Self::StandardDeviation),
+                "VARIANCE" => Some(Self::Variance),
+                "MINIMUM" => Some(Self::Minimum),
+                "MAXIMUM" => Some(Self::Maximum),
+                "MEDIAN" => Some(Self::Median),
+                "PERCENTILE_P90" => Some(Self::PercentileP90),
+                "PERCENTILE_P95" => Some(Self::PercentileP95),
+                "PERCENTILE_P99" => Some(Self::PercentileP99),
+                _ => None,
+            }
+        }
+    }
+    /// The metric spec used for evaluation.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum MetricSpec {
+        /// Spec for pointwise metric.
+        #[prost(message, tag = "2")]
+        PointwiseMetricSpec(super::PointwiseMetricSpec),
+        /// Spec for pairwise metric.
+        #[prost(message, tag = "3")]
+        PairwiseMetricSpec(super::PairwiseMetricSpec),
+        /// Spec for exact match metric.
+        #[prost(message, tag = "4")]
+        ExactMatchSpec(super::ExactMatchSpec),
+        /// Spec for bleu metric.
+        #[prost(message, tag = "5")]
+        BleuSpec(super::BleuSpec),
+        /// Spec for rouge metric.
+        #[prost(message, tag = "6")]
+        RougeSpec(super::RougeSpec),
+    }
+}
+/// The dataset used for evaluation.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EvaluationDataset {
+    /// The source of the dataset.
+    #[prost(oneof = "evaluation_dataset::Source", tags = "1, 2")]
+    pub source: ::core::option::Option<evaluation_dataset::Source>,
+}
+/// Nested message and enum types in `EvaluationDataset`.
+pub mod evaluation_dataset {
+    /// The source of the dataset.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Source {
+        /// Cloud storage source holds the dataset. Currently only one Cloud Storage
+        /// file path is supported.
+        #[prost(message, tag = "1")]
+        GcsSource(super::GcsSource),
+        /// BigQuery source holds the dataset.
+        #[prost(message, tag = "2")]
+        BigquerySource(super::BigQuerySource),
+    }
+}
+/// The configs for autorater. This is applicable to both EvaluateInstances and
+/// EvaluateDataset.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AutoraterConfig {
+    /// Optional. Number of samples for each instance in the dataset.
+    /// If not specified, the default is 4. Minimum value is 1, maximum value
+    /// is 32.
+    #[prost(int32, optional, tag = "1")]
+    pub sampling_count: ::core::option::Option<i32>,
+    /// Optional. Default is true. Whether to flip the candidate and baseline
+    /// responses. This is only applicable to the pairwise metric. If enabled, also
+    /// provide PairwiseMetricSpec.candidate_response_field_name and
+    /// PairwiseMetricSpec.baseline_response_field_name. When rendering
+    /// PairwiseMetricSpec.metric_prompt_template, the candidate and baseline
+    /// fields will be flipped for half of the samples to reduce bias.
+    #[prost(bool, optional, tag = "2")]
+    pub flip_enabled: ::core::option::Option<bool>,
+    /// Optional. The fully qualified name of the publisher model or tuned
+    /// autorater endpoint to use.
+    ///
+    /// Publisher model format:
+    /// `projects/{project}/locations/{location}/publishers/*/models/*`
+    ///
+    /// Tuned model endpoint format:
+    /// `projects/{project}/locations/{location}/endpoints/{endpoint}`
+    #[prost(string, tag = "3")]
+    pub autorater_model: ::prost::alloc::string::String,
+}
 /// Request message for EvaluationService.EvaluateInstances.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct EvaluateInstancesRequest {
@@ -10592,10 +14064,13 @@ pub struct EvaluateInstancesRequest {
     /// Format: `projects/{project}/locations/{location}`
     #[prost(string, tag = "1")]
     pub location: ::prost::alloc::string::String,
+    /// Optional. Autorater config used for evaluation.
+    #[prost(message, optional, tag = "30")]
+    pub autorater_config: ::core::option::Option<AutoraterConfig>,
     /// Instances and specs for evaluation
     #[prost(
         oneof = "evaluate_instances_request::MetricInputs",
-        tags = "2, 3, 4, 5, 6, 8, 9, 12, 7, 23, 14, 15, 10, 24, 16, 17, 18, 28, 29, 19, 20, 21, 22, 33, 34, 35, 37, 38, 39"
+        tags = "2, 3, 4, 5, 6, 8, 9, 12, 7, 23, 14, 15, 10, 24, 16, 17, 18, 28, 29, 19, 20, 21, 22, 31, 32, 33, 34, 35, 37, 38, 39, 40"
     )]
     pub metric_inputs: ::core::option::Option<evaluate_instances_request::MetricInputs>,
 }
@@ -10681,6 +14156,13 @@ pub mod evaluate_instances_request {
         /// Input for tool parameter key value match metric.
         #[prost(message, tag = "22")]
         ToolParameterKvMatchInput(super::ToolParameterKvMatchInput),
+        /// Translation metrics.
+        /// Input for Comet metric.
+        #[prost(message, tag = "31")]
+        CometInput(super::CometInput),
+        /// Input for Metricx metric.
+        #[prost(message, tag = "32")]
+        MetricxInput(super::MetricxInput),
         /// Input for trajectory exact match metric.
         #[prost(message, tag = "33")]
         TrajectoryExactMatchInput(super::TrajectoryExactMatchInput),
@@ -10699,6 +14181,11 @@ pub mod evaluate_instances_request {
         /// Input for trajectory single tool use metric.
         #[prost(message, tag = "39")]
         TrajectorySingleToolUseInput(super::TrajectorySingleToolUseInput),
+        /// Rubric Based Instruction Following metric.
+        #[prost(message, tag = "40")]
+        RubricBasedInstructionFollowingInput(
+            super::RubricBasedInstructionFollowingInput,
+        ),
     }
 }
 /// Response message for EvaluationService.EvaluateInstances.
@@ -10708,7 +14195,7 @@ pub struct EvaluateInstancesResponse {
     /// EvaluationRequest.instances.
     #[prost(
         oneof = "evaluate_instances_response::EvaluationResults",
-        tags = "1, 2, 3, 4, 5, 7, 8, 11, 6, 22, 13, 14, 9, 23, 15, 16, 17, 27, 28, 18, 19, 20, 21, 31, 32, 33, 35, 36, 37"
+        tags = "1, 2, 3, 4, 5, 7, 8, 11, 6, 22, 13, 14, 9, 23, 15, 16, 17, 27, 28, 18, 19, 20, 21, 29, 30, 31, 32, 33, 35, 36, 37, 38"
     )]
     pub evaluation_results: ::core::option::Option<
         evaluate_instances_response::EvaluationResults,
@@ -10798,6 +14285,13 @@ pub mod evaluate_instances_response {
         /// Results for tool parameter key value match metric.
         #[prost(message, tag = "21")]
         ToolParameterKvMatchResults(super::ToolParameterKvMatchResults),
+        /// Translation metrics.
+        /// Result for Comet metric.
+        #[prost(message, tag = "29")]
+        CometResult(super::CometResult),
+        /// Result for Metricx metric.
+        #[prost(message, tag = "30")]
+        MetricxResult(super::MetricxResult),
         /// Result for trajectory exact match metric.
         #[prost(message, tag = "31")]
         TrajectoryExactMatchResults(super::TrajectoryExactMatchResults),
@@ -10816,6 +14310,11 @@ pub mod evaluate_instances_response {
         /// Results for trajectory single tool use metric.
         #[prost(message, tag = "37")]
         TrajectorySingleToolUseResults(super::TrajectorySingleToolUseResults),
+        /// Result for rubric based instruction following metric.
+        #[prost(message, tag = "38")]
+        RubricBasedInstructionFollowingResult(
+            super::RubricBasedInstructionFollowingResult,
+        ),
     }
 }
 /// Input for exact match metric.
@@ -11609,7 +15108,7 @@ pub struct PointwiseMetricInput {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PointwiseMetricInstance {
     /// Instance for pointwise metric.
-    #[prost(oneof = "pointwise_metric_instance::Instance", tags = "1")]
+    #[prost(oneof = "pointwise_metric_instance::Instance", tags = "1, 2")]
     pub instance: ::core::option::Option<pointwise_metric_instance::Instance>,
 }
 /// Nested message and enum types in `PointwiseMetricInstance`.
@@ -11622,6 +15121,11 @@ pub mod pointwise_metric_instance {
         /// PointwiseMetricSpec.instance_prompt_template.
         #[prost(string, tag = "1")]
         JsonInstance(::prost::alloc::string::String),
+        /// Key-value contents for the mutlimodality input, including text, image,
+        /// video, audio, and pdf, etc. The key is placeholder in metric prompt
+        /// template, and the value is the multimodal content.
+        #[prost(message, tag = "2")]
+        ContentMapInstance(super::ContentMap),
     }
 }
 /// Spec for pointwise metric.
@@ -11630,6 +15134,37 @@ pub struct PointwiseMetricSpec {
     /// Required. Metric prompt template for pointwise metric.
     #[prost(string, optional, tag = "1")]
     pub metric_prompt_template: ::core::option::Option<::prost::alloc::string::String>,
+    /// Optional. System instructions for pointwise metric.
+    #[prost(string, optional, tag = "2")]
+    pub system_instruction: ::core::option::Option<::prost::alloc::string::String>,
+    /// Optional. CustomOutputFormatConfig allows customization of metric output.
+    /// By default, metrics return a score and explanation.
+    /// When this config is set, the default output is replaced with either:
+    ///   - The raw output string.
+    ///   - A parsed output based on a user-defined schema.
+    /// If a custom format is chosen, the `score` and `explanation` fields in the
+    /// corresponding metric result will be empty.
+    #[prost(message, optional, tag = "3")]
+    pub custom_output_format_config: ::core::option::Option<CustomOutputFormatConfig>,
+}
+/// Spec for custom output format configuration.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct CustomOutputFormatConfig {
+    /// Custom output format configuration.
+    #[prost(oneof = "custom_output_format_config::CustomOutputFormatConfig", tags = "1")]
+    pub custom_output_format_config: ::core::option::Option<
+        custom_output_format_config::CustomOutputFormatConfig,
+    >,
+}
+/// Nested message and enum types in `CustomOutputFormatConfig`.
+pub mod custom_output_format_config {
+    /// Custom output format configuration.
+    #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
+    pub enum CustomOutputFormatConfig {
+        /// Optional. Whether to return raw output.
+        #[prost(bool, tag = "1")]
+        ReturnRawOutput(bool),
+    }
 }
 /// Spec for pointwise metric result.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -11640,6 +15175,33 @@ pub struct PointwiseMetricResult {
     /// Output only. Explanation for pointwise metric score.
     #[prost(string, tag = "2")]
     pub explanation: ::prost::alloc::string::String,
+    /// Output only. Spec for custom output.
+    #[prost(message, optional, tag = "3")]
+    pub custom_output: ::core::option::Option<CustomOutput>,
+}
+/// Spec for custom output.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CustomOutput {
+    /// Custom output.
+    #[prost(oneof = "custom_output::CustomOutput", tags = "1")]
+    pub custom_output: ::core::option::Option<custom_output::CustomOutput>,
+}
+/// Nested message and enum types in `CustomOutput`.
+pub mod custom_output {
+    /// Custom output.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum CustomOutput {
+        /// Output only. List of raw output strings.
+        #[prost(message, tag = "1")]
+        RawOutputs(super::RawOutput),
+    }
+}
+/// Raw output.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RawOutput {
+    /// Output only. Raw output string.
+    #[prost(string, repeated, tag = "1")]
+    pub raw_output: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 /// Input for pairwise metric.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -11656,7 +15218,7 @@ pub struct PairwiseMetricInput {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PairwiseMetricInstance {
     /// Instance for pairwise metric.
-    #[prost(oneof = "pairwise_metric_instance::Instance", tags = "1")]
+    #[prost(oneof = "pairwise_metric_instance::Instance", tags = "1, 2")]
     pub instance: ::core::option::Option<pairwise_metric_instance::Instance>,
 }
 /// Nested message and enum types in `PairwiseMetricInstance`.
@@ -11669,6 +15231,11 @@ pub mod pairwise_metric_instance {
         /// PairwiseMetricSpec.instance_prompt_template.
         #[prost(string, tag = "1")]
         JsonInstance(::prost::alloc::string::String),
+        /// Key-value contents for the mutlimodality input, including text, image,
+        /// video, audio, and pdf, etc. The key is placeholder in metric prompt
+        /// template, and the value is the multimodal content.
+        #[prost(message, tag = "2")]
+        ContentMapInstance(super::ContentMap),
     }
 }
 /// Spec for pairwise metric.
@@ -11677,6 +15244,22 @@ pub struct PairwiseMetricSpec {
     /// Required. Metric prompt template for pairwise metric.
     #[prost(string, optional, tag = "1")]
     pub metric_prompt_template: ::core::option::Option<::prost::alloc::string::String>,
+    /// Optional. The field name of the candidate response.
+    #[prost(string, tag = "2")]
+    pub candidate_response_field_name: ::prost::alloc::string::String,
+    /// Optional. The field name of the baseline response.
+    #[prost(string, tag = "3")]
+    pub baseline_response_field_name: ::prost::alloc::string::String,
+    /// Optional. System instructions for pairwise metric.
+    #[prost(string, optional, tag = "4")]
+    pub system_instruction: ::core::option::Option<::prost::alloc::string::String>,
+    /// Optional. CustomOutputFormatConfig allows customization of metric output.
+    /// When this config is set, the default output is replaced with
+    /// the raw output string.
+    /// If a custom format is chosen, the `pairwise_choice` and `explanation`
+    /// fields in the corresponding metric result will be empty.
+    #[prost(message, optional, tag = "5")]
+    pub custom_output_format_config: ::core::option::Option<CustomOutputFormatConfig>,
 }
 /// Spec for pairwise metric result.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -11687,6 +15270,9 @@ pub struct PairwiseMetricResult {
     /// Output only. Explanation for pairwise metric score.
     #[prost(string, tag = "2")]
     pub explanation: ::prost::alloc::string::String,
+    /// Output only. Spec for custom output.
+    #[prost(message, optional, tag = "3")]
+    pub custom_output: ::core::option::Option<CustomOutput>,
 }
 /// Input for tool call valid metric.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -11847,6 +15433,249 @@ pub struct ToolParameterKvMatchMetricValue {
     /// Output only. Tool parameter key value match score.
     #[prost(float, optional, tag = "1")]
     pub score: ::core::option::Option<f32>,
+}
+/// Input for Comet metric.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CometInput {
+    /// Required. Spec for comet metric.
+    #[prost(message, optional, tag = "1")]
+    pub metric_spec: ::core::option::Option<CometSpec>,
+    /// Required. Comet instance.
+    #[prost(message, optional, tag = "2")]
+    pub instance: ::core::option::Option<CometInstance>,
+}
+/// Spec for Comet metric.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CometSpec {
+    /// Required. Which version to use for evaluation.
+    #[prost(enumeration = "comet_spec::CometVersion", optional, tag = "1")]
+    pub version: ::core::option::Option<i32>,
+    /// Optional. Source language in BCP-47 format.
+    #[prost(string, tag = "2")]
+    pub source_language: ::prost::alloc::string::String,
+    /// Optional. Target language in BCP-47 format. Covers both prediction and
+    /// reference.
+    #[prost(string, tag = "3")]
+    pub target_language: ::prost::alloc::string::String,
+}
+/// Nested message and enum types in `CometSpec`.
+pub mod comet_spec {
+    /// Comet version options.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum CometVersion {
+        /// Comet version unspecified.
+        Unspecified = 0,
+        /// Comet 22 for translation + source + reference
+        /// (source-reference-combined).
+        Comet22SrcRef = 2,
+    }
+    impl CometVersion {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "COMET_VERSION_UNSPECIFIED",
+                Self::Comet22SrcRef => "COMET_22_SRC_REF",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "COMET_VERSION_UNSPECIFIED" => Some(Self::Unspecified),
+                "COMET_22_SRC_REF" => Some(Self::Comet22SrcRef),
+                _ => None,
+            }
+        }
+    }
+}
+/// Spec for Comet instance - The fields used for evaluation are dependent on the
+/// comet version.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CometInstance {
+    /// Required. Output of the evaluated model.
+    #[prost(string, optional, tag = "1")]
+    pub prediction: ::core::option::Option<::prost::alloc::string::String>,
+    /// Optional. Ground truth used to compare against the prediction.
+    #[prost(string, optional, tag = "2")]
+    pub reference: ::core::option::Option<::prost::alloc::string::String>,
+    /// Optional. Source text in original language.
+    #[prost(string, optional, tag = "3")]
+    pub source: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// Spec for Comet result - calculates the comet score for the given instance
+/// using the version specified in the spec.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct CometResult {
+    /// Output only. Comet score. Range depends on version.
+    #[prost(float, optional, tag = "1")]
+    pub score: ::core::option::Option<f32>,
+}
+/// Input for MetricX metric.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MetricxInput {
+    /// Required. Spec for Metricx metric.
+    #[prost(message, optional, tag = "1")]
+    pub metric_spec: ::core::option::Option<MetricxSpec>,
+    /// Required. Metricx instance.
+    #[prost(message, optional, tag = "2")]
+    pub instance: ::core::option::Option<MetricxInstance>,
+}
+/// Spec for MetricX metric.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MetricxSpec {
+    /// Required. Which version to use for evaluation.
+    #[prost(enumeration = "metricx_spec::MetricxVersion", optional, tag = "1")]
+    pub version: ::core::option::Option<i32>,
+    /// Optional. Source language in BCP-47 format.
+    #[prost(string, tag = "2")]
+    pub source_language: ::prost::alloc::string::String,
+    /// Optional. Target language in BCP-47 format. Covers both prediction and
+    /// reference.
+    #[prost(string, tag = "3")]
+    pub target_language: ::prost::alloc::string::String,
+}
+/// Nested message and enum types in `MetricxSpec`.
+pub mod metricx_spec {
+    /// MetricX Version options.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum MetricxVersion {
+        /// MetricX version unspecified.
+        Unspecified = 0,
+        /// MetricX 2024 (2.6) for translation + reference (reference-based).
+        Metricx24Ref = 1,
+        /// MetricX 2024 (2.6) for translation + source (QE).
+        Metricx24Src = 2,
+        /// MetricX 2024 (2.6) for translation + source + reference
+        /// (source-reference-combined).
+        Metricx24SrcRef = 3,
+    }
+    impl MetricxVersion {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "METRICX_VERSION_UNSPECIFIED",
+                Self::Metricx24Ref => "METRICX_24_REF",
+                Self::Metricx24Src => "METRICX_24_SRC",
+                Self::Metricx24SrcRef => "METRICX_24_SRC_REF",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "METRICX_VERSION_UNSPECIFIED" => Some(Self::Unspecified),
+                "METRICX_24_REF" => Some(Self::Metricx24Ref),
+                "METRICX_24_SRC" => Some(Self::Metricx24Src),
+                "METRICX_24_SRC_REF" => Some(Self::Metricx24SrcRef),
+                _ => None,
+            }
+        }
+    }
+}
+/// Spec for MetricX instance - The fields used for evaluation are dependent on
+/// the MetricX version.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MetricxInstance {
+    /// Required. Output of the evaluated model.
+    #[prost(string, optional, tag = "1")]
+    pub prediction: ::core::option::Option<::prost::alloc::string::String>,
+    /// Optional. Ground truth used to compare against the prediction.
+    #[prost(string, optional, tag = "2")]
+    pub reference: ::core::option::Option<::prost::alloc::string::String>,
+    /// Optional. Source text in original language.
+    #[prost(string, optional, tag = "3")]
+    pub source: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// Spec for MetricX result - calculates the MetricX score for the given instance
+/// using the version specified in the spec.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct MetricxResult {
+    /// Output only. MetricX score. Range depends on version.
+    #[prost(float, optional, tag = "1")]
+    pub score: ::core::option::Option<f32>,
+}
+/// Instance and metric spec for RubricBasedInstructionFollowing metric.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RubricBasedInstructionFollowingInput {
+    /// Required. Spec for RubricBasedInstructionFollowing metric.
+    #[prost(message, optional, tag = "1")]
+    pub metric_spec: ::core::option::Option<RubricBasedInstructionFollowingSpec>,
+    /// Required. Instance for RubricBasedInstructionFollowing metric.
+    #[prost(message, optional, tag = "2")]
+    pub instance: ::core::option::Option<RubricBasedInstructionFollowingInstance>,
+}
+/// Instance for RubricBasedInstructionFollowing metric - one instance
+/// corresponds to one row in an evaluation dataset.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RubricBasedInstructionFollowingInstance {
+    /// Instance for RubricBasedInstructionFollowing metric.
+    #[prost(oneof = "rubric_based_instruction_following_instance::Instance", tags = "1")]
+    pub instance: ::core::option::Option<
+        rubric_based_instruction_following_instance::Instance,
+    >,
+}
+/// Nested message and enum types in `RubricBasedInstructionFollowingInstance`.
+pub mod rubric_based_instruction_following_instance {
+    /// Instance for RubricBasedInstructionFollowing metric.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Instance {
+        /// Required. Instance specified as a json string. String key-value pairs are
+        /// expected in the json_instance to render RubricBasedInstructionFollowing
+        /// prompt templates.
+        #[prost(string, tag = "1")]
+        JsonInstance(::prost::alloc::string::String),
+    }
+}
+/// Spec for RubricBasedInstructionFollowing metric - returns rubrics
+/// and verdicts corresponding to rubrics along with overall score.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct RubricBasedInstructionFollowingSpec {}
+/// Result for RubricBasedInstructionFollowing metric.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RubricBasedInstructionFollowingResult {
+    /// Output only. Overall score for the instruction following.
+    #[prost(float, optional, tag = "1")]
+    pub score: ::core::option::Option<f32>,
+    /// Output only. List of per rubric critique results.
+    #[prost(message, repeated, tag = "2")]
+    pub rubric_critique_results: ::prost::alloc::vec::Vec<RubricCritiqueResult>,
+}
+/// Rubric critique result.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RubricCritiqueResult {
+    /// Output only. Rubric to be evaluated.
+    #[prost(string, tag = "1")]
+    pub rubric: ::prost::alloc::string::String,
+    /// Output only. Verdict for the rubric - true if the rubric is met, false
+    /// otherwise.
+    #[prost(bool, tag = "2")]
+    pub verdict: bool,
 }
 /// Instances and metric spec for TrajectoryExactMatch metric.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -12108,6 +15937,26 @@ pub struct ToolCall {
     #[prost(string, optional, tag = "2")]
     pub tool_input: ::core::option::Option<::prost::alloc::string::String>,
 }
+/// Map of placeholder in metric prompt template to contents of model input.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ContentMap {
+    /// Optional. Map of placeholder to contents.
+    #[prost(map = "string, message", tag = "1")]
+    pub values: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        content_map::Contents,
+    >,
+}
+/// Nested message and enum types in `ContentMap`.
+pub mod content_map {
+    /// Repeated Content type.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Contents {
+        /// Optional. Repeated contents.
+        #[prost(message, repeated, tag = "1")]
+        pub contents: ::prost::alloc::vec::Vec<super::Content>,
+    }
+}
 /// Pairwise prediction autorater preference.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
@@ -12267,6 +16116,36 @@ pub mod evaluation_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        /// Evaluates a dataset based on a set of given metrics.
+        pub async fn evaluate_dataset(
+            &mut self,
+            request: impl tonic::IntoRequest<super::EvaluateDatasetRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.EvaluationService/EvaluateDataset",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.EvaluationService",
+                        "EvaluateDataset",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
     }
 }
 /// An edge describing the relationship between an Artifact and an Execution in
@@ -12345,6 +16224,918 @@ pub mod event {
                 "OUTPUT" => Some(Self::Output),
                 _ => None,
             }
+        }
+    }
+}
+/// A single example of a conversation with the model.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ContentsExample {
+    /// Required. The content of the conversation with the model that resulted in
+    /// the expected output.
+    #[prost(message, repeated, tag = "1")]
+    pub contents: ::prost::alloc::vec::Vec<Content>,
+    /// Required. The expected output for the given `contents`. To represent
+    /// multi-step reasoning, this is a repeated field that contains the iterative
+    /// steps of the expected output.
+    #[prost(message, repeated, tag = "2")]
+    pub expected_contents: ::prost::alloc::vec::Vec<contents_example::ExpectedContent>,
+}
+/// Nested message and enum types in `ContentsExample`.
+pub mod contents_example {
+    /// A single step of the expected output.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct ExpectedContent {
+        /// Required. A single step's content.
+        #[prost(message, optional, tag = "1")]
+        pub content: ::core::option::Option<super::Content>,
+    }
+}
+/// A ContentsExample to be used with GenerateContent alongside information
+/// required for storage and retrieval with Example Store.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct StoredContentsExample {
+    /// Optional. (Optional) the search key used for retrieval. If not provided at
+    /// upload-time, the search key will be generated from
+    /// `contents_example.contents` using the method provided by
+    /// `search_key_generation_method`. The generated search key will be included
+    /// in retrieved examples.
+    #[prost(string, tag = "1")]
+    pub search_key: ::prost::alloc::string::String,
+    /// Required. The example to be used with GenerateContent.
+    #[prost(message, optional, tag = "2")]
+    pub contents_example: ::core::option::Option<ContentsExample>,
+    /// Optional. The method used to generate the search key from
+    /// `contents_example.contents`. This is ignored when uploading an example if
+    /// `search_key` is provided.
+    #[prost(message, optional, tag = "3")]
+    pub search_key_generation_method: ::core::option::Option<
+        stored_contents_example::SearchKeyGenerationMethod,
+    >,
+}
+/// Nested message and enum types in `StoredContentsExample`.
+pub mod stored_contents_example {
+    /// Options for generating the search key from the conversation history.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct SearchKeyGenerationMethod {
+        /// The method for generating the search key.
+        #[prost(oneof = "search_key_generation_method::Method", tags = "1")]
+        pub method: ::core::option::Option<search_key_generation_method::Method>,
+    }
+    /// Nested message and enum types in `SearchKeyGenerationMethod`.
+    pub mod search_key_generation_method {
+        /// Configuration for using only the last entry of the conversation history
+        /// as the search key.
+        #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+        pub struct LastEntry {}
+        /// The method for generating the search key.
+        #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
+        pub enum Method {
+            /// Use only the last entry of the conversation history
+            /// (`contents_example.contents`) as the search key.
+            #[prost(message, tag = "1")]
+            LastEntry(LastEntry),
+        }
+    }
+}
+/// Represents an executable service to manage and retrieve examples.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ExampleStore {
+    /// Identifier. The resource name of the ExampleStore. This is a unique
+    /// identifier. Format:
+    /// projects/{project}/locations/{location}/exampleStores/{example_store}
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Required. Display name of the ExampleStore.
+    #[prost(string, tag = "2")]
+    pub display_name: ::prost::alloc::string::String,
+    /// Optional. Description of the ExampleStore.
+    #[prost(string, tag = "3")]
+    pub description: ::prost::alloc::string::String,
+    /// Output only. Timestamp when this ExampleStore was created.
+    #[prost(message, optional, tag = "4")]
+    pub create_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. Timestamp when this ExampleStore was most recently updated.
+    #[prost(message, optional, tag = "5")]
+    pub update_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Required. Example Store config.
+    #[prost(message, optional, tag = "6")]
+    pub example_store_config: ::core::option::Option<ExampleStoreConfig>,
+}
+/// Configuration for the Example Store.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ExampleStoreConfig {
+    /// Required. The embedding model to be used for vector embedding.
+    /// Immutable.
+    /// Supported models:
+    /// * "textembedding-gecko@003"
+    /// * "text-embedding-004"
+    /// * "text-embedding-005"
+    /// * "text-multilingual-embedding-002"
+    #[prost(string, tag = "1")]
+    pub vertex_embedding_model: ::prost::alloc::string::String,
+}
+/// The metadata filters that will be used to remove or fetch
+/// StoredContentsExamples. If a field is unspecified, then no filtering for that
+/// field will be applied.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct StoredContentsExampleFilter {
+    /// Optional. The search keys for filtering. Only examples with one of the
+    /// specified search keys
+    /// ([StoredContentsExample.search_key][google.cloud.aiplatform.v1beta1.StoredContentsExample.search_key])
+    /// are eligible to be returned.
+    #[prost(string, repeated, tag = "1")]
+    pub search_keys: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Optional. The function names for filtering.
+    #[prost(message, optional, tag = "2")]
+    pub function_names: ::core::option::Option<ExamplesArrayFilter>,
+}
+/// The metadata filters that will be used to search StoredContentsExamples.
+/// If a field is unspecified, then no filtering for that field will be applied
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct StoredContentsExampleParameters {
+    /// Optional. The function names for filtering.
+    #[prost(message, optional, tag = "3")]
+    pub function_names: ::core::option::Option<ExamplesArrayFilter>,
+    /// The query to use to retrieve similar StoredContentsExamples.
+    #[prost(oneof = "stored_contents_example_parameters::Query", tags = "1, 2")]
+    pub query: ::core::option::Option<stored_contents_example_parameters::Query>,
+}
+/// Nested message and enum types in `StoredContentsExampleParameters`.
+pub mod stored_contents_example_parameters {
+    /// The chat history to use to generate the search key for retrieval.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct ContentSearchKey {
+        /// Required. The conversation for generating a search key.
+        #[prost(message, repeated, tag = "1")]
+        pub contents: ::prost::alloc::vec::Vec<super::Content>,
+        /// Required. The method of generating a search key.
+        #[prost(message, optional, tag = "2")]
+        pub search_key_generation_method: ::core::option::Option<
+            super::stored_contents_example::SearchKeyGenerationMethod,
+        >,
+    }
+    /// The query to use to retrieve similar StoredContentsExamples.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Query {
+        /// The exact search key to use for retrieval.
+        #[prost(string, tag = "1")]
+        SearchKey(::prost::alloc::string::String),
+        /// The chat history to use to generate the search key for retrieval.
+        #[prost(message, tag = "2")]
+        ContentSearchKey(ContentSearchKey),
+    }
+}
+/// Filters for examples' array metadata fields. An array field is example
+/// metadata where multiple values are attributed to a single example.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ExamplesArrayFilter {
+    /// Required. The values by which to filter examples.
+    #[prost(string, repeated, tag = "1")]
+    pub values: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Required. The operator logic to use for filtering.
+    #[prost(enumeration = "examples_array_filter::ArrayOperator", tag = "2")]
+    pub array_operator: i32,
+}
+/// Nested message and enum types in `ExamplesArrayFilter`.
+pub mod examples_array_filter {
+    /// The logic to use for filtering.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum ArrayOperator {
+        /// Not specified. This value should not be used.
+        Unspecified = 0,
+        /// The metadata array field in the example must contain at least one of the
+        /// values.
+        ContainsAny = 1,
+        /// The metadata array field in the example must contain all of the values.
+        ContainsAll = 2,
+    }
+    impl ArrayOperator {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "ARRAY_OPERATOR_UNSPECIFIED",
+                Self::ContainsAny => "CONTAINS_ANY",
+                Self::ContainsAll => "CONTAINS_ALL",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "ARRAY_OPERATOR_UNSPECIFIED" => Some(Self::Unspecified),
+                "CONTAINS_ANY" => Some(Self::ContainsAny),
+                "CONTAINS_ALL" => Some(Self::ContainsAll),
+                _ => None,
+            }
+        }
+    }
+}
+/// Request message for
+/// [ExampleStoreService.CreateExampleStore][google.cloud.aiplatform.v1beta1.ExampleStoreService.CreateExampleStore].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateExampleStoreRequest {
+    /// Required. The resource name of the Location to create the ExampleStore in.
+    /// Format:
+    /// `projects/{project}/locations/{location}`
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Required. The Example Store to be created.
+    #[prost(message, optional, tag = "2")]
+    pub example_store: ::core::option::Option<ExampleStore>,
+}
+/// Details of
+/// [ExampleStoreService.CreateExampleStore][google.cloud.aiplatform.v1beta1.ExampleStoreService.CreateExampleStore]
+/// operation.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateExampleStoreOperationMetadata {
+    /// The common part of the operation metadata.
+    #[prost(message, optional, tag = "1")]
+    pub generic_metadata: ::core::option::Option<GenericOperationMetadata>,
+}
+/// Request message for
+/// [ExampleStoreService.GetExampleStore][google.cloud.aiplatform.v1beta1.ExampleStoreService.GetExampleStore].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetExampleStoreRequest {
+    /// Required. The resource name of the ExampleStore.
+    /// Format:
+    /// `projects/{project}/locations/{location}/exampleStores/{example_store}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Request message for
+/// [ExampleStoreService.UpdateExampleStore][google.cloud.aiplatform.v1beta1.ExampleStoreService.UpdateExampleStore].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateExampleStoreRequest {
+    /// Required. The Example Store which replaces the resource on the server.
+    #[prost(message, optional, tag = "1")]
+    pub example_store: ::core::option::Option<ExampleStore>,
+    /// Optional. Mask specifying which fields to update.
+    /// Supported fields:
+    ///
+    ///     * `display_name`
+    ///     * `description`
+    #[prost(message, optional, tag = "2")]
+    pub update_mask: ::core::option::Option<::prost_types::FieldMask>,
+}
+/// Details of
+/// [ExampleStoreService.UpdateExampleStore][google.cloud.aiplatform.v1beta1.ExampleStoreService.UpdateExampleStore]
+/// operation.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateExampleStoreOperationMetadata {
+    /// The common part of the operation metadata.
+    #[prost(message, optional, tag = "1")]
+    pub generic_metadata: ::core::option::Option<GenericOperationMetadata>,
+}
+/// Request message for
+/// [ExampleStoreService.DeleteExampleStore][google.cloud.aiplatform.v1beta1.ExampleStoreService.DeleteExampleStore].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteExampleStoreRequest {
+    /// Required. The resource name of the ExampleStore to be deleted.
+    /// Format:
+    /// `projects/{project}/locations/{location}/exampleStores/{example_store}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Details of
+/// [ExampleStoreService.DeleteExampleStore][google.cloud.aiplatform.v1beta1.ExampleStoreService.DeleteExampleStore]
+/// operation.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteExampleStoreOperationMetadata {
+    /// The common part of the operation metadata.
+    #[prost(message, optional, tag = "1")]
+    pub generic_metadata: ::core::option::Option<GenericOperationMetadata>,
+}
+/// Request message for
+/// [ExampleStoreService.ListExampleStores][google.cloud.aiplatform.v1beta1.ExampleStoreService.ListExampleStores].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListExampleStoresRequest {
+    /// Required. The resource name of the Location to list the ExampleStores from.
+    /// Format:
+    /// `projects/{project}/locations/{location}`
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Optional. The standard list filter.
+    /// More detail in [AIP-160](<https://google.aip.dev/160>).
+    #[prost(string, tag = "2")]
+    pub filter: ::prost::alloc::string::String,
+    /// Optional. The standard list page size.
+    #[prost(int32, tag = "3")]
+    pub page_size: i32,
+    /// Optional. The standard list page token.
+    #[prost(string, tag = "4")]
+    pub page_token: ::prost::alloc::string::String,
+}
+/// Response message for
+/// [ExampleStoreService.ListExampleStores][google.cloud.aiplatform.v1beta1.ExampleStoreService.ListExampleStores].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListExampleStoresResponse {
+    /// List of ExampleStore in the requested page.
+    #[prost(message, repeated, tag = "1")]
+    pub example_stores: ::prost::alloc::vec::Vec<ExampleStore>,
+    /// A token to retrieve the next page of results.
+    /// Pass to
+    /// [ListExampleStoresRequest.page_token][google.cloud.aiplatform.v1beta1.ListExampleStoresRequest.page_token]
+    /// to obtain that page.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
+/// A single example to upload or read from the Example Store.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Example {
+    /// Optional. The display name for Example.
+    #[prost(string, tag = "1")]
+    pub display_name: ::prost::alloc::string::String,
+    /// Optional. Immutable. Unique identifier of an example. If not specified when
+    /// upserting new examples, the example_id will be generated.
+    #[prost(string, tag = "4")]
+    pub example_id: ::prost::alloc::string::String,
+    /// Output only. Timestamp when this Example was created.
+    #[prost(message, optional, tag = "7")]
+    pub create_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// The type of the example. Each example type has a defined format
+    #[prost(oneof = "example::ExampleType", tags = "6")]
+    pub example_type: ::core::option::Option<example::ExampleType>,
+}
+/// Nested message and enum types in `Example`.
+pub mod example {
+    /// The type of the example. Each example type has a defined format
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum ExampleType {
+        /// An example of chat history and its expected outcome to be used with
+        /// GenerateContent.
+        #[prost(message, tag = "6")]
+        StoredContentsExample(super::StoredContentsExample),
+    }
+}
+/// Request message for
+/// [ExampleStoreService.UpsertExamples][google.cloud.aiplatform.v1beta1.ExampleStoreService.UpsertExamples].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpsertExamplesRequest {
+    /// Required. The name of the ExampleStore resource that examples are added to
+    /// or updated in. Format:
+    /// `projects/{project}/locations/{location}/exampleStores/{example_store}`
+    #[prost(string, tag = "1")]
+    pub example_store: ::prost::alloc::string::String,
+    /// Required. A list of examples to be created/updated.
+    #[prost(message, repeated, tag = "2")]
+    pub examples: ::prost::alloc::vec::Vec<Example>,
+    /// Optional. A flag indicating whether an example can be overwritten if it
+    /// already exists. If False (default) and the example already exists, the
+    /// example will not be updated. This does not affect behavior if the example
+    /// does not exist already.
+    #[prost(bool, tag = "4")]
+    pub overwrite: bool,
+}
+/// Response message for
+/// [ExampleStoreService.UpsertExamples][google.cloud.aiplatform.v1beta1.ExampleStoreService.UpsertExamples].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpsertExamplesResponse {
+    /// A list of results for creating/updating. It's either a successfully
+    /// created/updated example or a status with an error message.
+    #[prost(message, repeated, tag = "1")]
+    pub results: ::prost::alloc::vec::Vec<upsert_examples_response::UpsertResult>,
+}
+/// Nested message and enum types in `UpsertExamplesResponse`.
+pub mod upsert_examples_response {
+    /// The result for creating/updating a single example.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct UpsertResult {
+        /// The outcome of creating/updating a single example. It's either the
+        /// example that was successfully created/updated or a status with an error
+        /// message.
+        #[prost(oneof = "upsert_result::Result", tags = "1, 2")]
+        pub result: ::core::option::Option<upsert_result::Result>,
+    }
+    /// Nested message and enum types in `UpsertResult`.
+    pub mod upsert_result {
+        /// The outcome of creating/updating a single example. It's either the
+        /// example that was successfully created/updated or a status with an error
+        /// message.
+        #[derive(Clone, PartialEq, ::prost::Oneof)]
+        pub enum Result {
+            /// The example created/updated successfully.
+            #[prost(message, tag = "1")]
+            Example(super::super::Example),
+            /// The error message of the example that was not created/updated
+            /// successfully.
+            #[prost(message, tag = "2")]
+            Status(super::super::super::super::super::rpc::Status),
+        }
+    }
+}
+/// Request message for
+/// [ExampleStoreService.RemoveExamples][google.cloud.aiplatform.v1beta1.ExampleStoreService.RemoveExamples].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RemoveExamplesRequest {
+    /// Required. The name of the ExampleStore resource that the examples should be
+    /// removed from. Format:
+    /// `projects/{project}/locations/{location}/exampleStores/{example_store}`
+    #[prost(string, tag = "1")]
+    pub example_store: ::prost::alloc::string::String,
+    /// Optional. Example IDs to remove. If both metadata filters and Example IDs
+    /// are specified, the metadata filters will be applied to the specified
+    /// examples in order to identify which should be removed.
+    #[prost(string, repeated, tag = "6")]
+    pub example_ids: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// The metadata filters that will be used to select which examples should be
+    /// removed.
+    #[prost(oneof = "remove_examples_request::MetadataFilter", tags = "8")]
+    pub metadata_filter: ::core::option::Option<remove_examples_request::MetadataFilter>,
+}
+/// Nested message and enum types in `RemoveExamplesRequest`.
+pub mod remove_examples_request {
+    /// The metadata filters that will be used to select which examples should be
+    /// removed.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum MetadataFilter {
+        /// The metadata filters for StoredContentsExamples.
+        #[prost(message, tag = "8")]
+        StoredContentsExampleFilter(super::StoredContentsExampleFilter),
+    }
+}
+/// Response message for
+/// [ExampleStoreService.RemoveExamples][google.cloud.aiplatform.v1beta1.ExampleStoreService.RemoveExamples].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RemoveExamplesResponse {
+    /// The IDs for the removed examples.
+    #[prost(string, repeated, tag = "1")]
+    pub example_ids: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+/// Request message for
+/// [ExampleStoreService.SearchExamples][google.cloud.aiplatform.v1beta1.ExampleStoreService.SearchExamples].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SearchExamplesRequest {
+    /// Required. The name of the ExampleStore resource that examples are retrieved
+    /// from. Format:
+    /// `projects/{project}/locations/{location}/exampleStores/{example_store}`
+    #[prost(string, tag = "1")]
+    pub example_store: ::prost::alloc::string::String,
+    /// Optional. The number of similar examples to return.
+    #[prost(int64, tag = "2")]
+    pub top_k: i64,
+    /// The parameters to search for similar examples. This includes which value to
+    /// use for similarity search and the filters that should be applied to the
+    /// search. Filters limit which examples are considered as candidates for
+    /// similarity search.
+    #[prost(oneof = "search_examples_request::Parameters", tags = "6")]
+    pub parameters: ::core::option::Option<search_examples_request::Parameters>,
+}
+/// Nested message and enum types in `SearchExamplesRequest`.
+pub mod search_examples_request {
+    /// The parameters to search for similar examples. This includes which value to
+    /// use for similarity search and the filters that should be applied to the
+    /// search. Filters limit which examples are considered as candidates for
+    /// similarity search.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Parameters {
+        /// The parameters of StoredContentsExamples to be searched.
+        #[prost(message, tag = "6")]
+        StoredContentsExampleParameters(super::StoredContentsExampleParameters),
+    }
+}
+/// Response message for
+/// [ExampleStoreService.SearchExamples][google.cloud.aiplatform.v1beta1.ExampleStoreService.SearchExamples].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SearchExamplesResponse {
+    /// The results of searching for similar examples.
+    #[prost(message, repeated, tag = "1")]
+    pub results: ::prost::alloc::vec::Vec<search_examples_response::SimilarExample>,
+}
+/// Nested message and enum types in `SearchExamplesResponse`.
+pub mod search_examples_response {
+    /// The result of the similar example.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct SimilarExample {
+        /// The example that is similar to the searched query.
+        #[prost(message, optional, tag = "1")]
+        pub example: ::core::option::Option<super::Example>,
+        /// The similarity score of this example.
+        #[prost(float, tag = "2")]
+        pub similarity_score: f32,
+    }
+}
+/// Request message for
+/// [ExampleStoreService.FetchExamples][google.cloud.aiplatform.v1beta1.ExampleStoreService.FetchExamples].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FetchExamplesRequest {
+    /// Required. The name of the ExampleStore resource that the examples should be
+    /// fetched from. Format:
+    /// `projects/{project}/locations/{location}/exampleStores/{example_store}`
+    #[prost(string, tag = "1")]
+    pub example_store: ::prost::alloc::string::String,
+    /// Optional. The maximum number of examples to return. The service may return
+    /// fewer than this value. If unspecified, at most 100 examples will be
+    /// returned.
+    #[prost(int32, tag = "2")]
+    pub page_size: i32,
+    /// Optional. The
+    /// [next_page_token][google.cloud.aiplatform.v1beta1.FetchExamplesResponse.next_page_token]
+    /// value returned from a previous list
+    /// [ExampleStoreService.FetchExamplesResponse][] call.
+    #[prost(string, tag = "3")]
+    pub page_token: ::prost::alloc::string::String,
+    /// Optional. Example IDs to fetch. If both metadata filters and Example IDs
+    /// are specified, then both ID and metadata filtering will be applied.
+    #[prost(string, repeated, tag = "6")]
+    pub example_ids: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// The example type-specific filters to be applied to the fetch operation.
+    #[prost(oneof = "fetch_examples_request::MetadataFilter", tags = "8")]
+    pub metadata_filter: ::core::option::Option<fetch_examples_request::MetadataFilter>,
+}
+/// Nested message and enum types in `FetchExamplesRequest`.
+pub mod fetch_examples_request {
+    /// The example type-specific filters to be applied to the fetch operation.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum MetadataFilter {
+        /// The metadata filters for StoredContentsExamples.
+        #[prost(message, tag = "8")]
+        StoredContentsExampleFilter(super::StoredContentsExampleFilter),
+    }
+}
+/// Response message for
+/// [ExampleStoreService.FetchExamples][google.cloud.aiplatform.v1beta1.ExampleStoreService.FetchExamples].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FetchExamplesResponse {
+    /// The examples in the Example Store that satisfy the metadata filters.
+    #[prost(message, repeated, tag = "1")]
+    pub examples: ::prost::alloc::vec::Vec<Example>,
+    /// A token, which can be sent as [FetchExamplesRequest.page_token][] to
+    /// retrieve the next page. Absence of this field indicates there are no
+    /// subsequent pages.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
+/// Generated client implementations.
+pub mod example_store_service_client {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value,
+    )]
+    use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
+    /// A service for managing and retrieving few-shot examples.
+    #[derive(Debug, Clone)]
+    pub struct ExampleStoreServiceClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl ExampleStoreServiceClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> ExampleStoreServiceClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> ExampleStoreServiceClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+        {
+            ExampleStoreServiceClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        /// Create an ExampleStore.
+        pub async fn create_example_store(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateExampleStoreRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.ExampleStoreService/CreateExampleStore",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.ExampleStoreService",
+                        "CreateExampleStore",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Get an ExampleStore.
+        pub async fn get_example_store(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetExampleStoreRequest>,
+        ) -> std::result::Result<tonic::Response<super::ExampleStore>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.ExampleStoreService/GetExampleStore",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.ExampleStoreService",
+                        "GetExampleStore",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Update an ExampleStore.
+        pub async fn update_example_store(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateExampleStoreRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.ExampleStoreService/UpdateExampleStore",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.ExampleStoreService",
+                        "UpdateExampleStore",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Delete an ExampleStore.
+        pub async fn delete_example_store(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteExampleStoreRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.ExampleStoreService/DeleteExampleStore",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.ExampleStoreService",
+                        "DeleteExampleStore",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// List ExampleStores in a Location.
+        pub async fn list_example_stores(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListExampleStoresRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListExampleStoresResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.ExampleStoreService/ListExampleStores",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.ExampleStoreService",
+                        "ListExampleStores",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Create or update Examples in the Example Store.
+        pub async fn upsert_examples(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpsertExamplesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::UpsertExamplesResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.ExampleStoreService/UpsertExamples",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.ExampleStoreService",
+                        "UpsertExamples",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Remove Examples from the Example Store.
+        pub async fn remove_examples(
+            &mut self,
+            request: impl tonic::IntoRequest<super::RemoveExamplesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::RemoveExamplesResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.ExampleStoreService/RemoveExamples",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.ExampleStoreService",
+                        "RemoveExamples",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Search for similar Examples for given selection criteria.
+        pub async fn search_examples(
+            &mut self,
+            request: impl tonic::IntoRequest<super::SearchExamplesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::SearchExamplesResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.ExampleStoreService/SearchExamples",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.ExampleStoreService",
+                        "SearchExamples",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Get Examples from the Example Store.
+        pub async fn fetch_examples(
+            &mut self,
+            request: impl tonic::IntoRequest<super::FetchExamplesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::FetchExamplesResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.ExampleStoreService/FetchExamples",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.ExampleStoreService",
+                        "FetchExamples",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
         }
     }
 }
@@ -13880,6 +18671,20 @@ pub struct FeatureGroup {
     /// Optional. Description of the FeatureGroup.
     #[prost(string, tag = "6")]
     pub description: ::prost::alloc::string::String,
+    /// Optional. Service agent type used during jobs under a FeatureGroup. By
+    /// default, the Vertex AI Service Agent is used. When using an IAM Policy to
+    /// isolate this FeatureGroup within a project, a separate service account
+    /// should be provisioned by setting this field to
+    /// `SERVICE_AGENT_TYPE_FEATURE_GROUP`. This will generate a separate service
+    /// account to access the BigQuery source table.
+    #[prost(enumeration = "feature_group::ServiceAgentType", tag = "8")]
+    pub service_agent_type: i32,
+    /// Output only. A Service Account unique to this FeatureGroup. The role
+    /// bigquery.dataViewer should be granted to this service account to allow
+    /// Vertex AI Feature Store to access source data while running jobs under this
+    /// FeatureGroup.
+    #[prost(string, tag = "9")]
+    pub service_account_email: ::prost::alloc::string::String,
     #[prost(oneof = "feature_group::Source", tags = "7")]
     pub source: ::core::option::Option<feature_group::Source>,
 }
@@ -13930,6 +18735,53 @@ pub mod feature_group {
             /// type `TIMESTAMP` will be used.
             #[prost(string, tag = "1")]
             pub timestamp_column: ::prost::alloc::string::String,
+        }
+    }
+    /// Service agent type used during jobs under a FeatureGroup.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum ServiceAgentType {
+        /// By default, the project-level Vertex AI Service Agent is enabled.
+        Unspecified = 0,
+        /// Specifies the project-level Vertex AI Service Agent
+        /// (<https://cloud.google.com/vertex-ai/docs/general/access-control#service-agents>).
+        Project = 1,
+        /// Enable a FeatureGroup service account to be created by Vertex AI and
+        /// output in the field `service_account_email`. This service account will
+        /// be used to read from the source BigQuery table during jobs under a
+        /// FeatureGroup.
+        FeatureGroup = 2,
+    }
+    impl ServiceAgentType {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "SERVICE_AGENT_TYPE_UNSPECIFIED",
+                Self::Project => "SERVICE_AGENT_TYPE_PROJECT",
+                Self::FeatureGroup => "SERVICE_AGENT_TYPE_FEATURE_GROUP",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "SERVICE_AGENT_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+                "SERVICE_AGENT_TYPE_PROJECT" => Some(Self::Project),
+                "SERVICE_AGENT_TYPE_FEATURE_GROUP" => Some(Self::FeatureGroup),
+                _ => None,
+            }
         }
     }
     #[derive(Clone, PartialEq, ::prost::Oneof)]
@@ -14117,11 +18969,22 @@ pub struct FeatureOnlineStore {
 }
 /// Nested message and enum types in `FeatureOnlineStore`.
 pub mod feature_online_store {
-    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Bigtable {
         /// Required. Autoscaling config applied to Bigtable Instance.
         #[prost(message, optional, tag = "1")]
         pub auto_scaling: ::core::option::Option<bigtable::AutoScaling>,
+        /// If true, enable direct access to the Bigtable instance.
+        #[prost(bool, tag = "3")]
+        pub enable_direct_bigtable_access: bool,
+        /// Metadata of the Bigtable instance. Output only.
+        #[prost(message, optional, tag = "4")]
+        pub bigtable_metadata: ::core::option::Option<bigtable::BigtableMetadata>,
+        /// Optional. The zone where the underlying Bigtable cluster for the primary
+        /// Bigtable instance will be provisioned. Only the zone must be provided.
+        /// For example, only "us-central1-a" should be provided.
+        #[prost(string, tag = "5")]
+        pub zone: ::prost::alloc::string::String,
     }
     /// Nested message and enum types in `Bigtable`.
     pub mod bigtable {
@@ -14143,6 +19006,20 @@ pub mod feature_online_store {
             /// nodes. If not set will default to 50%.
             #[prost(int32, tag = "3")]
             pub cpu_utilization_target: i32,
+        }
+        /// Metadata of the Bigtable instance. This is used by direct read access to
+        /// the Bigtable in tenant project.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct BigtableMetadata {
+            /// Tenant project ID.
+            #[prost(string, tag = "1")]
+            pub tenant_project_id: ::prost::alloc::string::String,
+            /// The Cloud Bigtable instance id.
+            #[prost(string, tag = "2")]
+            pub instance_id: ::prost::alloc::string::String,
+            /// The Cloud Bigtable table id.
+            #[prost(string, tag = "3")]
+            pub table_id: ::prost::alloc::string::String,
         }
     }
     /// Optimized storage type
@@ -14231,7 +19108,7 @@ pub mod feature_online_store {
             }
         }
     }
-    #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum StorageType {
         /// Contains settings for the Cloud Bigtable instance that will be created
         /// to serve featureValues for all FeatureViews under this
@@ -14321,6 +19198,9 @@ pub struct FeatureView {
     /// Output only. Reserved for future use.
     #[prost(bool, tag = "20")]
     pub satisfies_pzi: bool,
+    /// Metadata containing information about the Cloud Bigtable.
+    #[prost(message, optional, tag = "22")]
+    pub bigtable_metadata: ::core::option::Option<feature_view::BigtableMetadata>,
     #[prost(oneof = "feature_view::Source", tags = "6, 9, 18")]
     pub source: ::core::option::Option<feature_view::Source>,
 }
@@ -14640,6 +19520,14 @@ pub mod feature_view {
         /// is 6. The max allowed replica count is 1000.
         #[prost(message, optional, tag = "7")]
         pub automatic_resources: ::core::option::Option<super::AutomaticResources>,
+    }
+    /// Metadata for the Cloud Bigtable that supports directly interacting Bigtable
+    /// instances.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct BigtableMetadata {
+        /// The Bigtable App Profile to use for reading from Bigtable.
+        #[prost(string, tag = "1")]
+        pub read_app_profile: ::prost::alloc::string::String,
     }
     /// Service agent type used during data sync.
     #[derive(
@@ -15952,7 +20840,7 @@ pub mod read_feature_values_response {
     }
 }
 /// Request message for
-/// [FeaturestoreOnlineServingService.StreamingFeatureValuesRead][].
+/// [FeaturestoreOnlineServingService.StreamingReadFeatureValues][google.cloud.aiplatform.v1beta1.FeaturestoreOnlineServingService.StreamingReadFeatureValues].
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct StreamingReadFeatureValuesRequest {
     /// Required. The resource name of the entities' type.
@@ -15991,9 +20879,11 @@ pub mod feature_value {
         /// Feature generation timestamp. Typically, it is provided by user at
         /// feature ingestion time. If not, feature store
         /// will use the system timestamp when the data is ingested into feature
-        /// store. For streaming ingestion, the time, aligned by days, must be no
-        /// older than five years (1825 days) and no later than one year (366 days)
-        /// in the future.
+        /// store.
+        ///
+        /// Legacy Feature Store: For streaming ingestion, the time, aligned by days,
+        /// must be no older than five years (1825 days) and no later than one year
+        /// (366 days) in the future.
         #[prost(message, optional, tag = "1")]
         pub generate_time: ::core::option::Option<::prost_types::Timestamp>,
     }
@@ -16686,6 +21576,133 @@ pub struct SearchNearestEntitiesResponse {
     #[prost(message, optional, tag = "1")]
     pub nearest_neighbors: ::core::option::Option<NearestNeighbors>,
 }
+/// Request message for
+/// [FeatureOnlineStoreService.FeatureViewDirectWrite][google.cloud.aiplatform.v1beta1.FeatureOnlineStoreService.FeatureViewDirectWrite].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FeatureViewDirectWriteRequest {
+    /// FeatureView resource format
+    /// `projects/{project}/locations/{location}/featureOnlineStores/{featureOnlineStore}/featureViews/{featureView}`
+    #[prost(string, tag = "1")]
+    pub feature_view: ::prost::alloc::string::String,
+    /// Required. The data keys and associated feature values.
+    #[prost(message, repeated, tag = "2")]
+    pub data_key_and_feature_values: ::prost::alloc::vec::Vec<
+        feature_view_direct_write_request::DataKeyAndFeatureValues,
+    >,
+}
+/// Nested message and enum types in `FeatureViewDirectWriteRequest`.
+pub mod feature_view_direct_write_request {
+    /// A data key and associated feature values to write to the feature view.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct DataKeyAndFeatureValues {
+        /// The data key.
+        #[prost(message, optional, tag = "1")]
+        pub data_key: ::core::option::Option<super::FeatureViewDataKey>,
+        /// List of features to write.
+        #[prost(message, repeated, tag = "2")]
+        pub features: ::prost::alloc::vec::Vec<data_key_and_feature_values::Feature>,
+    }
+    /// Nested message and enum types in `DataKeyAndFeatureValues`.
+    pub mod data_key_and_feature_values {
+        /// Feature name & value pair.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct Feature {
+            /// Feature short name.
+            #[prost(string, tag = "1")]
+            pub name: ::prost::alloc::string::String,
+            /// Feature value data to write.
+            #[prost(oneof = "feature::DataOneof", tags = "3, 2")]
+            pub data_oneof: ::core::option::Option<feature::DataOneof>,
+        }
+        /// Nested message and enum types in `Feature`.
+        pub mod feature {
+            /// Feature value and timestamp.
+            #[derive(Clone, PartialEq, ::prost::Message)]
+            pub struct FeatureValueAndTimestamp {
+                /// The feature value.
+                #[prost(message, optional, tag = "1")]
+                pub value: ::core::option::Option<super::super::super::FeatureValue>,
+                /// The feature timestamp to store with this value.
+                /// If not set, then the Feature Store server will generate a timestamp
+                /// when it receives the write request.
+                #[prost(message, optional, tag = "2")]
+                pub timestamp: ::core::option::Option<::prost_types::Timestamp>,
+            }
+            /// Feature value data to write.
+            #[derive(Clone, PartialEq, ::prost::Oneof)]
+            pub enum DataOneof {
+                /// Feature value. A user provided timestamp may be set in the
+                /// `FeatureValue.metadata.generate_time` field.
+                #[prost(message, tag = "3")]
+                Value(super::super::super::FeatureValue),
+                /// Feature value and timestamp.
+                #[prost(message, tag = "2")]
+                ValueAndTimestamp(FeatureValueAndTimestamp),
+            }
+        }
+    }
+}
+/// Response message for
+/// [FeatureOnlineStoreService.FeatureViewDirectWrite][google.cloud.aiplatform.v1beta1.FeatureOnlineStoreService.FeatureViewDirectWrite].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FeatureViewDirectWriteResponse {
+    /// Response status for the keys listed in
+    /// [FeatureViewDirectWriteResponse.write_responses][google.cloud.aiplatform.v1beta1.FeatureViewDirectWriteResponse.write_responses].
+    ///
+    /// The error only applies to the
+    /// listed data keys - the stream will remain open for further
+    /// [FeatureOnlineStoreService.FeatureViewDirectWriteRequest][] requests.
+    ///
+    /// Partial failures (e.g. if the first 10 keys of a request fail, but the
+    /// rest succeed) from a single request may result in multiple responses -
+    /// there will be one response for the successful request keys and one response
+    /// for the failing request keys.
+    #[prost(message, optional, tag = "1")]
+    pub status: ::core::option::Option<super::super::super::rpc::Status>,
+    /// Details about write for each key. If status is not OK,
+    /// [WriteResponse.data_key][google.cloud.aiplatform.v1beta1.FeatureViewDirectWriteResponse.WriteResponse.data_key]
+    /// will have the key with error, but
+    /// [WriteResponse.online_store_write_time][google.cloud.aiplatform.v1beta1.FeatureViewDirectWriteResponse.WriteResponse.online_store_write_time]
+    /// will not be present.
+    #[prost(message, repeated, tag = "2")]
+    pub write_responses: ::prost::alloc::vec::Vec<
+        feature_view_direct_write_response::WriteResponse,
+    >,
+}
+/// Nested message and enum types in `FeatureViewDirectWriteResponse`.
+pub mod feature_view_direct_write_response {
+    /// Details about the write for each key.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct WriteResponse {
+        /// What key is this write response associated with.
+        #[prost(message, optional, tag = "1")]
+        pub data_key: ::core::option::Option<super::FeatureViewDataKey>,
+        /// When the feature values were written to the online store.
+        /// If
+        /// [FeatureViewDirectWriteResponse.status][google.cloud.aiplatform.v1beta1.FeatureViewDirectWriteResponse.status]
+        /// is not OK, this field is not populated.
+        #[prost(message, optional, tag = "2")]
+        pub online_store_write_time: ::core::option::Option<::prost_types::Timestamp>,
+    }
+}
+/// Request message for [FeatureOnlineStoreService.GenerateFetchAccessToken][].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GenerateFetchAccessTokenRequest {
+    /// FeatureView resource format
+    /// `projects/{project}/locations/{location}/featureOnlineStores/{featureOnlineStore}/featureViews/{featureView}`
+    #[prost(string, tag = "1")]
+    pub feature_view: ::prost::alloc::string::String,
+}
+/// Response message for [FeatureOnlineStoreService.GenerateFetchAccessToken][].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GenerateFetchAccessTokenResponse {
+    /// The OAuth 2.0 access token.
+    #[prost(string, tag = "1")]
+    pub access_token: ::prost::alloc::string::String,
+    /// Token expiration time. This is always set
+    #[prost(message, optional, tag = "2")]
+    pub expire_time: ::core::option::Option<::prost_types::Timestamp>,
+}
 /// Format of the data in the Feature View.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
@@ -16907,6 +21924,73 @@ pub mod feature_online_store_service_client {
                     GrpcMethod::new(
                         "google.cloud.aiplatform.v1beta1.FeatureOnlineStoreService",
                         "SearchNearestEntities",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Bidirectional streaming RPC to directly write to feature values in a
+        /// feature view. Requests may not have a one-to-one mapping to responses and
+        /// responses may be returned out-of-order to reduce latency.
+        pub async fn feature_view_direct_write(
+            &mut self,
+            request: impl tonic::IntoStreamingRequest<
+                Message = super::FeatureViewDirectWriteRequest,
+            >,
+        ) -> std::result::Result<
+            tonic::Response<
+                tonic::codec::Streaming<super::FeatureViewDirectWriteResponse>,
+            >,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.FeatureOnlineStoreService/FeatureViewDirectWrite",
+            );
+            let mut req = request.into_streaming_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.FeatureOnlineStoreService",
+                        "FeatureViewDirectWrite",
+                    ),
+                );
+            self.inner.streaming(req, path, codec).await
+        }
+        /// RPC to generate an access token for the given feature view. FeatureViews
+        /// under the same FeatureOnlineStore share the same access token.
+        pub async fn generate_fetch_access_token(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GenerateFetchAccessTokenRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GenerateFetchAccessTokenResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.FeatureOnlineStoreService/GenerateFetchAccessToken",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.FeatureOnlineStoreService",
+                        "GenerateFetchAccessToken",
                     ),
                 );
             self.inner.unary(req, path, codec).await
@@ -19211,6 +24295,29 @@ pub struct ListFeatureMonitorsRequest {
     pub order_by: ::prost::alloc::string::String,
 }
 /// Request message for
+/// [FeatureRegistryService.UpdateFeatureMonitor][google.cloud.aiplatform.v1beta1.FeatureRegistryService.UpdateFeatureMonitor].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateFeatureMonitorRequest {
+    /// Required. The FeatureMonitor's `name` field is used to identify the
+    /// FeatureMonitor to be updated. Format:
+    /// `projects/{project}/locations/{location}/featureGroups/{feature_group}/featureMonitors/{feature_monitor}`
+    #[prost(message, optional, tag = "1")]
+    pub feature_monitor: ::core::option::Option<FeatureMonitor>,
+    /// Optional. Field mask is used to specify the fields to be overwritten in the
+    /// FeatureMonitor resource by the update.
+    /// The fields specified in the update_mask are relative to the resource, not
+    /// the full request. A field will be overwritten if it is in the mask. If the
+    /// user does not provide a mask then only the non-empty fields present in the
+    /// request will be overwritten. Set the update_mask to `*` to override all
+    /// fields.
+    ///
+    /// Updatable fields:
+    ///
+    ///    * `labels`
+    #[prost(message, optional, tag = "2")]
+    pub update_mask: ::core::option::Option<::prost_types::FieldMask>,
+}
+/// Request message for
 /// [FeatureRegistryService.DeleteFeatureMonitor][google.cloud.aiplatform.v1beta1.FeatureRegistryService.DeleteFeatureMonitor].
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeleteFeatureMonitorRequest {
@@ -19266,6 +24373,13 @@ pub struct UpdateFeatureOperationMetadata {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateFeatureMonitorOperationMetadata {
     /// Operation metadata for Feature.
+    #[prost(message, optional, tag = "1")]
+    pub generic_metadata: ::core::option::Option<GenericOperationMetadata>,
+}
+/// Details of operations that perform update FeatureMonitor.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateFeatureMonitorOperationMetadata {
+    /// Operation metadata for FeatureMonitor.
     #[prost(message, optional, tag = "1")]
     pub generic_metadata: ::core::option::Option<GenericOperationMetadata>,
 }
@@ -19858,6 +24972,36 @@ pub mod feature_registry_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        /// Updates the parameters of a single FeatureMonitor.
+        pub async fn update_feature_monitor(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateFeatureMonitorRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.FeatureRegistryService/UpdateFeatureMonitor",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.FeatureRegistryService",
+                        "UpdateFeatureMonitor",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
         /// Deletes a single FeatureMonitor.
         pub async fn delete_feature_monitor(
             &mut self,
@@ -20299,6 +25443,14 @@ pub struct TuningJob {
     /// [TuningJob][google.cloud.aiplatform.v1.TuningJob].
     #[prost(string, tag = "3")]
     pub description: ::prost::alloc::string::String,
+    /// Optional. The user-provided path to custom model weights. Set this field
+    /// to tune a custom model. The path must be a Cloud Storage directory that
+    /// contains the model weights in .safetensors format along with associated
+    /// model metadata files. If this field is set, the base_model field must still
+    /// be set to indicate which base model the custom model is derived from. This
+    /// feature is only available for open source models.
+    #[prost(string, tag = "26")]
+    pub custom_base_model: ::prost::alloc::string::String,
     /// Output only. The detailed state of the job.
     #[prost(enumeration = "JobState", tag = "6")]
     pub state: i32,
@@ -20344,7 +25496,7 @@ pub struct TuningJob {
     /// [TuningJob][google.cloud.aiplatform.v1.TuningJob].
     #[prost(string, tag = "13")]
     pub experiment: ::prost::alloc::string::String,
-    /// Output only. The tuned model resources assiociated with this
+    /// Output only. The tuned model resources associated with this
     /// [TuningJob][google.cloud.aiplatform.v1.TuningJob].
     #[prost(message, optional, tag = "14")]
     pub tuned_model: ::core::option::Option<TunedModel>,
@@ -20371,18 +25523,30 @@ pub struct TuningJob {
     /// permission on this service account.
     #[prost(string, tag = "22")]
     pub service_account: ::prost::alloc::string::String,
-    #[prost(oneof = "tuning_job::SourceModel", tags = "4")]
+    /// Optional. Cloud Storage path to the directory where tuning job outputs are
+    /// written to. This field is only available and required for open source
+    /// models.
+    #[prost(string, tag = "25")]
+    pub output_uri: ::prost::alloc::string::String,
+    /// Output only. Evaluation runs for the Tuning Job.
+    #[prost(message, repeated, tag = "32")]
+    pub evaluate_dataset_runs: ::prost::alloc::vec::Vec<EvaluateDatasetRun>,
+    #[prost(oneof = "tuning_job::SourceModel", tags = "4, 31")]
     pub source_model: ::core::option::Option<tuning_job::SourceModel>,
-    #[prost(oneof = "tuning_job::TuningSpec", tags = "5, 17, 21")]
+    #[prost(oneof = "tuning_job::TuningSpec", tags = "5, 17, 21, 33")]
     pub tuning_spec: ::core::option::Option<tuning_job::TuningSpec>,
 }
 /// Nested message and enum types in `TuningJob`.
 pub mod tuning_job {
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum SourceModel {
-        /// The base model that is being tuned, e.g., "gemini-1.0-pro-002".
+        /// The base model that is being tuned. See [Supported
+        /// models](<https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/tuning#supported_models>).
         #[prost(string, tag = "4")]
         BaseModel(::prost::alloc::string::String),
+        /// The pre-tuned model for continuous tuning.
+        #[prost(message, tag = "31")]
+        PreTunedModel(super::PreTunedModel),
     }
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum TuningSpec {
@@ -20392,23 +25556,39 @@ pub mod tuning_job {
         /// Tuning Spec for Distillation.
         #[prost(message, tag = "17")]
         DistillationSpec(super::DistillationSpec),
-        /// Tuning Spec for open sourced and third party partner models.
+        /// Tuning Spec for open sourced and third party Partner models.
         #[prost(message, tag = "21")]
         PartnerModelTuningSpec(super::PartnerModelTuningSpec),
+        /// Tuning Spec for Veo Tuning.
+        #[prost(message, tag = "33")]
+        VeoTuningSpec(super::VeoTuningSpec),
     }
 }
-/// The Model Registry Model and Online Prediction Endpoint assiociated with
+/// The Model Registry Model and Online Prediction Endpoint associated with
 /// this [TuningJob][google.cloud.aiplatform.v1.TuningJob].
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TunedModel {
     /// Output only. The resource name of the TunedModel. Format:
-    /// `projects/{project}/locations/{location}/models/{model}`.
+    ///
+    /// `projects/{project}/locations/{location}/models/{model}@{version_id}`
+    ///
+    /// When tuning from a base model, the version_id will be 1.
+    ///
+    /// For continuous tuning, the version id will be incremented by 1 from the
+    /// last version id in the parent model. E.g.,
+    /// `projects/{project}/locations/{location}/models/{model}@{last_version_id +
+    /// 1}`
     #[prost(string, tag = "1")]
     pub model: ::prost::alloc::string::String,
     /// Output only. A resource name of an Endpoint. Format:
     /// `projects/{project}/locations/{location}/endpoints/{endpoint}`.
     #[prost(string, tag = "2")]
     pub endpoint: ::prost::alloc::string::String,
+    /// Output only. The checkpoints associated with this TunedModel.
+    /// This field is only populated for tuning jobs that enable intermediate
+    /// checkpoints.
+    #[prost(message, repeated, tag = "3")]
+    pub checkpoints: ::prost::alloc::vec::Vec<TunedModelCheckpoint>,
 }
 /// Dataset distribution for Supervised Tuning.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -20497,14 +25677,21 @@ pub struct SupervisedTuningDataStats {
     /// Output only. Sample user messages in the training dataset uri.
     #[prost(message, repeated, tag = "8")]
     pub user_dataset_examples: ::prost::alloc::vec::Vec<Content>,
-    /// The number of examples in the dataset that have been truncated by any
-    /// amount.
+    /// Output only. The number of examples in the dataset that have been dropped.
+    /// An example can be dropped for reasons including: too many tokens, contains
+    /// an invalid image, contains too many images, etc.
     #[prost(int64, tag = "10")]
     pub total_truncated_example_count: i64,
-    /// A partial sample of the indices (starting from 1) of the truncated
-    /// examples.
-    #[prost(int64, repeated, tag = "11")]
+    /// Output only. A partial sample of the indices (starting from 1) of the
+    /// dropped examples.
+    #[prost(int64, repeated, packed = "false", tag = "11")]
     pub truncated_example_indices: ::prost::alloc::vec::Vec<i64>,
+    /// Output only. For each index in `truncated_example_indices`, the user-facing
+    /// reason why the example was dropped.
+    #[prost(string, repeated, tag = "12")]
+    pub dropped_example_reasons: ::prost::alloc::vec::Vec<
+        ::prost::alloc::string::String,
+    >,
 }
 /// Distribution computed over a tuning dataset.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -20615,11 +25802,21 @@ pub struct SupervisedHyperParameters {
     #[prost(int64, tag = "1")]
     pub epoch_count: i64,
     /// Optional. Multiplier for adjusting the default learning rate.
+    /// Mutually exclusive with `learning_rate`.
     #[prost(double, tag = "2")]
     pub learning_rate_multiplier: f64,
+    /// Optional. Learning rate for tuning.
+    /// Mutually exclusive with `learning_rate_multiplier`.
+    /// This feature is only available for open source models.
+    #[prost(double, tag = "6")]
+    pub learning_rate: f64,
     /// Optional. Adapter size for tuning.
     #[prost(enumeration = "supervised_hyper_parameters::AdapterSize", tag = "3")]
     pub adapter_size: i32,
+    /// Optional. Batch size for tuning.
+    /// This feature is only available for open source models.
+    #[prost(int64, tag = "5")]
+    pub batch_size: i64,
 }
 /// Nested message and enum types in `SupervisedHyperParameters`.
 pub mod supervised_hyper_parameters {
@@ -20641,12 +25838,16 @@ pub mod supervised_hyper_parameters {
         Unspecified = 0,
         /// Adapter size 1.
         One = 1,
+        /// Adapter size 2.
+        Two = 6,
         /// Adapter size 4.
         Four = 2,
         /// Adapter size 8.
         Eight = 3,
         /// Adapter size 16.
         Sixteen = 4,
+        /// Adapter size 32.
+        ThirtyTwo = 5,
     }
     impl AdapterSize {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -20657,9 +25858,11 @@ pub mod supervised_hyper_parameters {
             match self {
                 Self::Unspecified => "ADAPTER_SIZE_UNSPECIFIED",
                 Self::One => "ADAPTER_SIZE_ONE",
+                Self::Two => "ADAPTER_SIZE_TWO",
                 Self::Four => "ADAPTER_SIZE_FOUR",
                 Self::Eight => "ADAPTER_SIZE_EIGHT",
                 Self::Sixteen => "ADAPTER_SIZE_SIXTEEN",
+                Self::ThirtyTwo => "ADAPTER_SIZE_THIRTY_TWO",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -20667,9 +25870,11 @@ pub mod supervised_hyper_parameters {
             match value {
                 "ADAPTER_SIZE_UNSPECIFIED" => Some(Self::Unspecified),
                 "ADAPTER_SIZE_ONE" => Some(Self::One),
+                "ADAPTER_SIZE_TWO" => Some(Self::Two),
                 "ADAPTER_SIZE_FOUR" => Some(Self::Four),
                 "ADAPTER_SIZE_EIGHT" => Some(Self::Eight),
                 "ADAPTER_SIZE_SIXTEEN" => Some(Self::Sixteen),
+                "ADAPTER_SIZE_THIRTY_TWO" => Some(Self::ThirtyTwo),
                 _ => None,
             }
         }
@@ -20678,17 +25883,76 @@ pub mod supervised_hyper_parameters {
 /// Tuning Spec for Supervised Tuning for first party models.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SupervisedTuningSpec {
-    /// Required. Cloud Storage path to file containing training dataset for
-    /// tuning. The dataset must be formatted as a JSONL file.
+    /// Required. Training dataset used for tuning. The dataset can be specified as
+    /// either a Cloud Storage path to a JSONL file or as the resource name of a
+    /// Vertex Multimodal Dataset.
     #[prost(string, tag = "1")]
     pub training_dataset_uri: ::prost::alloc::string::String,
-    /// Optional. Cloud Storage path to file containing validation dataset for
-    /// tuning. The dataset must be formatted as a JSONL file.
+    /// Optional. Validation dataset used for tuning. The dataset can be specified
+    /// as either a Cloud Storage path to a JSONL file or as the resource name of a
+    /// Vertex Multimodal Dataset.
     #[prost(string, tag = "2")]
     pub validation_dataset_uri: ::prost::alloc::string::String,
     /// Optional. Hyperparameters for SFT.
     #[prost(message, optional, tag = "3")]
     pub hyper_parameters: ::core::option::Option<SupervisedHyperParameters>,
+    /// Optional. If set to true, disable intermediate checkpoints for SFT and only
+    /// the last checkpoint will be exported. Otherwise, enable intermediate
+    /// checkpoints for SFT. Default is false.
+    #[prost(bool, tag = "6")]
+    pub export_last_checkpoint_only: bool,
+    /// Optional. Evaluation Config for Tuning Job.
+    #[prost(message, optional, tag = "5")]
+    pub evaluation_config: ::core::option::Option<EvaluationConfig>,
+    /// Tuning mode.
+    #[prost(enumeration = "supervised_tuning_spec::TuningMode", tag = "7")]
+    pub tuning_mode: i32,
+}
+/// Nested message and enum types in `SupervisedTuningSpec`.
+pub mod supervised_tuning_spec {
+    /// Supported tuning modes.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum TuningMode {
+        /// Tuning mode is unspecified.
+        Unspecified = 0,
+        /// Full fine-tuning mode.
+        Full = 1,
+        /// PEFT adapter tuning mode.
+        PeftAdapter = 2,
+    }
+    impl TuningMode {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "TUNING_MODE_UNSPECIFIED",
+                Self::Full => "TUNING_MODE_FULL",
+                Self::PeftAdapter => "TUNING_MODE_PEFT_ADAPTER",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "TUNING_MODE_UNSPECIFIED" => Some(Self::Unspecified),
+                "TUNING_MODE_FULL" => Some(Self::Full),
+                "TUNING_MODE_PEFT_ADAPTER" => Some(Self::PeftAdapter),
+                _ => None,
+            }
+        }
+    }
 }
 /// Tuning Spec for Distillation.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -20712,17 +25976,19 @@ pub struct DistillationSpec {
     /// system to generate the paths of output artifacts.
     #[prost(string, tag = "7")]
     pub pipeline_root_directory: ::prost::alloc::string::String,
-    /// The teacher model that is being distilled from, e.g., "gemini-1.0-pro-002".
+    /// The teacher model that is being distilled from. See [Supported
+    /// models](<https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/tuning#supported_models>).
     #[prost(oneof = "distillation_spec::TeacherModel", tags = "5, 6")]
     pub teacher_model: ::core::option::Option<distillation_spec::TeacherModel>,
 }
 /// Nested message and enum types in `DistillationSpec`.
 pub mod distillation_spec {
-    /// The teacher model that is being distilled from, e.g., "gemini-1.0-pro-002".
+    /// The teacher model that is being distilled from. See [Supported
+    /// models](<https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/tuning#supported_models>).
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum TeacherModel {
-        /// The base teacher model that is being distilled, e.g.,
-        /// "gemini-1.0-pro-002".
+        /// The base teacher model that is being distilled. See [Supported
+        /// models](<https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/tuning#supported_models>).
         #[prost(string, tag = "5")]
         BaseTeacherModel(::prost::alloc::string::String),
         /// The resource name of the Tuned teacher model. Format:
@@ -20788,6 +26054,156 @@ pub mod tuned_model_ref {
         #[prost(string, tag = "3")]
         PipelineJob(::prost::alloc::string::String),
     }
+}
+/// Hyperparameters for Veo.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct VeoHyperParameters {
+    /// Optional. Number of complete passes the model makes over the entire
+    /// training dataset during training.
+    #[prost(int64, tag = "1")]
+    pub epoch_count: i64,
+    /// Optional. Multiplier for adjusting the default learning rate.
+    #[prost(double, tag = "2")]
+    pub learning_rate_multiplier: f64,
+    /// Optional. The tuning task. Either I2V or T2V.
+    #[prost(enumeration = "veo_hyper_parameters::TuningTask", tag = "3")]
+    pub tuning_task: i32,
+}
+/// Nested message and enum types in `VeoHyperParameters`.
+pub mod veo_hyper_parameters {
+    /// An enum defining the tuning task used for Veo.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum TuningTask {
+        /// Default value. This value is unused.
+        Unspecified = 0,
+        /// Tuning task for image to video.
+        I2v = 1,
+        /// Tuning task for text to video.
+        T2v = 2,
+    }
+    impl TuningTask {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "TUNING_TASK_UNSPECIFIED",
+                Self::I2v => "TUNING_TASK_I2V",
+                Self::T2v => "TUNING_TASK_T2V",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "TUNING_TASK_UNSPECIFIED" => Some(Self::Unspecified),
+                "TUNING_TASK_I2V" => Some(Self::I2v),
+                "TUNING_TASK_T2V" => Some(Self::T2v),
+                _ => None,
+            }
+        }
+    }
+}
+/// Tuning Spec for Veo Model Tuning.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct VeoTuningSpec {
+    /// Required. Training dataset used for tuning. The dataset can be specified as
+    /// either a Cloud Storage path to a JSONL file or as the resource name of a
+    /// Vertex Multimodal Dataset.
+    #[prost(string, tag = "1")]
+    pub training_dataset_uri: ::prost::alloc::string::String,
+    /// Optional. Validation dataset used for tuning. The dataset can be specified
+    /// as either a Cloud Storage path to a JSONL file or as the resource name of a
+    /// Vertex Multimodal Dataset.
+    #[prost(string, tag = "2")]
+    pub validation_dataset_uri: ::prost::alloc::string::String,
+    /// Optional. Hyperparameters for Veo.
+    #[prost(message, optional, tag = "3")]
+    pub hyper_parameters: ::core::option::Option<VeoHyperParameters>,
+}
+/// Evaluation Config for Tuning Job.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EvaluationConfig {
+    /// Required. The metrics used for evaluation.
+    #[prost(message, repeated, tag = "1")]
+    pub metrics: ::prost::alloc::vec::Vec<Metric>,
+    /// Required. Config for evaluation output.
+    #[prost(message, optional, tag = "2")]
+    pub output_config: ::core::option::Option<OutputConfig>,
+    /// Optional. Autorater config for evaluation.
+    #[prost(message, optional, tag = "3")]
+    pub autorater_config: ::core::option::Option<AutoraterConfig>,
+}
+/// Evaluate Dataset Run Result for Tuning Job.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EvaluateDatasetRun {
+    /// Output only. The operation ID of the evaluation run. Format:
+    /// `projects/{project}/locations/{location}/operations/{operation_id}`.
+    #[prost(string, tag = "1")]
+    pub operation_name: ::prost::alloc::string::String,
+    /// Output only. The checkpoint id used in the evaluation run. Only populated
+    /// when evaluating checkpoints.
+    #[prost(string, tag = "2")]
+    pub checkpoint_id: ::prost::alloc::string::String,
+    /// Output only. Results for EvaluationService.EvaluateDataset.
+    #[prost(message, optional, tag = "3")]
+    pub evaluate_dataset_response: ::core::option::Option<EvaluateDatasetResponse>,
+    /// Output only. The error of the evaluation run if any.
+    #[prost(message, optional, tag = "4")]
+    pub error: ::core::option::Option<super::super::super::rpc::Status>,
+}
+/// TunedModelCheckpoint for the Tuned Model of a Tuning Job.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TunedModelCheckpoint {
+    /// The ID of the checkpoint.
+    #[prost(string, tag = "1")]
+    pub checkpoint_id: ::prost::alloc::string::String,
+    /// The epoch of the checkpoint.
+    #[prost(int64, tag = "2")]
+    pub epoch: i64,
+    /// The step of the checkpoint.
+    #[prost(int64, tag = "3")]
+    pub step: i64,
+    /// The Endpoint resource name that the checkpoint is deployed to. Format:
+    /// `projects/{project}/locations/{location}/endpoints/{endpoint}`.
+    #[prost(string, tag = "4")]
+    pub endpoint: ::prost::alloc::string::String,
+}
+/// A pre-tuned model for continuous tuning.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PreTunedModel {
+    /// The resource name of the Model.
+    /// E.g., a model resource name with a specified version id or alias:
+    ///
+    /// `projects/{project}/locations/{location}/models/{model}@{version_id}`
+    ///
+    /// `projects/{project}/locations/{location}/models/{model}@{alias}`
+    ///
+    /// Or, omit the version id to use the default version:
+    ///
+    /// `projects/{project}/locations/{location}/models/{model}`
+    #[prost(string, tag = "1")]
+    pub tuned_model_name: ::prost::alloc::string::String,
+    /// Optional. The source checkpoint id. If not specified, the default
+    /// checkpoint will be used.
+    #[prost(string, tag = "2")]
+    pub checkpoint_id: ::prost::alloc::string::String,
+    /// Output only. The name of the base model this
+    /// [PreTunedModel][google.cloud.aiplatform.v1beta1.PreTunedModel] was tuned
+    /// from.
+    #[prost(string, tag = "3")]
+    pub base_model: ::prost::alloc::string::String,
 }
 /// Request message for
 /// [GenAiTuningService.CreateTuningJob][google.cloud.aiplatform.v1beta1.GenAiTuningService.CreateTuningJob].
@@ -22376,6 +27792,9 @@ pub struct IndexDatapoint {
     /// in each crowding can be configured during query.
     #[prost(message, optional, tag = "5")]
     pub crowding_tag: ::core::option::Option<index_datapoint::CrowdingTag>,
+    /// Optional. The key-value map of additional metadata for the datapoint.
+    #[prost(message, optional, tag = "8")]
+    pub embedding_metadata: ::core::option::Option<::prost_types::Struct>,
 }
 /// Nested message and enum types in `IndexDatapoint`.
 pub mod index_datapoint {
@@ -22712,6 +28131,18 @@ pub struct DeployedIndex {
     /// Estimate your costs before enabling this option.
     #[prost(bool, tag = "8")]
     pub enable_access_logging: bool,
+    /// Optional. If true, logs to Cloud Logging errors relating to datapoint
+    /// upserts.
+    ///
+    /// Under normal operation conditions, these log entries should be very rare.
+    /// However, if incompatible datapoint updates are being uploaded to an index,
+    /// a high volume of log entries may be generated in a short period of time.
+    ///
+    /// Note that logs may incur a cost, especially if the deployed index receives
+    /// a high volume of datapoint upserts. Estimate your costs before enabling
+    /// this option.
+    #[prost(bool, tag = "20")]
+    pub enable_datapoint_upsert_logging: bool,
     /// Optional. If set, the authentication is enabled for the private endpoint.
     #[prost(message, optional, tag = "9")]
     pub deployed_index_auth_config: ::core::option::Option<DeployedIndexAuthConfig>,
@@ -23431,6 +28862,170 @@ pub struct UpdateIndexOperationMetadata {
     >,
 }
 /// Request message for
+/// [IndexService.ImportIndex][google.cloud.aiplatform.v1beta1.IndexService.ImportIndex].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ImportIndexRequest {
+    /// Required. The name of the Index resource to import data to.
+    /// Format:
+    /// `projects/{project}/locations/{location}/indexes/{index}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Optional. If true, completely replace existing index data. Must be true for
+    /// streaming update indexes.
+    #[prost(bool, tag = "2")]
+    pub is_complete_overwrite: bool,
+    /// Required. Configuration for importing data from an external source.
+    #[prost(message, optional, tag = "3")]
+    pub config: ::core::option::Option<import_index_request::ConnectorConfig>,
+}
+/// Nested message and enum types in `ImportIndexRequest`.
+pub mod import_index_request {
+    /// Configuration for importing data from an external source.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct ConnectorConfig {
+        /// The source of the data to import.
+        #[prost(oneof = "connector_config::Source", tags = "1")]
+        pub source: ::core::option::Option<connector_config::Source>,
+    }
+    /// Nested message and enum types in `ConnectorConfig`.
+    pub mod connector_config {
+        /// Mapping of datapoint fields to column names for columnar data sources.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct DatapointFieldMapping {
+            /// Required. The column with unique identifiers for each data point.
+            #[prost(string, tag = "1")]
+            pub id_column: ::prost::alloc::string::String,
+            /// Required. The column with the vector embeddings for each data point.
+            #[prost(string, tag = "2")]
+            pub embedding_column: ::prost::alloc::string::String,
+            /// Optional. List of restricts for string values.
+            #[prost(message, repeated, tag = "3")]
+            pub restricts: ::prost::alloc::vec::Vec<datapoint_field_mapping::Restrict>,
+            /// Optional. List of restricts for numeric values.
+            #[prost(message, repeated, tag = "4")]
+            pub numeric_restricts: ::prost::alloc::vec::Vec<
+                datapoint_field_mapping::NumericRestrict,
+            >,
+            /// Optional. List of columns containing metadata to be included in the
+            /// index.
+            #[prost(string, repeated, tag = "5")]
+            pub metadata_columns: ::prost::alloc::vec::Vec<
+                ::prost::alloc::string::String,
+            >,
+        }
+        /// Nested message and enum types in `DatapointFieldMapping`.
+        pub mod datapoint_field_mapping {
+            /// Restrictions on string values.
+            #[derive(Clone, PartialEq, ::prost::Message)]
+            pub struct Restrict {
+                /// Required. The namespace of the restrict in the index.
+                #[prost(string, tag = "1")]
+                pub namespace: ::prost::alloc::string::String,
+                /// Optional. The columns containing the allow values.
+                #[prost(string, repeated, tag = "2")]
+                pub allow_column: ::prost::alloc::vec::Vec<
+                    ::prost::alloc::string::String,
+                >,
+                /// Optional. The columns containing the deny values.
+                #[prost(string, repeated, tag = "3")]
+                pub deny_column: ::prost::alloc::vec::Vec<
+                    ::prost::alloc::string::String,
+                >,
+            }
+            /// Restrictions on numeric values.
+            #[derive(Clone, PartialEq, ::prost::Message)]
+            pub struct NumericRestrict {
+                /// Required. The namespace of the restrict.
+                #[prost(string, tag = "1")]
+                pub namespace: ::prost::alloc::string::String,
+                /// Optional. The column containing the numeric value.
+                #[prost(string, tag = "2")]
+                pub value_column: ::prost::alloc::string::String,
+                /// Required. Numeric type of the restrict. Must be consistent for
+                /// all datapoints within the namespace.
+                #[prost(enumeration = "numeric_restrict::ValueType", tag = "3")]
+                pub value_type: i32,
+            }
+            /// Nested message and enum types in `NumericRestrict`.
+            pub mod numeric_restrict {
+                /// The type of numeric value for the restrict.
+                #[derive(
+                    Clone,
+                    Copy,
+                    Debug,
+                    PartialEq,
+                    Eq,
+                    Hash,
+                    PartialOrd,
+                    Ord,
+                    ::prost::Enumeration
+                )]
+                #[repr(i32)]
+                pub enum ValueType {
+                    /// Should not be used.
+                    Unspecified = 0,
+                    /// Represents 64 bit integer.
+                    Int = 1,
+                    /// Represents 32 bit float.
+                    Float = 2,
+                    /// Represents 64 bit float.
+                    Double = 3,
+                }
+                impl ValueType {
+                    /// String value of the enum field names used in the ProtoBuf definition.
+                    ///
+                    /// The values are not transformed in any way and thus are considered stable
+                    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+                    pub fn as_str_name(&self) -> &'static str {
+                        match self {
+                            Self::Unspecified => "VALUE_TYPE_UNSPECIFIED",
+                            Self::Int => "INT",
+                            Self::Float => "FLOAT",
+                            Self::Double => "DOUBLE",
+                        }
+                    }
+                    /// Creates an enum from field names used in the ProtoBuf definition.
+                    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+                        match value {
+                            "VALUE_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+                            "INT" => Some(Self::Int),
+                            "FLOAT" => Some(Self::Float),
+                            "DOUBLE" => Some(Self::Double),
+                            _ => None,
+                        }
+                    }
+                }
+            }
+        }
+        /// Configuration for importing data from a BigQuery table.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct BigQuerySourceConfig {
+            /// Required. The path to the BigQuery table containing the index data, in
+            /// the format of `bq://<project_id>.<dataset_id>.<table>`.
+            #[prost(string, tag = "1")]
+            pub table_path: ::prost::alloc::string::String,
+            /// Required. Mapping of datapoint fields to BigQuery column names.
+            #[prost(message, optional, tag = "2")]
+            pub datapoint_field_mapping: ::core::option::Option<DatapointFieldMapping>,
+        }
+        /// The source of the data to import.
+        #[derive(Clone, PartialEq, ::prost::Oneof)]
+        pub enum Source {
+            /// Configuration for importing data from a BigQuery table.
+            #[prost(message, tag = "1")]
+            BigQuerySourceConfig(BigQuerySourceConfig),
+        }
+    }
+}
+/// Runtime operation information for
+/// [IndexService.ImportIndex][google.cloud.aiplatform.v1beta1.IndexService.ImportIndex].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ImportIndexOperationMetadata {
+    /// The operation generic information.
+    #[prost(message, optional, tag = "1")]
+    pub generic_metadata: ::core::option::Option<GenericOperationMetadata>,
+}
+/// Request message for
 /// [IndexService.DeleteIndex][google.cloud.aiplatform.v1beta1.IndexService.DeleteIndex].
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeleteIndexRequest {
@@ -23575,6 +29170,10 @@ pub mod nearest_neighbor_search_operation_metadata {
             InvalidSparseEmbedding = 16,
             /// Invalid dense embedding.
             InvalidEmbedding = 17,
+            /// Invalid embedding metadata.
+            InvalidEmbeddingMetadata = 18,
+            /// Embedding metadata exceeds size limit.
+            EmbeddingMetadataExceedsSizeLimit = 19,
         }
         impl RecordErrorType {
             /// String value of the enum field names used in the ProtoBuf definition.
@@ -23601,6 +29200,10 @@ pub mod nearest_neighbor_search_operation_metadata {
                     Self::InvalidTokenValue => "INVALID_TOKEN_VALUE",
                     Self::InvalidSparseEmbedding => "INVALID_SPARSE_EMBEDDING",
                     Self::InvalidEmbedding => "INVALID_EMBEDDING",
+                    Self::InvalidEmbeddingMetadata => "INVALID_EMBEDDING_METADATA",
+                    Self::EmbeddingMetadataExceedsSizeLimit => {
+                        "EMBEDDING_METADATA_EXCEEDS_SIZE_LIMIT"
+                    }
                 }
             }
             /// Creates an enum from field names used in the ProtoBuf definition.
@@ -23624,6 +29227,10 @@ pub mod nearest_neighbor_search_operation_metadata {
                     "INVALID_TOKEN_VALUE" => Some(Self::InvalidTokenValue),
                     "INVALID_SPARSE_EMBEDDING" => Some(Self::InvalidSparseEmbedding),
                     "INVALID_EMBEDDING" => Some(Self::InvalidEmbedding),
+                    "INVALID_EMBEDDING_METADATA" => Some(Self::InvalidEmbeddingMetadata),
+                    "EMBEDDING_METADATA_EXCEEDS_SIZE_LIMIT" => {
+                        Some(Self::EmbeddingMetadataExceedsSizeLimit)
+                    }
                     _ => None,
                 }
             }
@@ -23798,6 +29405,36 @@ pub mod index_service_client {
                     GrpcMethod::new(
                         "google.cloud.aiplatform.v1beta1.IndexService",
                         "GetIndex",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Imports an Index from an external source (e.g., BigQuery).
+        pub async fn import_index(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ImportIndexRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.IndexService/ImportIndex",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.IndexService",
+                        "ImportIndex",
                     ),
                 );
             self.inner.unary(req, path, codec).await
@@ -26812,6 +32449,761 @@ pub mod match_service_client {
         }
     }
 }
+/// A memory.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Memory {
+    /// Identifier. The resource name of the Memory.
+    /// Format:
+    /// `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}/memories/{memory}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Optional. Display name of the Memory.
+    #[prost(string, tag = "2")]
+    pub display_name: ::prost::alloc::string::String,
+    /// Optional. Description of the Memory.
+    #[prost(string, tag = "3")]
+    pub description: ::prost::alloc::string::String,
+    /// Output only. Timestamp when this Memory was created.
+    #[prost(message, optional, tag = "4")]
+    pub create_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. Timestamp when this Memory was most recently updated.
+    #[prost(message, optional, tag = "5")]
+    pub update_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Required. Semantic knowledge extracted from the source content.
+    #[prost(string, tag = "10")]
+    pub fact: ::prost::alloc::string::String,
+    /// Required. Immutable. The scope of the Memory. Memories are isolated
+    /// within their scope. The scope is defined when creating or generating
+    /// memories. Scope values cannot contain the wildcard character '*'.
+    #[prost(map = "string, string", tag = "11")]
+    pub scope: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+    /// The expiration of the Memory. If not set, the Memory will not be
+    /// automatically deleted.
+    #[prost(oneof = "memory::Expiration", tags = "13, 14")]
+    pub expiration: ::core::option::Option<memory::Expiration>,
+}
+/// Nested message and enum types in `Memory`.
+pub mod memory {
+    /// The expiration of the Memory. If not set, the Memory will not be
+    /// automatically deleted.
+    #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
+    pub enum Expiration {
+        /// Optional. Timestamp of when this resource is considered expired.
+        /// This is *always* provided on output, regardless of what `expiration` was
+        /// sent on input.
+        #[prost(message, tag = "13")]
+        ExpireTime(::prost_types::Timestamp),
+        /// Optional. Input only. The TTL for this resource. The expiration time is
+        /// computed: now + TTL.
+        #[prost(message, tag = "14")]
+        Ttl(::prost_types::Duration),
+    }
+}
+/// Request message for
+/// [MemoryBankService.CreateMemory][google.cloud.aiplatform.v1beta1.MemoryBankService.CreateMemory].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateMemoryRequest {
+    /// Required. The resource name of the ReasoningEngine to create the Memory
+    /// under. Format:
+    /// `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}`
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Required. The Memory to be created.
+    #[prost(message, optional, tag = "2")]
+    pub memory: ::core::option::Option<Memory>,
+}
+/// Details of
+/// [MemoryBankService.CreateMemory][google.cloud.aiplatform.v1beta1.MemoryBankService.CreateMemory]
+/// operation.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateMemoryOperationMetadata {
+    /// The common part of the operation metadata.
+    #[prost(message, optional, tag = "1")]
+    pub generic_metadata: ::core::option::Option<GenericOperationMetadata>,
+}
+/// Request message for
+/// [MemoryBankService.GetMemory][google.cloud.aiplatform.v1beta1.MemoryBankService.GetMemory].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetMemoryRequest {
+    /// Required. The resource name of the Memory.
+    /// Format:
+    /// `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}/memories/{memory}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Request message for
+/// [MemoryBankService.UpdateMemory][google.cloud.aiplatform.v1beta1.MemoryBankService.UpdateMemory].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateMemoryRequest {
+    /// Required. The Memory which replaces the resource on the server.
+    #[prost(message, optional, tag = "1")]
+    pub memory: ::core::option::Option<Memory>,
+    /// Optional. Mask specifying which fields to update.
+    /// Supported fields:
+    ///
+    ///     * `display_name`
+    ///     * `description`
+    ///     * `fact`
+    #[prost(message, optional, tag = "2")]
+    pub update_mask: ::core::option::Option<::prost_types::FieldMask>,
+}
+/// Details of
+/// [MemoryBankService.UpdateMemory][google.cloud.aiplatform.v1beta1.MemoryBankService.UpdateMemory]
+/// operation.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateMemoryOperationMetadata {
+    /// The common part of the operation metadata.
+    #[prost(message, optional, tag = "1")]
+    pub generic_metadata: ::core::option::Option<GenericOperationMetadata>,
+}
+/// Request message for
+/// [MemoryBankService.ListMemories][google.cloud.aiplatform.v1beta1.MemoryBankService.ListMemories].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListMemoriesRequest {
+    /// Required. The resource name of the ReasoningEngine to list the Memories
+    /// under. Format:
+    /// `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}`
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Optional. The standard list filter.
+    /// More detail in [AIP-160](<https://google.aip.dev/160>).
+    ///
+    /// Supported fields (equality match only):
+    ///    * `scope` (as a JSON string)
+    #[prost(string, tag = "2")]
+    pub filter: ::prost::alloc::string::String,
+    /// Optional. The standard list page size.
+    #[prost(int32, tag = "3")]
+    pub page_size: i32,
+    /// Optional. The standard list page token.
+    #[prost(string, tag = "4")]
+    pub page_token: ::prost::alloc::string::String,
+}
+/// Response message for
+/// [MemoryBankService.ListMemories][google.cloud.aiplatform.v1beta1.MemoryBankService.ListMemories].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListMemoriesResponse {
+    /// List of Memories in the requested page.
+    #[prost(message, repeated, tag = "1")]
+    pub memories: ::prost::alloc::vec::Vec<Memory>,
+    /// A token to retrieve the next page of results.
+    /// Pass to
+    /// [ListMemoriesRequest.page_token][google.cloud.aiplatform.v1beta1.ListMemoriesRequest.page_token]
+    /// to obtain that page.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
+/// Request message for
+/// [MemoryBankService.DeleteMemory][google.cloud.aiplatform.v1beta1.MemoryBankService.DeleteMemory].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteMemoryRequest {
+    /// Required. The resource name of the Memory to delete.
+    /// Format:
+    /// `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}/memories/{memory}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Details of
+/// [MemoryBankService.DeleteMemory][google.cloud.aiplatform.v1beta1.MemoryBankService.DeleteMemory]
+/// operation.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteMemoryOperationMetadata {
+    /// The common part of the operation metadata.
+    #[prost(message, optional, tag = "1")]
+    pub generic_metadata: ::core::option::Option<GenericOperationMetadata>,
+}
+/// Request message for
+/// [MemoryBankService.GenerateMemories][google.cloud.aiplatform.v1beta1.MemoryBankService.GenerateMemories].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GenerateMemoriesRequest {
+    /// Required. The resource name of the ReasoningEngine to generate memories
+    /// for. Format:
+    /// `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}`
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Optional. If true, generated memories will not be consolidated with
+    /// existing memories; all generated memories will be added as new memories
+    /// regardless of whether they are duplicates of or contradictory to existing
+    /// memories. By default, memory consolidation is enabled.
+    #[prost(bool, tag = "4")]
+    pub disable_consolidation: bool,
+    /// Optional. The scope of the memories that should be generated. Memories will
+    /// be consolidated across memories with the same scope. Must be provided
+    /// unless the scope is defined in the source content. If `scope` is provided,
+    /// it will override the scope defined in the source content. Scope values
+    /// cannot contain the wildcard character '*'.
+    #[prost(map = "string, string", tag = "8")]
+    pub scope: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+    /// Source content used to generate memories.
+    #[prost(oneof = "generate_memories_request::Source", tags = "2, 3, 9")]
+    pub source: ::core::option::Option<generate_memories_request::Source>,
+}
+/// Nested message and enum types in `GenerateMemoriesRequest`.
+pub mod generate_memories_request {
+    /// Defines an Agent Engine Session from which to generate the memories. If
+    /// `scope` is not provided, the scope will be extracted from the Session
+    /// (i.e. {"user_id": sesison.user_id}).
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct VertexSessionSource {
+        /// Required. The resource name of the Session to generate memories for.
+        /// Format:
+        /// `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}/sessions/{session}`
+        #[prost(string, tag = "1")]
+        pub session: ::prost::alloc::string::String,
+        /// Optional. Time range to define which session events should be used to
+        /// generate memories. Start time (inclusive) of the time range. If not set,
+        /// the start time is unbounded.
+        #[prost(message, optional, tag = "2")]
+        pub start_time: ::core::option::Option<::prost_types::Timestamp>,
+        /// Optional. End time (exclusive) of the time range. If not set, the end
+        /// time is unbounded.
+        #[prost(message, optional, tag = "3")]
+        pub end_time: ::core::option::Option<::prost_types::Timestamp>,
+    }
+    /// Defines a direct source of content from which to generate the memories.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct DirectContentsSource {
+        /// Required. The source content (i.e. chat history) to generate memories
+        /// from.
+        #[prost(message, repeated, tag = "1")]
+        pub events: ::prost::alloc::vec::Vec<direct_contents_source::Event>,
+    }
+    /// Nested message and enum types in `DirectContentsSource`.
+    pub mod direct_contents_source {
+        /// A single piece of conversation from which to generate memories.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct Event {
+            /// Required. A single piece of content from which to generate memories.
+            #[prost(message, optional, tag = "1")]
+            pub content: ::core::option::Option<super::super::Content>,
+        }
+    }
+    /// Defines a direct source of memories that should be uploaded to Memory Bank
+    /// with consolidation.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct DirectMemoriesSource {
+        /// Required. The direct memories to upload to Memory Bank. At most 5 direct
+        /// memories are allowed per request.
+        #[prost(message, repeated, tag = "1")]
+        pub direct_memories: ::prost::alloc::vec::Vec<
+            direct_memories_source::DirectMemory,
+        >,
+    }
+    /// Nested message and enum types in `DirectMemoriesSource`.
+    pub mod direct_memories_source {
+        /// A direct memory to upload to Memory Bank.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct DirectMemory {
+            /// Required. The fact to consolidate with existing memories.
+            #[prost(string, tag = "1")]
+            pub fact: ::prost::alloc::string::String,
+        }
+    }
+    /// Source content used to generate memories.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Source {
+        /// Defines a Vertex Session as the source content from which to generate
+        /// memories.
+        #[prost(message, tag = "2")]
+        VertexSessionSource(VertexSessionSource),
+        /// Defines a direct source of content as the source content from which to
+        /// generate memories.
+        #[prost(message, tag = "3")]
+        DirectContentsSource(DirectContentsSource),
+        /// Defines a direct source of memories that should be uploaded to Memory
+        /// Bank. This is similar to `CreateMemory`, but it allows for consolidation
+        /// between these new memories and existing memories for the same scope.
+        #[prost(message, tag = "9")]
+        DirectMemoriesSource(DirectMemoriesSource),
+    }
+}
+/// Response message for
+/// [MemoryBankService.GenerateMemories][google.cloud.aiplatform.v1beta1.MemoryBankService.GenerateMemories].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GenerateMemoriesResponse {
+    /// The generated memories.
+    #[prost(message, repeated, tag = "1")]
+    pub generated_memories: ::prost::alloc::vec::Vec<
+        generate_memories_response::GeneratedMemory,
+    >,
+}
+/// Nested message and enum types in `GenerateMemoriesResponse`.
+pub mod generate_memories_response {
+    /// A memory generated by the operation.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct GeneratedMemory {
+        /// The generated Memory.
+        #[prost(message, optional, tag = "1")]
+        pub memory: ::core::option::Option<super::Memory>,
+        /// The action that was performed on the Memory.
+        #[prost(enumeration = "generated_memory::Action", tag = "2")]
+        pub action: i32,
+    }
+    /// Nested message and enum types in `GeneratedMemory`.
+    pub mod generated_memory {
+        /// Actions that can be performed on a Memory.
+        #[derive(
+            Clone,
+            Copy,
+            Debug,
+            PartialEq,
+            Eq,
+            Hash,
+            PartialOrd,
+            Ord,
+            ::prost::Enumeration
+        )]
+        #[repr(i32)]
+        pub enum Action {
+            /// Action is unspecified.
+            Unspecified = 0,
+            /// The memory was created.
+            Created = 1,
+            /// The memory was updated. The `fact` field may not be updated if the
+            /// existing fact is still accurate.
+            Updated = 2,
+            /// The memory was deleted.
+            Deleted = 3,
+        }
+        impl Action {
+            /// String value of the enum field names used in the ProtoBuf definition.
+            ///
+            /// The values are not transformed in any way and thus are considered stable
+            /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+            pub fn as_str_name(&self) -> &'static str {
+                match self {
+                    Self::Unspecified => "ACTION_UNSPECIFIED",
+                    Self::Created => "CREATED",
+                    Self::Updated => "UPDATED",
+                    Self::Deleted => "DELETED",
+                }
+            }
+            /// Creates an enum from field names used in the ProtoBuf definition.
+            pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+                match value {
+                    "ACTION_UNSPECIFIED" => Some(Self::Unspecified),
+                    "CREATED" => Some(Self::Created),
+                    "UPDATED" => Some(Self::Updated),
+                    "DELETED" => Some(Self::Deleted),
+                    _ => None,
+                }
+            }
+        }
+    }
+}
+/// Details of
+/// [MemoryBankService.GenerateMemories][google.cloud.aiplatform.v1beta1.MemoryBankService.GenerateMemories]
+/// operation.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GenerateMemoriesOperationMetadata {
+    /// The common part of the operation metadata.
+    #[prost(message, optional, tag = "1")]
+    pub generic_metadata: ::core::option::Option<GenericOperationMetadata>,
+}
+/// Request message for
+/// [MemoryBankService.RetrieveMemories][google.cloud.aiplatform.v1beta1.MemoryBankService.RetrieveMemories].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RetrieveMemoriesRequest {
+    /// Required. The resource name of the ReasoningEngine to retrieve memories
+    /// from. Format:
+    /// `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}`
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Required. The scope of the memories to retrieve. A memory must have
+    /// exactly the same scope (`Memory.scope`) as the scope provided here to be
+    /// retrieved (same keys and values). Order does not matter, but it is
+    /// case-sensitive.
+    #[prost(map = "string, string", tag = "8")]
+    pub scope: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+    /// Parameters for retrieval.
+    #[prost(oneof = "retrieve_memories_request::RetrievalParams", tags = "6, 7")]
+    pub retrieval_params: ::core::option::Option<
+        retrieve_memories_request::RetrievalParams,
+    >,
+}
+/// Nested message and enum types in `RetrieveMemoriesRequest`.
+pub mod retrieve_memories_request {
+    /// Parameters for semantic similarity search based retrieval.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct SimilaritySearchParams {
+        /// Required. Query to use for similarity search retrieval. If provided, then
+        /// the parent ReasoningEngine must have
+        /// [ReasoningEngineContextSpec.MemoryBankConfig.SimilaritySearchConfig][google.cloud.aiplatform.v1beta1.ReasoningEngineContextSpec.MemoryBankConfig.SimilaritySearchConfig]
+        /// set.
+        #[prost(string, tag = "1")]
+        pub search_query: ::prost::alloc::string::String,
+        /// Optional. The maximum number of memories to return.
+        /// The service may return fewer than this value. If unspecified, at most 3
+        /// memories will be returned. The maximum value is 100; values above 100
+        /// will be coerced to 100.
+        #[prost(int32, tag = "2")]
+        pub top_k: i32,
+    }
+    /// Parameters for simple (non-similarity search) retrieval.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct SimpleRetrievalParams {
+        /// Optional. The maximum number of memories to return.
+        /// The service may return fewer than this value. If unspecified, at most 3
+        /// memories will be returned. The maximum value is 100; values above 100
+        /// will be coerced to 100.
+        #[prost(int32, tag = "1")]
+        pub page_size: i32,
+        /// Optional. A page token, received from a previous `RetrieveMemories` call.
+        /// Provide this to retrieve the subsequent page.
+        #[prost(string, tag = "2")]
+        pub page_token: ::prost::alloc::string::String,
+    }
+    /// Parameters for retrieval.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum RetrievalParams {
+        /// Parameters for semantic similarity search based retrieval.
+        #[prost(message, tag = "6")]
+        SimilaritySearchParams(SimilaritySearchParams),
+        /// Parameters for simple (non-similarity search) retrieval.
+        #[prost(message, tag = "7")]
+        SimpleRetrievalParams(SimpleRetrievalParams),
+    }
+}
+/// Response message for
+/// [MemoryBankService.RetrieveMemories][google.cloud.aiplatform.v1beta1.MemoryBankService.RetrieveMemories].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RetrieveMemoriesResponse {
+    /// The retrieved memories.
+    #[prost(message, repeated, tag = "1")]
+    pub retrieved_memories: ::prost::alloc::vec::Vec<
+        retrieve_memories_response::RetrievedMemory,
+    >,
+    /// A token that can be sent as `page_token` to retrieve the next page.
+    /// If this field is omitted, there are no subsequent pages.
+    /// This token is not set if similarity search was used for retrieval.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
+/// Nested message and enum types in `RetrieveMemoriesResponse`.
+pub mod retrieve_memories_response {
+    /// A retrieved memory.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct RetrievedMemory {
+        /// The retrieved Memory.
+        #[prost(message, optional, tag = "1")]
+        pub memory: ::core::option::Option<super::Memory>,
+        /// The distance between the query and the retrieved Memory. Smaller values
+        /// indicate more similar memories. This is only set if similarity search was
+        /// used for retrieval.
+        #[prost(double, tag = "2")]
+        pub distance: f64,
+    }
+}
+/// Generated client implementations.
+pub mod memory_bank_service_client {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value,
+    )]
+    use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
+    /// A service for managing memories for LLM applications.
+    #[derive(Debug, Clone)]
+    pub struct MemoryBankServiceClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl MemoryBankServiceClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> MemoryBankServiceClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> MemoryBankServiceClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+        {
+            MemoryBankServiceClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        /// Create a Memory.
+        pub async fn create_memory(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateMemoryRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.MemoryBankService/CreateMemory",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.MemoryBankService",
+                        "CreateMemory",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Get a Memory.
+        pub async fn get_memory(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetMemoryRequest>,
+        ) -> std::result::Result<tonic::Response<super::Memory>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.MemoryBankService/GetMemory",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.MemoryBankService",
+                        "GetMemory",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Update a Memory.
+        pub async fn update_memory(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateMemoryRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.MemoryBankService/UpdateMemory",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.MemoryBankService",
+                        "UpdateMemory",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// List Memories.
+        pub async fn list_memories(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListMemoriesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListMemoriesResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.MemoryBankService/ListMemories",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.MemoryBankService",
+                        "ListMemories",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Delete a Memory.
+        pub async fn delete_memory(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteMemoryRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.MemoryBankService/DeleteMemory",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.MemoryBankService",
+                        "DeleteMemory",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Generate memories.
+        pub async fn generate_memories(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GenerateMemoriesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.MemoryBankService/GenerateMemories",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.MemoryBankService",
+                        "GenerateMemories",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Retrieve memories.
+        pub async fn retrieve_memories(
+            &mut self,
+            request: impl tonic::IntoRequest<super::RetrieveMemoriesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::RetrieveMemoriesResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.MemoryBankService/RetrieveMemories",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.MemoryBankService",
+                        "RetrieveMemories",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+    }
+}
 /// Instance of a general MetadataSchema.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MetadataSchema {
@@ -29819,6 +36211,10 @@ pub mod publisher_model {
         /// Optional. Deploy the PublisherModel to Vertex Endpoint.
         #[prost(message, optional, tag = "7")]
         pub deploy: ::core::option::Option<call_to_action::Deploy>,
+        /// Optional. Multiple setups to deploy the PublisherModel to Vertex
+        /// Endpoint.
+        #[prost(message, optional, tag = "16")]
+        pub multi_deploy_vertex: ::core::option::Option<call_to_action::DeployVertex>,
         /// Optional. Deploy PublisherModel to Google Kubernetes Engine.
         #[prost(message, optional, tag = "14")]
         pub deploy_gke: ::core::option::Option<call_to_action::DeployGke>,
@@ -29893,6 +36289,13 @@ pub mod publisher_model {
                 RegionalResourceReferences,
             >,
         }
+        /// Multiple setups to deploy the PublisherModel.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct DeployVertex {
+            /// Optional. One click deployment configurations.
+            #[prost(message, repeated, tag = "1")]
+            pub multi_deploy_vertex: ::prost::alloc::vec::Vec<Deploy>,
+        }
         /// Model metadata that is needed for UploadModel or
         /// DeployModel/CreateEndpoint requests.
         #[derive(Clone, PartialEq, ::prost::Message)]
@@ -29941,8 +36344,8 @@ pub mod publisher_model {
             /// config.
             #[derive(Clone, PartialEq, ::prost::Message)]
             pub struct DeployMetadata {
-                /// Optional. Labels for the deployment. For managing deployment config
-                /// like verifying, source of deployment config, etc.
+                /// Optional. Labels for the deployment config. For managing deployment
+                /// config like verifying, source of deployment config, etc.
                 #[prost(map = "string, string", tag = "1")]
                 pub labels: ::std::collections::HashMap<
                     ::prost::alloc::string::String,
@@ -30172,6 +36575,10 @@ pub struct GetPublisherModelRequest {
     /// Optional. Token used to access Hugging Face gated models.
     #[prost(string, tag = "6")]
     pub hugging_face_token: ::prost::alloc::string::String,
+    /// Optional. Whether to cnclude the deployment configs from the equivalent
+    /// Model Garden model if the requested model is a Hugging Face model.
+    #[prost(bool, tag = "7")]
+    pub include_equivalent_model_garden_model_deployment_configs: bool,
 }
 /// Request message for
 /// [ModelGardenService.ListPublisherModels][google.cloud.aiplatform.v1beta1.ModelGardenService.ListPublisherModels].
@@ -30207,6 +36614,9 @@ pub struct ListPublisherModelsRequest {
     /// default English (en).
     #[prost(string, tag = "7")]
     pub language_code: ::prost::alloc::string::String,
+    /// Optional. List all publisher model versions if the flag is set to true.
+    #[prost(bool, tag = "8")]
+    pub list_all_versions: bool,
 }
 /// Response message for
 /// [ModelGardenService.ListPublisherModels][google.cloud.aiplatform.v1beta1.ModelGardenService.ListPublisherModels].
@@ -30219,6 +36629,379 @@ pub struct ListPublisherModelsResponse {
     /// Pass to [ListPublisherModels.page_token][] to obtain that page.
     #[prost(string, tag = "2")]
     pub next_page_token: ::prost::alloc::string::String,
+}
+/// Request message for
+/// [ModelGardenService.Deploy][google.cloud.aiplatform.v1beta1.ModelGardenService.Deploy].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeployRequest {
+    /// Required. The resource name of the Location to deploy the model in.
+    /// Format: `projects/{project}/locations/{location}`
+    #[prost(string, tag = "4")]
+    pub destination: ::prost::alloc::string::String,
+    /// Optional. The model config to use for the deployment.
+    /// If not specified, the default model config will be used.
+    #[prost(message, optional, tag = "5")]
+    pub model_config: ::core::option::Option<deploy_request::ModelConfig>,
+    /// Optional. The endpoint config to use for the deployment.
+    /// If not specified, the default endpoint config will be used.
+    #[prost(message, optional, tag = "6")]
+    pub endpoint_config: ::core::option::Option<deploy_request::EndpointConfig>,
+    /// Optional. The deploy config to use for the deployment.
+    /// If not specified, the default deploy config will be used.
+    #[prost(message, optional, tag = "7")]
+    pub deploy_config: ::core::option::Option<deploy_request::DeployConfig>,
+    /// The artifacts to deploy.
+    #[prost(oneof = "deploy_request::Artifacts", tags = "1, 2, 3")]
+    pub artifacts: ::core::option::Option<deploy_request::Artifacts>,
+}
+/// Nested message and enum types in `DeployRequest`.
+pub mod deploy_request {
+    /// The custom model to deploy from model weights in a Google Cloud Storage URI
+    /// or Model Registry model.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct CustomModel {
+        /// The source of the custom model.
+        #[prost(oneof = "custom_model::ModelSource", tags = "2")]
+        pub model_source: ::core::option::Option<custom_model::ModelSource>,
+    }
+    /// Nested message and enum types in `CustomModel`.
+    pub mod custom_model {
+        /// The source of the custom model.
+        #[derive(Clone, PartialEq, ::prost::Oneof)]
+        pub enum ModelSource {
+            /// Immutable. The Google Cloud Storage URI of the custom model, storing
+            /// weights and config files (which can be used to infer the base model).
+            #[prost(string, tag = "2")]
+            GcsUri(::prost::alloc::string::String),
+        }
+    }
+    /// The model config to use for the deployment.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct ModelConfig {
+        /// Optional. Whether the user accepts the End User License Agreement (EULA)
+        /// for the model.
+        #[prost(bool, tag = "1")]
+        pub accept_eula: bool,
+        /// Optional. The Hugging Face read access token used to access the model
+        /// artifacts of gated models.
+        #[prost(string, tag = "2")]
+        pub hugging_face_access_token: ::prost::alloc::string::String,
+        /// Optional. If true, the model will deploy with a cached version instead of
+        /// directly downloading the model artifacts from Hugging Face. This is
+        /// suitable for VPC-SC users with limited internet access.
+        #[prost(bool, tag = "3")]
+        pub hugging_face_cache_enabled: bool,
+        /// Optional. The user-specified display name of the uploaded model. If not
+        /// set, a default name will be used.
+        #[prost(string, tag = "4")]
+        pub model_display_name: ::prost::alloc::string::String,
+        /// Optional. The specification of the container that is to be used when
+        /// deploying. If not set, the default container spec will be used.
+        #[prost(message, optional, tag = "5")]
+        pub container_spec: ::core::option::Option<super::ModelContainerSpec>,
+        /// Optional. The ID to use for the uploaded Model, which will become the
+        /// final component of the model resource name. When not provided, Vertex AI
+        /// will generate a value for this ID. When Model Registry model is provided,
+        /// this field will be ignored.
+        ///
+        /// This value may be up to 63 characters, and valid characters are
+        /// `\[a-z0-9_-\]`. The first character cannot be a number or hyphen.
+        #[prost(string, tag = "6")]
+        pub model_user_id: ::prost::alloc::string::String,
+    }
+    /// The endpoint config to use for the deployment.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct EndpointConfig {
+        /// Optional. The user-specified display name of the endpoint. If not set, a
+        /// default name will be used.
+        #[prost(string, tag = "1")]
+        pub endpoint_display_name: ::prost::alloc::string::String,
+        /// Optional. Deprecated. Use dedicated_endpoint_disabled instead.
+        /// If true, the endpoint will be exposed through a
+        /// dedicated DNS \[Endpoint.dedicated_endpoint_dns\]. Your request to the
+        /// dedicated DNS will be isolated from other users' traffic and will have
+        /// better performance and reliability. Note: Once you enabled dedicated
+        /// endpoint, you won't be able to send request to the shared DNS
+        /// {region}-aiplatform.googleapis.com. The limitations will be removed soon.
+        #[deprecated]
+        #[prost(bool, tag = "2")]
+        pub dedicated_endpoint_enabled: bool,
+        /// Optional. By default, if dedicated endpoint is enabled and private
+        /// service connect config is not set, the endpoint will be exposed through a
+        /// dedicated DNS \[Endpoint.dedicated_endpoint_dns\]. If private service
+        /// connect config is set, the endpoint will be exposed through private
+        /// service connect. Your request to the dedicated DNS will be isolated from
+        /// other users' traffic and will have better performance and reliability.
+        /// Note: Once you enabled dedicated endpoint, you won't be able to send
+        /// request to the shared DNS {region}-aiplatform.googleapis.com. The
+        /// limitations will be removed soon.
+        ///
+        /// If this field is set to true, the dedicated endpoint will be disabled
+        /// and the deployed model will be exposed through the shared DNS
+        /// {region}-aiplatform.googleapis.com.
+        #[prost(bool, tag = "4")]
+        pub dedicated_endpoint_disabled: bool,
+        /// Optional. Configuration for private service connect. If set, the endpoint
+        /// will be exposed through private service connect.
+        #[prost(message, optional, tag = "5")]
+        pub private_service_connect_config: ::core::option::Option<
+            super::PrivateServiceConnectConfig,
+        >,
+        /// Optional. Immutable. The ID to use for endpoint, which will become the
+        /// final component of the endpoint resource name. If not provided, Vertex AI
+        /// will generate a value for this ID.
+        ///
+        /// If the first character is a letter, this value may be up to 63
+        /// characters, and valid characters are `\[a-z0-9-\]`. The last character must
+        /// be a letter or number.
+        ///
+        /// If the first character is a number, this value may be up to 9 characters,
+        /// and valid characters are `\[0-9\]` with no leading zeros.
+        ///
+        /// When using HTTP/JSON, this field is populated
+        /// based on a query string argument, such as `?endpoint_id=12345`. This is
+        /// the fallback for fields that are not included in either the URI or the
+        /// body.
+        #[prost(string, tag = "3")]
+        pub endpoint_user_id: ::prost::alloc::string::String,
+    }
+    /// The deploy config to use for the deployment.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct DeployConfig {
+        /// Optional. The dedicated resources to use for the endpoint. If not set,
+        /// the default resources will be used.
+        #[prost(message, optional, tag = "1")]
+        pub dedicated_resources: ::core::option::Option<super::DedicatedResources>,
+        /// Optional. If true, enable the QMT fast tryout feature for this model if
+        /// possible.
+        #[prost(bool, tag = "2")]
+        pub fast_tryout_enabled: bool,
+        /// Optional. System labels for Model Garden deployments.
+        /// These labels are managed by Google and for tracking purposes only.
+        #[prost(map = "string, string", tag = "3")]
+        pub system_labels: ::std::collections::HashMap<
+            ::prost::alloc::string::String,
+            ::prost::alloc::string::String,
+        >,
+    }
+    /// The artifacts to deploy.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Artifacts {
+        /// The Model Garden model to deploy.
+        /// Format:
+        /// `publishers/{publisher}/models/{publisher_model}@{version_id}`, or
+        /// `publishers/hf-{hugging-face-author}/models/{hugging-face-model-name}@001`.
+        #[prost(string, tag = "1")]
+        PublisherModelName(::prost::alloc::string::String),
+        /// The Hugging Face model to deploy.
+        /// Format: Hugging Face model ID like `google/gemma-2-2b-it`.
+        #[prost(string, tag = "2")]
+        HuggingFaceModelId(::prost::alloc::string::String),
+        /// The custom model to deploy from a Google Cloud Storage URI.
+        #[prost(message, tag = "3")]
+        CustomModel(CustomModel),
+    }
+}
+/// Request message for
+/// [ModelGardenService.DeployPublisherModel][google.cloud.aiplatform.v1beta1.ModelGardenService.DeployPublisherModel].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeployPublisherModelRequest {
+    /// Required. The model to deploy.
+    /// Format:
+    /// 1. `publishers/{publisher}/models/{publisher_model}@{version_id}`, or
+    /// `publishers/hf-{hugging-face-author}/models/{hugging-face-model-name}@001`.
+    /// 2. Hugging Face model ID like `google/gemma-2-2b-it`.
+    /// 3. Custom model Google Cloud Storage URI like `gs://bucket`.
+    /// 4. Custom model zip file like `<https://example.com/a.zip`.>
+    #[prost(string, tag = "1")]
+    pub model: ::prost::alloc::string::String,
+    /// Required. The resource name of the Location to deploy the model in.
+    /// Format: `projects/{project}/locations/{location}`
+    #[prost(string, tag = "2")]
+    pub destination: ::prost::alloc::string::String,
+    /// Optional. The user-specified display name of the endpoint. If not set, a
+    /// default name will be used.
+    #[prost(string, tag = "3")]
+    pub endpoint_display_name: ::prost::alloc::string::String,
+    /// Optional. The dedicated resources to use for the endpoint. If not set, the
+    /// default resources will be used.
+    #[prost(message, optional, tag = "4")]
+    pub dedicated_resources: ::core::option::Option<DedicatedResources>,
+    /// Optional. The user-specified display name of the uploaded model. If not
+    /// set, a default name will be used.
+    #[prost(string, tag = "5")]
+    pub model_display_name: ::prost::alloc::string::String,
+    /// Optional. The Hugging Face read access token used to access the model
+    /// artifacts of gated models.
+    #[prost(string, tag = "6")]
+    pub hugging_face_access_token: ::prost::alloc::string::String,
+    /// Optional. Whether the user accepts the End User License Agreement (EULA)
+    /// for the model.
+    #[prost(bool, tag = "7")]
+    pub accept_eula: bool,
+}
+/// Response message for
+/// [ModelGardenService.Deploy][google.cloud.aiplatform.v1beta1.ModelGardenService.Deploy].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeployResponse {
+    /// Output only. The name of the PublisherModel resource.
+    /// Format:
+    /// `publishers/{publisher}/models/{publisher_model}@{version_id}`, or
+    /// `publishers/hf-{hugging-face-author}/models/{hugging-face-model-name}@001`
+    #[prost(string, tag = "1")]
+    pub publisher_model: ::prost::alloc::string::String,
+    /// Output only. The name of the Endpoint created.
+    /// Format: `projects/{project}/locations/{location}/endpoints/{endpoint}`
+    #[prost(string, tag = "2")]
+    pub endpoint: ::prost::alloc::string::String,
+    /// Output only. The name of the Model created.
+    /// Format: `projects/{project}/locations/{location}/models/{model}`
+    #[prost(string, tag = "3")]
+    pub model: ::prost::alloc::string::String,
+}
+/// Response message for
+/// [ModelGardenService.DeployPublisherModel][google.cloud.aiplatform.v1beta1.ModelGardenService.DeployPublisherModel].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeployPublisherModelResponse {
+    /// Output only. The name of the PublisherModel resource.
+    /// Format:
+    /// `publishers/{publisher}/models/{publisher_model}@{version_id}`, or
+    /// `publishers/hf-{hugging-face-author}/models/{hugging-face-model-name}@001`
+    #[prost(string, tag = "1")]
+    pub publisher_model: ::prost::alloc::string::String,
+    /// Output only. The name of the Endpoint created.
+    /// Format: `projects/{project}/locations/{location}/endpoints/{endpoint}`
+    #[prost(string, tag = "2")]
+    pub endpoint: ::prost::alloc::string::String,
+    /// Output only. The name of the Model created.
+    /// Format: `projects/{project}/locations/{location}/models/{model}`
+    #[prost(string, tag = "3")]
+    pub model: ::prost::alloc::string::String,
+}
+/// Runtime operation information for
+/// [ModelGardenService.Deploy][google.cloud.aiplatform.v1beta1.ModelGardenService.Deploy].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeployOperationMetadata {
+    /// The operation generic information.
+    #[prost(message, optional, tag = "1")]
+    pub generic_metadata: ::core::option::Option<GenericOperationMetadata>,
+    /// Output only. The name of the model resource.
+    #[prost(string, tag = "2")]
+    pub publisher_model: ::prost::alloc::string::String,
+    /// Output only. The resource name of the Location to deploy the model in.
+    /// Format: `projects/{project}/locations/{location}`
+    #[prost(string, tag = "3")]
+    pub destination: ::prost::alloc::string::String,
+    /// Output only. The project number where the deploy model request is sent.
+    #[prost(int64, tag = "4")]
+    pub project_number: i64,
+    /// Output only. The model id to be used at query time.
+    #[prost(string, tag = "5")]
+    pub model_id: ::prost::alloc::string::String,
+}
+/// Runtime operation information for
+/// [ModelGardenService.DeployPublisherModel][google.cloud.aiplatform.v1beta1.ModelGardenService.DeployPublisherModel].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeployPublisherModelOperationMetadata {
+    /// The operation generic information.
+    #[prost(message, optional, tag = "1")]
+    pub generic_metadata: ::core::option::Option<GenericOperationMetadata>,
+    /// Output only. The name of the PublisherModel resource.
+    /// Format:
+    /// `publishers/{publisher}/models/{publisher_model}@{version_id}`, or
+    /// `publishers/hf-{hugging-face-author}/models/{hugging-face-model-name}@001`
+    #[prost(string, tag = "2")]
+    pub publisher_model: ::prost::alloc::string::String,
+    /// Output only. The resource name of the Location to deploy the model in.
+    /// Format: `projects/{project}/locations/{location}`
+    #[prost(string, tag = "3")]
+    pub destination: ::prost::alloc::string::String,
+    /// Output only. The project number where the deploy model request is sent.
+    #[prost(int64, tag = "4")]
+    pub project_number: i64,
+}
+/// Response message for
+/// [ModelGardenService.ExportPublisherModel][google.cloud.aiplatform.v1beta1.ModelGardenService.ExportPublisherModel].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ExportPublisherModelResponse {
+    /// The name of the PublisherModel resource.
+    /// Format:
+    /// `publishers/{publisher}/models/{publisher_model}@{version_id}`
+    #[prost(string, tag = "1")]
+    pub publisher_model: ::prost::alloc::string::String,
+    /// The destination uri of the model weights.
+    #[prost(string, tag = "2")]
+    pub destination_uri: ::prost::alloc::string::String,
+}
+/// Runtime operation information for
+/// [ModelGardenService.ExportPublisherModel][google.cloud.aiplatform.v1beta1.ModelGardenService.ExportPublisherModel].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ExportPublisherModelOperationMetadata {
+    /// The operation generic information.
+    #[prost(message, optional, tag = "1")]
+    pub generic_metadata: ::core::option::Option<GenericOperationMetadata>,
+}
+/// Request message for
+/// [ModelGardenService.ExportPublisherModel][google.cloud.aiplatform.v1beta1.ModelGardenService.ExportPublisherModel].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ExportPublisherModelRequest {
+    /// Required. The name of the PublisherModel resource.
+    /// Format:
+    /// `publishers/{publisher}/models/{publisher_model}@{version_id}`, or
+    /// `publishers/hf-{hugging-face-author}/models/{hugging-face-model-name}@001`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Required. The target where we are exporting the model weights to
+    #[prost(message, optional, tag = "2")]
+    pub destination: ::core::option::Option<GcsDestination>,
+    /// Required. The Location to export the model weights from
+    /// Format: `projects/{project}/locations/{location}`
+    #[prost(string, tag = "3")]
+    pub parent: ::prost::alloc::string::String,
+}
+/// Request message for
+/// [ModelGardenService.CheckPublisherModelEula][].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CheckPublisherModelEulaAcceptanceRequest {
+    /// Required. The project requesting access for named model. The format is
+    /// `projects/{project}`.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Required. The name of the PublisherModel resource.
+    /// Format:
+    /// `publishers/{publisher}/models/{publisher_model}`, or
+    /// `publishers/hf-{hugging-face-author}/models/{hugging-face-model-name}`
+    #[prost(string, tag = "2")]
+    pub publisher_model: ::prost::alloc::string::String,
+}
+/// Request message for
+/// [ModelGardenService.AcceptPublisherModelEula][google.cloud.aiplatform.v1beta1.ModelGardenService.AcceptPublisherModelEula].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AcceptPublisherModelEulaRequest {
+    /// Required. The project requesting access for named model. The format is
+    /// `projects/{project}`.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Required. The name of the PublisherModel resource.
+    /// Format:
+    /// `publishers/{publisher}/models/{publisher_model}`, or
+    /// `publishers/hf-{hugging-face-author}/models/{hugging-face-model-name}`
+    #[prost(string, tag = "2")]
+    pub publisher_model: ::prost::alloc::string::String,
+}
+/// Response message for
+/// [ModelGardenService.UpdatePublisherModelEula][].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PublisherModelEulaAcceptance {
+    /// The project number requesting access for named model.
+    #[prost(int64, tag = "1")]
+    pub project_number: i64,
+    /// The publisher model resource name.
+    #[prost(string, tag = "2")]
+    pub publisher_model: ::prost::alloc::string::String,
+    /// The EULA content acceptance status.
+    #[prost(bool, tag = "3")]
+    pub publisher_model_eula_acked: bool,
 }
 /// View enumeration of PublisherModel.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
@@ -30405,6 +37188,159 @@ pub mod model_garden_service_client {
                     GrpcMethod::new(
                         "google.cloud.aiplatform.v1beta1.ModelGardenService",
                         "ListPublisherModels",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Deploys a model to a new endpoint.
+        pub async fn deploy(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeployRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.ModelGardenService/Deploy",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.ModelGardenService",
+                        "Deploy",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Deploys publisher models.
+        #[deprecated]
+        pub async fn deploy_publisher_model(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeployPublisherModelRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.ModelGardenService/DeployPublisherModel",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.ModelGardenService",
+                        "DeployPublisherModel",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Exports a publisher model to a user provided Google Cloud Storage bucket.
+        pub async fn export_publisher_model(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ExportPublisherModelRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.ModelGardenService/ExportPublisherModel",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.ModelGardenService",
+                        "ExportPublisherModel",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Checks the EULA acceptance status of a publisher model.
+        pub async fn check_publisher_model_eula_acceptance(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::CheckPublisherModelEulaAcceptanceRequest,
+            >,
+        ) -> std::result::Result<
+            tonic::Response<super::PublisherModelEulaAcceptance>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.ModelGardenService/CheckPublisherModelEulaAcceptance",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.ModelGardenService",
+                        "CheckPublisherModelEulaAcceptance",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Accepts the EULA acceptance status of a publisher model.
+        pub async fn accept_publisher_model_eula(
+            &mut self,
+            request: impl tonic::IntoRequest<super::AcceptPublisherModelEulaRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::PublisherModelEulaAcceptance>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.ModelGardenService/AcceptPublisherModelEula",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.ModelGardenService",
+                        "AcceptPublisherModelEula",
                     ),
                 );
             self.inner.unary(req, path, codec).await
@@ -30656,7 +37592,7 @@ pub mod model_monitoring_input {
         pub struct ModelMonitoringGcsSource {
             /// Google Cloud Storage URI to the input file(s). May contain
             /// wildcards. For more information on wildcards, see
-            /// <https://cloud.google.com/storage/docs/gsutil/addlhelp/WildcardNames.>
+            /// <https://cloud.google.com/storage/docs/wildcards.>
             #[prost(string, tag = "1")]
             pub gcs_uri: ::prost::alloc::string::String,
             /// Data format of the dataset.
@@ -30906,6 +37842,11 @@ pub struct ModelMonitor {
     /// unless the schem information is not available.
     #[prost(message, optional, tag = "9")]
     pub model_monitoring_schema: ::core::option::Option<ModelMonitoringSchema>,
+    /// Customer-managed encryption key spec for a ModelMonitor. If
+    /// set, this ModelMonitor and all sub-resources of this
+    /// ModelMonitor will be secured by this key.
+    #[prost(message, optional, tag = "5")]
+    pub encryption_spec: ::core::option::Option<EncryptionSpec>,
     /// Output only. Timestamp when this ModelMonitor was created.
     #[prost(message, optional, tag = "6")]
     pub create_time: ::core::option::Option<::prost_types::Timestamp>,
@@ -32151,6 +39092,59 @@ pub struct ListModelVersionsResponse {
     pub next_page_token: ::prost::alloc::string::String,
 }
 /// Request message for
+/// [ModelService.ListModelVersionCheckpoints][google.cloud.aiplatform.v1beta1.ModelService.ListModelVersionCheckpoints].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListModelVersionCheckpointsRequest {
+    /// Required. The name of the model version to list checkpoints for.
+    /// `projects/{project}/locations/{location}/models/{model}@{version}`
+    /// Example: `projects/{project}/locations/{location}/models/{model}@2`
+    /// or
+    /// `projects/{project}/locations/{location}/models/{model}@golden`
+    /// If no version ID or alias is specified, the latest version will be
+    /// used.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Optional. The standard list page size.
+    #[prost(int32, tag = "2")]
+    pub page_size: i32,
+    /// Optional. The standard list page token.
+    /// Typically obtained via
+    /// [next_page_token][google.cloud.aiplatform.v1beta1.ListModelVersionCheckpointsResponse.next_page_token]
+    /// of the previous
+    /// [ListModelVersionCheckpoints][google.cloud.aiplatform.v1beta1.ModelService.ListModelVersionCheckpoints]
+    /// call.
+    #[prost(string, tag = "3")]
+    pub page_token: ::prost::alloc::string::String,
+}
+/// A proto representation of a Spanner-stored ModelVersionCheckpoint.
+/// The meaning of the fields is equivalent to their in-Spanner counterparts.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ModelVersionCheckpoint {
+    /// The ID of the checkpoint.
+    #[prost(string, tag = "1")]
+    pub checkpoint_id: ::prost::alloc::string::String,
+    /// The epoch of the checkpoint.
+    #[prost(int64, tag = "2")]
+    pub epoch: i64,
+    /// The step of the checkpoint.
+    #[prost(int64, tag = "3")]
+    pub step: i64,
+}
+/// Response message for
+/// [ModelService.ListModelVersionCheckpoints][google.cloud.aiplatform.v1beta1.ModelService.ListModelVersionCheckpoints]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListModelVersionCheckpointsResponse {
+    /// List of Model Version checkpoints.
+    #[prost(message, repeated, tag = "1")]
+    pub checkpoints: ::prost::alloc::vec::Vec<ModelVersionCheckpoint>,
+    /// A token to retrieve the next page of results.
+    /// Pass to
+    /// [ListModelVersionCheckpointsRequest.page_token][google.cloud.aiplatform.v1beta1.ListModelVersionCheckpointsRequest.page_token]
+    /// to obtain that page.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
+/// Request message for
 /// [ModelService.UpdateModel][google.cloud.aiplatform.v1beta1.ModelService.UpdateModel].
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdateModelRequest {
@@ -32552,6 +39546,123 @@ pub struct ListModelEvaluationSlicesResponse {
     #[prost(string, tag = "2")]
     pub next_page_token: ::prost::alloc::string::String,
 }
+/// Request message for
+/// [ModelService.RecommendSpec][google.cloud.aiplatform.v1beta1.ModelService.RecommendSpec].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RecommendSpecRequest {
+    /// Required. The resource name of the Location from which to recommend specs.
+    /// The users must have permission to make a call in the project.
+    /// Format:
+    /// `projects/{project}/locations/{location}`.
+    #[prost(string, tag = "2")]
+    pub parent: ::prost::alloc::string::String,
+    /// Required. The Google Cloud Storage URI of the custom model, storing weights
+    /// and config files (which can be used to infer the base model).
+    #[prost(string, tag = "1")]
+    pub gcs_uri: ::prost::alloc::string::String,
+    /// Optional. If true, check machine availability for the recommended regions.
+    /// Only return the machine spec in regions where the machine is available.
+    #[prost(bool, tag = "3")]
+    pub check_machine_availability: bool,
+    /// Optional. If true, check user quota for the recommended regions.
+    /// Returns all the machine spec in regions they are available, and also the
+    /// user quota state for each machine type in each region.
+    #[prost(bool, tag = "4")]
+    pub check_user_quota: bool,
+}
+/// Response message for
+/// [ModelService.RecommendSpec][google.cloud.aiplatform.v1beta1.ModelService.RecommendSpec].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RecommendSpecResponse {
+    /// Output only. The base model used to finetune the custom model.
+    #[prost(string, tag = "1")]
+    pub base_model: ::prost::alloc::string::String,
+    /// Output only. Recommendations of deployment options for the given custom
+    /// weights model.
+    #[prost(message, repeated, tag = "3")]
+    pub recommendations: ::prost::alloc::vec::Vec<
+        recommend_spec_response::Recommendation,
+    >,
+    /// Output only. The machine and model container specs.
+    #[prost(message, repeated, tag = "2")]
+    pub specs: ::prost::alloc::vec::Vec<
+        recommend_spec_response::MachineAndModelContainerSpec,
+    >,
+}
+/// Nested message and enum types in `RecommendSpecResponse`.
+pub mod recommend_spec_response {
+    /// A machine and model container spec.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct MachineAndModelContainerSpec {
+        /// Output only. The machine spec.
+        #[prost(message, optional, tag = "1")]
+        pub machine_spec: ::core::option::Option<super::MachineSpec>,
+        /// Output only. The model container spec.
+        #[prost(message, optional, tag = "2")]
+        pub container_spec: ::core::option::Option<super::ModelContainerSpec>,
+    }
+    /// Recommendation of one deployment option for the given custom weights model
+    /// in one region.
+    /// Contains the machine and container spec, and user accelerator quota state.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Recommendation {
+        /// The region for the deployment spec (machine).
+        #[prost(string, tag = "1")]
+        pub region: ::prost::alloc::string::String,
+        /// Output only. The machine and model container specs.
+        #[prost(message, optional, tag = "2")]
+        pub spec: ::core::option::Option<MachineAndModelContainerSpec>,
+        /// Output only. The user accelerator quota state.
+        #[prost(enumeration = "recommendation::QuotaState", tag = "3")]
+        pub user_quota_state: i32,
+    }
+    /// Nested message and enum types in `Recommendation`.
+    pub mod recommendation {
+        /// The user accelerator quota state.
+        #[derive(
+            Clone,
+            Copy,
+            Debug,
+            PartialEq,
+            Eq,
+            Hash,
+            PartialOrd,
+            Ord,
+            ::prost::Enumeration
+        )]
+        #[repr(i32)]
+        pub enum QuotaState {
+            /// Unspecified quota state. Quota information not available.
+            Unspecified = 0,
+            /// User has enough accelerator quota for the machine type.
+            UserHasQuota = 1,
+            /// User does not have enough accelerator quota for the machine type.
+            NoUserQuota = 2,
+        }
+        impl QuotaState {
+            /// String value of the enum field names used in the ProtoBuf definition.
+            ///
+            /// The values are not transformed in any way and thus are considered stable
+            /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+            pub fn as_str_name(&self) -> &'static str {
+                match self {
+                    Self::Unspecified => "QUOTA_STATE_UNSPECIFIED",
+                    Self::UserHasQuota => "QUOTA_STATE_USER_HAS_QUOTA",
+                    Self::NoUserQuota => "QUOTA_STATE_NO_USER_QUOTA",
+                }
+            }
+            /// Creates an enum from field names used in the ProtoBuf definition.
+            pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+                match value {
+                    "QUOTA_STATE_UNSPECIFIED" => Some(Self::Unspecified),
+                    "QUOTA_STATE_USER_HAS_QUOTA" => Some(Self::UserHasQuota),
+                    "QUOTA_STATE_NO_USER_QUOTA" => Some(Self::NoUserQuota),
+                    _ => None,
+                }
+            }
+        }
+    }
+}
 /// Generated client implementations.
 pub mod model_service_client {
     #![allow(
@@ -32757,6 +39868,36 @@ pub mod model_service_client {
                     GrpcMethod::new(
                         "google.cloud.aiplatform.v1beta1.ModelService",
                         "ListModelVersions",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Lists checkpoints of the specified model version.
+        pub async fn list_model_version_checkpoints(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListModelVersionCheckpointsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListModelVersionCheckpointsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.ModelService/ListModelVersionCheckpoints",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.ModelService",
+                        "ListModelVersionCheckpoints",
                     ),
                 );
             self.inner.unary(req, path, codec).await
@@ -33200,6 +40341,36 @@ pub mod model_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        /// Gets a Model's spec recommendations.
+        pub async fn recommend_spec(
+            &mut self,
+            request: impl tonic::IntoRequest<super::RecommendSpecRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::RecommendSpecResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.ModelService/RecommendSpec",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.ModelService",
+                        "RecommendSpec",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
     }
 }
 /// Network spec.
@@ -33250,8 +40421,7 @@ pub struct NotebookExecutionJob {
     /// Max running time of the execution job in seconds (default 86400s / 24 hrs).
     #[prost(message, optional, tag = "5")]
     pub execution_timeout: ::core::option::Option<::prost_types::Duration>,
-    /// Output only. The Schedule resource name if this job is triggered by one.
-    /// Format:
+    /// The Schedule resource name if this job is triggered by one. Format:
     /// `projects/{project_id}/locations/{location}/schedules/{schedule_id}`
     #[prost(string, tag = "6")]
     pub schedule_resource_name: ::prost::alloc::string::String,
@@ -33284,9 +40454,14 @@ pub struct NotebookExecutionJob {
         ::prost::alloc::string::String,
         ::prost::alloc::string::String,
     >,
+    /// The name of the kernel to use during notebook execution. If unset, the
+    /// default kernel is used.
+    #[prost(string, tag = "20")]
+    pub kernel_name: ::prost::alloc::string::String,
     /// Customer-managed encryption key spec for the notebook execution job.
     /// This field is auto-populated if the
-    /// [NotebookService.NotebookRuntimeTemplate][] has an encryption spec.
+    /// [NotebookRuntimeTemplate][google.cloud.aiplatform.v1beta1.NotebookRuntimeTemplate]
+    /// has an encryption spec.
     #[prost(message, optional, tag = "22")]
     pub encryption_spec: ::core::option::Option<EncryptionSpec>,
     /// The input notebook.
@@ -33304,6 +40479,12 @@ pub struct NotebookExecutionJob {
     #[prost(oneof = "notebook_execution_job::ExecutionIdentity", tags = "9, 18")]
     pub execution_identity: ::core::option::Option<
         notebook_execution_job::ExecutionIdentity,
+    >,
+    /// Runtime environment for the notebook execution job. If unspecified, the
+    /// default runtime of Colab is used.
+    #[prost(oneof = "notebook_execution_job::RuntimeEnvironment", tags = "23")]
+    pub runtime_environment: ::core::option::Option<
+        notebook_execution_job::RuntimeEnvironment,
     >,
 }
 /// Nested message and enum types in `NotebookExecutionJob`.
@@ -33353,6 +40534,9 @@ pub mod notebook_execution_job {
         #[prost(message, optional, tag = "3")]
         pub network_spec: ::core::option::Option<super::NetworkSpec>,
     }
+    /// Configuration for a Workbench Instances-based environment.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct WorkbenchRuntime {}
     /// The input notebook.
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum NotebookSource {
@@ -33395,6 +40579,14 @@ pub mod notebook_execution_job {
         #[prost(string, tag = "18")]
         ServiceAccount(::prost::alloc::string::String),
     }
+    /// Runtime environment for the notebook execution job. If unspecified, the
+    /// default runtime of Colab is used.
+    #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
+    pub enum RuntimeEnvironment {
+        /// The Workbench runtime configuration to use for the notebook execution.
+        #[prost(message, tag = "23")]
+        WorkbenchRuntime(WorkbenchRuntime),
+    }
 }
 /// The idle shutdown configuration of NotebookRuntimeTemplate, which contains
 /// the idle_timeout as required field.
@@ -33416,6 +40608,113 @@ pub struct NotebookRuntimeTemplateRef {
     #[prost(string, tag = "1")]
     pub notebook_runtime_template: ::prost::alloc::string::String,
 }
+/// Post-startup script config.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PostStartupScriptConfig {
+    /// Optional. Post-startup script to run after runtime is started.
+    #[prost(string, tag = "1")]
+    pub post_startup_script: ::prost::alloc::string::String,
+    /// Optional. Post-startup script url to download. Example:
+    /// <https://bucket/script.sh>
+    #[prost(string, tag = "2")]
+    pub post_startup_script_url: ::prost::alloc::string::String,
+    /// Optional. Post-startup script behavior that defines download and execution
+    /// behavior.
+    #[prost(
+        enumeration = "post_startup_script_config::PostStartupScriptBehavior",
+        tag = "3"
+    )]
+    pub post_startup_script_behavior: i32,
+}
+/// Nested message and enum types in `PostStartupScriptConfig`.
+pub mod post_startup_script_config {
+    /// Represents a notebook runtime post-startup script behavior.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum PostStartupScriptBehavior {
+        /// Unspecified post-startup script behavior.
+        Unspecified = 0,
+        /// Run the post-startup script only once, during runtime creation.
+        RunOnce = 1,
+        /// Run the post-startup script after every start.
+        RunEveryStart = 2,
+        /// After every start, download the post-startup script from its source and
+        /// run it.
+        DownloadAndRunEveryStart = 3,
+    }
+    impl PostStartupScriptBehavior {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "POST_STARTUP_SCRIPT_BEHAVIOR_UNSPECIFIED",
+                Self::RunOnce => "RUN_ONCE",
+                Self::RunEveryStart => "RUN_EVERY_START",
+                Self::DownloadAndRunEveryStart => "DOWNLOAD_AND_RUN_EVERY_START",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "POST_STARTUP_SCRIPT_BEHAVIOR_UNSPECIFIED" => Some(Self::Unspecified),
+                "RUN_ONCE" => Some(Self::RunOnce),
+                "RUN_EVERY_START" => Some(Self::RunEveryStart),
+                "DOWNLOAD_AND_RUN_EVERY_START" => Some(Self::DownloadAndRunEveryStart),
+                _ => None,
+            }
+        }
+    }
+}
+/// Colab image of the runtime.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ColabImage {
+    /// Optional. The release name of the NotebookRuntime Colab image, e.g.
+    /// "py310". If not specified, detault to the latest release.
+    #[prost(string, tag = "1")]
+    pub release_name: ::prost::alloc::string::String,
+    /// Output only. A human-readable description of the specified colab image
+    /// release, populated by the system. Example: "Python 3.10", "Latest - current
+    /// Python 3.11"
+    #[prost(string, tag = "2")]
+    pub description: ::prost::alloc::string::String,
+}
+/// Notebook Software Config. This is passed to the backend when user
+/// makes software configurations in UI.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct NotebookSoftwareConfig {
+    /// Optional. Environment variables to be passed to the container.
+    /// Maximum limit is 100.
+    #[prost(message, repeated, tag = "1")]
+    pub env: ::prost::alloc::vec::Vec<EnvVar>,
+    /// Optional. Post-startup script config.
+    #[prost(message, optional, tag = "2")]
+    pub post_startup_script_config: ::core::option::Option<PostStartupScriptConfig>,
+    /// The image to be used by the notebook runtime.
+    #[prost(oneof = "notebook_software_config::RuntimeImage", tags = "5")]
+    pub runtime_image: ::core::option::Option<notebook_software_config::RuntimeImage>,
+}
+/// Nested message and enum types in `NotebookSoftwareConfig`.
+pub mod notebook_software_config {
+    /// The image to be used by the notebook runtime.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum RuntimeImage {
+        /// Optional. Google-managed NotebookRuntime colab image.
+        #[prost(message, tag = "5")]
+        ColabImage(super::ColabImage),
+    }
+}
 /// A template that specifies runtime configurations such as machine type,
 /// runtime version, network configurations, etc.
 /// Multiple runtimes can be created from a runtime template.
@@ -33432,7 +40731,11 @@ pub struct NotebookRuntimeTemplate {
     /// The description of the NotebookRuntimeTemplate.
     #[prost(string, tag = "3")]
     pub description: ::prost::alloc::string::String,
-    /// Output only. The default template to use if not specified.
+    /// Output only. Deprecated: This field has no behavior. Use
+    /// notebook_runtime_type = 'ONE_CLICK' instead.
+    ///
+    /// The default template to use if not specified.
+    #[deprecated]
     #[prost(bool, tag = "4")]
     pub is_default: bool,
     /// Optional. Immutable. The specification of a single machine for the
@@ -33447,6 +40750,15 @@ pub struct NotebookRuntimeTemplate {
     /// Optional. Network spec.
     #[prost(message, optional, tag = "12")]
     pub network_spec: ::core::option::Option<NetworkSpec>,
+    /// Deprecated: This field is ignored and the "Vertex AI Notebook Service
+    /// Account"
+    /// (service-PROJECT_NUMBER@gcp-sa-aiplatform-vm.iam.gserviceaccount.com) is
+    /// used for the runtime workload identity.
+    /// See
+    /// <https://cloud.google.com/iam/docs/service-agents#vertex-ai-notebook-service-account>
+    /// for more details.
+    /// For NotebookExecutionJob, use NotebookExecutionJob.service_account instead.
+    ///
     /// The service account that the runtime workload runs as.
     /// You can use any service account within the same project, but you
     /// must have the service account user permission to use the instance.
@@ -33454,6 +40766,7 @@ pub struct NotebookRuntimeTemplate {
     /// If not specified, the [Compute Engine default service
     /// account](<https://cloud.google.com/compute/docs/access/service-accounts#default_service_account>)
     /// is used.
+    #[deprecated]
     #[prost(string, tag = "13")]
     pub service_account: ::prost::alloc::string::String,
     /// Used to perform consistent read-modify-write updates. If not set, a blind
@@ -33500,10 +40813,14 @@ pub struct NotebookRuntimeTemplate {
     /// Customer-managed encryption key spec for the notebook runtime.
     #[prost(message, optional, tag = "23")]
     pub encryption_spec: ::core::option::Option<EncryptionSpec>,
+    /// Optional. The notebook software configuration of the notebook runtime.
+    #[prost(message, optional, tag = "24")]
+    pub software_config: ::core::option::Option<NotebookSoftwareConfig>,
 }
 /// A runtime is a virtual machine allocated to a particular user for a
-/// particular Notebook file on temporary basis with lifetime limited to 24
-/// hours.
+/// particular Notebook file on temporary basis with lifetime. Default runtimes
+/// have a lifetime of 18 hours, while custom runtimes last for 6 months from
+/// their creation or last upgrade.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct NotebookRuntime {
     /// Output only. The resource name of the NotebookRuntime.
@@ -33538,7 +40855,15 @@ pub struct NotebookRuntime {
     /// The description of the NotebookRuntime.
     #[prost(string, tag = "11")]
     pub description: ::prost::alloc::string::String,
-    /// Output only. The service account that the NotebookRuntime workload runs as.
+    /// Output only. Deprecated: This field is no longer used and the "Vertex AI
+    /// Notebook Service Account"
+    /// (service-PROJECT_NUMBER@gcp-sa-aiplatform-vm.iam.gserviceaccount.com) is
+    /// used for the runtime workload identity.
+    /// See
+    /// <https://cloud.google.com/iam/docs/service-agents#vertex-ai-notebook-service-account>
+    /// for more details.
+    ///
+    /// The service account that the NotebookRuntime workload runs as.
     #[prost(string, tag = "13")]
     pub service_account: ::prost::alloc::string::String,
     /// Output only. The runtime (instance) state of the NotebookRuntime.
@@ -33583,13 +40908,34 @@ pub struct NotebookRuntime {
     /// Output only. The type of the notebook runtime.
     #[prost(enumeration = "NotebookRuntimeType", tag = "19")]
     pub notebook_runtime_type: i32,
+    /// Output only. The specification of a single machine used by the notebook
+    /// runtime.
+    #[prost(message, optional, tag = "20")]
+    pub machine_spec: ::core::option::Option<MachineSpec>,
+    /// Output only. The specification of [persistent
+    /// disk][<https://cloud.google.com/compute/docs/disks/persistent-disks]>
+    /// attached to the notebook runtime as data disk storage.
+    #[prost(message, optional, tag = "21")]
+    pub data_persistent_disk_spec: ::core::option::Option<PersistentDiskSpec>,
+    /// Output only. Network spec of the notebook runtime.
+    #[prost(message, optional, tag = "22")]
+    pub network_spec: ::core::option::Option<NetworkSpec>,
     /// Output only. The idle shutdown configuration of the notebook runtime.
     #[prost(message, optional, tag = "23")]
     pub idle_shutdown_config: ::core::option::Option<NotebookIdleShutdownConfig>,
+    /// Output only. EUC configuration of the notebook runtime.
+    #[prost(message, optional, tag = "24")]
+    pub euc_config: ::core::option::Option<NotebookEucConfig>,
+    /// Output only. Runtime Shielded VM spec.
+    #[prost(message, optional, tag = "32")]
+    pub shielded_vm_config: ::core::option::Option<ShieldedVmConfig>,
     /// Optional. The Compute Engine tags to add to runtime (see [Tagging
     /// instances](<https://cloud.google.com/vpc/docs/add-remove-network-tags>)).
     #[prost(string, repeated, tag = "25")]
     pub network_tags: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Output only. Software config of the notebook runtime.
+    #[prost(message, optional, tag = "31")]
+    pub software_config: ::core::option::Option<NotebookSoftwareConfig>,
     /// Output only. Customer-managed encryption key spec for the notebook runtime.
     #[prost(message, optional, tag = "28")]
     pub encryption_spec: ::core::option::Option<EncryptionSpec>,
@@ -33664,7 +41010,8 @@ pub mod notebook_runtime {
         Unspecified = 0,
         /// NotebookRuntime is in running state.
         Running = 1,
-        /// NotebookRuntime is in starting state.
+        /// NotebookRuntime is in starting state. This is when the runtime is being
+        /// started from a stopped state.
         BeingStarted = 2,
         /// NotebookRuntime is in stopping state.
         BeingStopped = 3,
@@ -33801,6 +41148,8 @@ pub struct ListNotebookRuntimeTemplatesRequest {
     ///      * A key including a space must be quoted. `labels."a key"`.
     ///    * `notebookRuntimeType` supports = and !=. notebookRuntimeType enum:
     ///    \[USER_DEFINED, ONE_CLICK\].
+    ///    * `machineType` supports = and !=.
+    ///    * `acceleratorType` supports = and !=.
     ///
     /// Some examples:
     ///
@@ -33808,6 +41157,8 @@ pub struct ListNotebookRuntimeTemplatesRequest {
     ///    * `displayName="myDisplayName"`
     ///    * `labels.myKey="myValue"`
     ///    * `notebookRuntimeType=USER_DEFINED`
+    ///    * `machineType=e2-standard-4`
+    ///    * `acceleratorType=NVIDIA_TESLA_T4`
     #[prost(string, tag = "2")]
     pub filter: ::prost::alloc::string::String,
     /// Optional. The standard list page size.
@@ -33951,6 +41302,8 @@ pub struct ListNotebookRuntimesRequest {
     ///    UI_RESOURCE_STATE_CREATION_FAILED].
     ///    * `notebookRuntimeType` supports = and !=. notebookRuntimeType enum:
     ///    \[USER_DEFINED, ONE_CLICK\].
+    ///    * `machineType` supports = and !=.
+    ///    * `acceleratorType` supports = and !=.
     ///
     /// Some examples:
     ///
@@ -33962,6 +41315,8 @@ pub struct ListNotebookRuntimesRequest {
     ///    * `runtimeUser="test@google.com"`
     ///    * `uiState=UI_RESOURCE_STATE_BEING_DELETED`
     ///    * `notebookRuntimeType=USER_DEFINED`
+    ///    * `machineType=e2-standard-4`
+    ///    * `acceleratorType=NVIDIA_TESLA_T4`
     #[prost(string, tag = "2")]
     pub filter: ::prost::alloc::string::String,
     /// Optional. The standard list page size.
@@ -34154,7 +41509,8 @@ pub struct ListNotebookExecutionJobsRequest {
     pub page_size: i32,
     /// Optional. The standard list page token.
     /// Typically obtained via
-    /// [ListNotebookExecutionJobs.next_page_token][] of the previous
+    /// [ListNotebookExecutionJobsResponse.next_page_token][google.cloud.aiplatform.v1beta1.ListNotebookExecutionJobsResponse.next_page_token]
+    /// of the previous
     /// [NotebookService.ListNotebookExecutionJobs][google.cloud.aiplatform.v1beta1.NotebookService.ListNotebookExecutionJobs]
     /// call.
     #[prost(string, tag = "4")]
@@ -34180,8 +41536,9 @@ pub struct ListNotebookExecutionJobsResponse {
     #[prost(message, repeated, tag = "1")]
     pub notebook_execution_jobs: ::prost::alloc::vec::Vec<NotebookExecutionJob>,
     /// A token to retrieve next page of results.
-    /// Pass to [ListNotebookExecutionJobs.page_token][] to obtain that
-    /// page.
+    /// Pass to
+    /// [ListNotebookExecutionJobsRequest.page_token][google.cloud.aiplatform.v1beta1.ListNotebookExecutionJobsRequest.page_token]
+    /// to obtain that page.
     #[prost(string, tag = "2")]
     pub next_page_token: ::prost::alloc::string::String,
 }
@@ -36105,6 +43462,16 @@ pub struct PipelineTaskDetail {
         ::prost::alloc::string::String,
         pipeline_task_detail::ArtifactList,
     >,
+    /// Output only. The unique name of a task.
+    /// This field is used by pipeline job reruns.
+    /// Console UI and Vertex AI SDK will support triggering pipeline job reruns.
+    /// The name is constructed by concatenating all the parent tasks' names with
+    /// the task name. For example, if a task named "child_task" has a parent task
+    /// named "parent_task_1" and parent task 1 has a parent task named
+    /// "parent_task_2", the task unique name will be
+    /// "parent_task_2.parent_task_1.child_task".
+    #[prost(string, tag = "14")]
+    pub task_unique_name: ::prost::alloc::string::String,
 }
 /// Nested message and enum types in `PipelineTaskDetail`.
 pub mod pipeline_task_detail {
@@ -37532,6 +44899,103 @@ pub mod pipeline_service_client {
         }
     }
 }
+/// Usage metadata about the content generation request and response.
+/// This message provides a detailed breakdown of token usage and other
+/// relevant metrics.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UsageMetadata {
+    /// The total number of tokens in the prompt. This includes any text, images,
+    /// or other media provided in the request. When `cached_content` is set,
+    /// this also includes the number of tokens in the cached content.
+    #[prost(int32, tag = "1")]
+    pub prompt_token_count: i32,
+    /// The total number of tokens in the generated candidates.
+    #[prost(int32, tag = "2")]
+    pub candidates_token_count: i32,
+    /// The total number of tokens for the entire request. This is the sum of
+    /// `prompt_token_count`, `candidates_token_count`,
+    /// `tool_use_prompt_token_count`, and `thoughts_token_count`.
+    #[prost(int32, tag = "3")]
+    pub total_token_count: i32,
+    /// Output only. The number of tokens in the results from tool executions,
+    /// which are provided back to the model as input, if applicable.
+    #[prost(int32, tag = "13")]
+    pub tool_use_prompt_token_count: i32,
+    /// Output only. The number of tokens that were part of the model's generated
+    /// "thoughts" output, if applicable.
+    #[prost(int32, tag = "14")]
+    pub thoughts_token_count: i32,
+    /// Output only. The number of tokens in the cached content that was used for
+    /// this request.
+    #[prost(int32, tag = "5")]
+    pub cached_content_token_count: i32,
+    /// Output only. A detailed breakdown of the token count for each modality in
+    /// the prompt.
+    #[prost(message, repeated, tag = "9")]
+    pub prompt_tokens_details: ::prost::alloc::vec::Vec<ModalityTokenCount>,
+    /// Output only. A detailed breakdown of the token count for each modality in
+    /// the cached content.
+    #[prost(message, repeated, tag = "10")]
+    pub cache_tokens_details: ::prost::alloc::vec::Vec<ModalityTokenCount>,
+    /// Output only. A detailed breakdown of the token count for each modality in
+    /// the generated candidates.
+    #[prost(message, repeated, tag = "11")]
+    pub candidates_tokens_details: ::prost::alloc::vec::Vec<ModalityTokenCount>,
+    /// Output only. A detailed breakdown by modality of the token counts from the
+    /// results of tool executions, which are provided back to the model as input.
+    #[prost(message, repeated, tag = "12")]
+    pub tool_use_prompt_tokens_details: ::prost::alloc::vec::Vec<ModalityTokenCount>,
+    /// Output only. The traffic type for this request.
+    #[prost(enumeration = "usage_metadata::TrafficType", tag = "8")]
+    pub traffic_type: i32,
+}
+/// Nested message and enum types in `UsageMetadata`.
+pub mod usage_metadata {
+    /// The type of traffic that this request was processed with, indicating which
+    /// quota gets consumed.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum TrafficType {
+        /// Unspecified request traffic type.
+        Unspecified = 0,
+        /// Type for Pay-As-You-Go traffic.
+        OnDemand = 1,
+        /// Type for Provisioned Throughput traffic.
+        ProvisionedThroughput = 2,
+    }
+    impl TrafficType {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "TRAFFIC_TYPE_UNSPECIFIED",
+                Self::OnDemand => "ON_DEMAND",
+                Self::ProvisionedThroughput => "PROVISIONED_THROUGHPUT",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "TRAFFIC_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+                "ON_DEMAND" => Some(Self::OnDemand),
+                "PROVISIONED_THROUGHPUT" => Some(Self::ProvisionedThroughput),
+                _ => None,
+            }
+        }
+    }
+}
 /// Request message for
 /// [PredictionService.Predict][google.cloud.aiplatform.v1beta1.PredictionService.Predict].
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -37560,6 +45024,13 @@ pub struct PredictRequest {
     /// [parameters_schema_uri][google.cloud.aiplatform.v1beta1.PredictSchemata.parameters_schema_uri].
     #[prost(message, optional, tag = "3")]
     pub parameters: ::core::option::Option<::prost_types::Value>,
+    /// Optional. The user labels for Imagen billing usage only. Only Imagen
+    /// supports labels. For other use cases, it will be ignored.
+    #[prost(map = "string, string", tag = "4")]
+    pub labels: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
 }
 /// Response message for
 /// [PredictionService.Predict][google.cloud.aiplatform.v1beta1.PredictionService.Predict].
@@ -37977,7 +45448,7 @@ pub struct CountTokensRequest {
 }
 /// Response message for
 /// [PredictionService.CountTokens][google.cloud.aiplatform.v1beta1.PredictionService.CountTokens].
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CountTokensResponse {
     /// The total number of tokens counted across all instances from the request.
     #[prost(int32, tag = "1")]
@@ -37986,6 +45457,9 @@ pub struct CountTokensResponse {
     /// the request.
     #[prost(int32, tag = "2")]
     pub total_billable_characters: i32,
+    /// Output only. List of modalities that were processed in the request input.
+    #[prost(message, repeated, tag = "3")]
+    pub prompt_tokens_details: ::prost::alloc::vec::Vec<ModalityTokenCount>,
 }
 /// Request message for \[PredictionService.GenerateContent\].
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -38047,6 +45521,10 @@ pub struct GenerateContentRequest {
     /// Enforced on GenerateContentResponse.candidates.
     #[prost(message, repeated, tag = "3")]
     pub safety_settings: ::prost::alloc::vec::Vec<SafetySetting>,
+    /// Optional. Settings for prompt and response sanitization using the Model
+    /// Armor service. If supplied, safety_settings must not be supplied.
+    #[prost(message, optional, tag = "11")]
+    pub model_armor_config: ::core::option::Option<ModelArmorConfig>,
     /// Optional. Generation config.
     #[prost(message, optional, tag = "4")]
     pub generation_config: ::core::option::Option<GenerationConfig>,
@@ -38060,6 +45538,13 @@ pub struct GenerateContentResponse {
     /// Output only. The model version used to generate the response.
     #[prost(string, tag = "11")]
     pub model_version: ::prost::alloc::string::String,
+    /// Output only. Timestamp when the request is made to the server.
+    #[prost(message, optional, tag = "12")]
+    pub create_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. response_id is used to identify each response. It is the
+    /// encoding of the event_id.
+    #[prost(string, tag = "13")]
+    pub response_id: ::prost::alloc::string::String,
     /// Output only. Content filter results for a prompt sent in the request.
     /// Note: Sent only in the first stream chunk.
     /// Only happens when no candidates were generated due to content violations.
@@ -38113,6 +45598,8 @@ pub mod generate_content_response {
             Blocklist = 3,
             /// Candidates blocked due to prohibited content.
             ProhibitedContent = 4,
+            /// The user prompt was blocked by Model Armor.
+            ModelArmor = 5,
         }
         impl BlockedReason {
             /// String value of the enum field names used in the ProtoBuf definition.
@@ -38126,6 +45613,7 @@ pub mod generate_content_response {
                     Self::Other => "OTHER",
                     Self::Blocklist => "BLOCKLIST",
                     Self::ProhibitedContent => "PROHIBITED_CONTENT",
+                    Self::ModelArmor => "MODEL_ARMOR",
                 }
             }
             /// Creates an enum from field names used in the ProtoBuf definition.
@@ -38136,13 +45624,14 @@ pub mod generate_content_response {
                     "OTHER" => Some(Self::Other),
                     "BLOCKLIST" => Some(Self::Blocklist),
                     "PROHIBITED_CONTENT" => Some(Self::ProhibitedContent),
+                    "MODEL_ARMOR" => Some(Self::ModelArmor),
                     _ => None,
                 }
             }
         }
     }
     /// Usage metadata about response(s).
-    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct UsageMetadata {
         /// Number of tokens in the request. When `cached_content` is set, this is
         /// still the total effective prompt size meaning this includes the number of
@@ -38152,6 +45641,9 @@ pub mod generate_content_response {
         /// Number of tokens in the response(s).
         #[prost(int32, tag = "2")]
         pub candidates_token_count: i32,
+        /// Output only. Number of tokens present in thoughts output.
+        #[prost(int32, tag = "14")]
+        pub thoughts_token_count: i32,
         /// Total token count for prompt and response candidates.
         #[prost(int32, tag = "3")]
         pub total_token_count: i32,
@@ -38159,6 +45651,18 @@ pub mod generate_content_response {
         /// content).
         #[prost(int32, tag = "5")]
         pub cached_content_token_count: i32,
+        /// Output only. List of modalities that were processed in the request input.
+        #[prost(message, repeated, tag = "9")]
+        pub prompt_tokens_details: ::prost::alloc::vec::Vec<super::ModalityTokenCount>,
+        /// Output only. List of modalities of the cached content in the request
+        /// input.
+        #[prost(message, repeated, tag = "10")]
+        pub cache_tokens_details: ::prost::alloc::vec::Vec<super::ModalityTokenCount>,
+        /// Output only. List of modalities that were returned in the response.
+        #[prost(message, repeated, tag = "11")]
+        pub candidates_tokens_details: ::prost::alloc::vec::Vec<
+            super::ModalityTokenCount,
+        >,
     }
 }
 /// Request message for \[PredictionService.ChatCompletions\]
@@ -38208,6 +45712,131 @@ pub struct GenerateVideoResponse {
     pub rai_media_filtered_reasons: ::prost::alloc::vec::Vec<
         ::prost::alloc::string::String,
     >,
+}
+/// Request message for
+/// [PredictionService.EmbedContent][google.cloud.aiplatform.v1beta1.PredictionService.EmbedContent].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EmbedContentRequest {
+    /// Required. The name of the publisher model requested to serve the
+    /// prediction. Format:
+    /// `projects/{project}/locations/{location}/publishers/*/models/*`
+    #[prost(string, optional, tag = "1")]
+    pub model: ::core::option::Option<::prost::alloc::string::String>,
+    /// Required. Input content to be embedded. Required.
+    #[prost(message, optional, tag = "2")]
+    pub content: ::core::option::Option<Content>,
+    /// Optional. An optional title for the text.
+    #[prost(string, optional, tag = "4")]
+    pub title: ::core::option::Option<::prost::alloc::string::String>,
+    /// Optional. The task type of the embedding.
+    #[prost(
+        enumeration = "embed_content_request::EmbeddingTaskType",
+        optional,
+        tag = "5"
+    )]
+    pub task_type: ::core::option::Option<i32>,
+    /// Optional. Optional reduced dimension for the output embedding. If set,
+    /// excessive values in the output embedding are truncated from the end.
+    #[prost(int32, optional, tag = "6")]
+    pub output_dimensionality: ::core::option::Option<i32>,
+    /// Optional. Whether to silently truncate the input content if it's longer
+    /// than the maximum sequence length.
+    #[prost(bool, optional, tag = "7")]
+    pub auto_truncate: ::core::option::Option<bool>,
+}
+/// Nested message and enum types in `EmbedContentRequest`.
+pub mod embed_content_request {
+    /// Represents a downstream task the embeddings will be used for.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum EmbeddingTaskType {
+        /// Unset value, which will default to one of the other enum values.
+        Unspecified = 0,
+        /// Specifies the given text is a query in a search/retrieval setting.
+        RetrievalQuery = 2,
+        /// Specifies the given text is a document from the corpus being searched.
+        RetrievalDocument = 3,
+        /// Specifies the given text will be used for STS.
+        SemanticSimilarity = 4,
+        /// Specifies that the given text will be classified.
+        Classification = 5,
+        /// Specifies that the embeddings will be used for clustering.
+        Clustering = 6,
+        /// Specifies that the embeddings will be used for question answering.
+        QuestionAnswering = 7,
+        /// Specifies that the embeddings will be used for fact verification.
+        FactVerification = 8,
+        /// Specifies that the embeddings will be used for code retrieval.
+        CodeRetrievalQuery = 9,
+    }
+    impl EmbeddingTaskType {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "UNSPECIFIED",
+                Self::RetrievalQuery => "RETRIEVAL_QUERY",
+                Self::RetrievalDocument => "RETRIEVAL_DOCUMENT",
+                Self::SemanticSimilarity => "SEMANTIC_SIMILARITY",
+                Self::Classification => "CLASSIFICATION",
+                Self::Clustering => "CLUSTERING",
+                Self::QuestionAnswering => "QUESTION_ANSWERING",
+                Self::FactVerification => "FACT_VERIFICATION",
+                Self::CodeRetrievalQuery => "CODE_RETRIEVAL_QUERY",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNSPECIFIED" => Some(Self::Unspecified),
+                "RETRIEVAL_QUERY" => Some(Self::RetrievalQuery),
+                "RETRIEVAL_DOCUMENT" => Some(Self::RetrievalDocument),
+                "SEMANTIC_SIMILARITY" => Some(Self::SemanticSimilarity),
+                "CLASSIFICATION" => Some(Self::Classification),
+                "CLUSTERING" => Some(Self::Clustering),
+                "QUESTION_ANSWERING" => Some(Self::QuestionAnswering),
+                "FACT_VERIFICATION" => Some(Self::FactVerification),
+                "CODE_RETRIEVAL_QUERY" => Some(Self::CodeRetrievalQuery),
+                _ => None,
+            }
+        }
+    }
+}
+/// Response message for
+/// [PredictionService.EmbedContent][google.cloud.aiplatform.v1beta1.PredictionService.EmbedContent].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EmbedContentResponse {
+    /// The embedding generated from the input content.
+    #[prost(message, optional, tag = "1")]
+    pub embedding: ::core::option::Option<embed_content_response::Embedding>,
+    /// Metadata about the response(s).
+    #[prost(message, optional, tag = "2")]
+    pub usage_metadata: ::core::option::Option<UsageMetadata>,
+    /// Whether the input content was truncated before generating the embedding.
+    #[prost(bool, tag = "4")]
+    pub truncated: bool,
+}
+/// Nested message and enum types in `EmbedContentResponse`.
+pub mod embed_content_response {
+    /// A list of floats representing an embedding.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Embedding {
+        /// Embedding vector values.
+        #[prost(float, repeated, tag = "1")]
+        pub values: ::prost::alloc::vec::Vec<f32>,
+    }
 }
 /// Generated client implementations.
 pub mod prediction_service_client {
@@ -38791,22 +46420,80 @@ pub mod prediction_service_client {
                 );
             self.inner.server_streaming(req, path, codec).await
         }
+        /// Embed content with multimodal inputs.
+        pub async fn embed_content(
+            &mut self,
+            request: impl tonic::IntoRequest<super::EmbedContentRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::EmbedContentResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.PredictionService/EmbedContent",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.PredictionService",
+                        "EmbedContent",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
     }
 }
 /// ReasoningEngine configurations
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReasoningEngineSpec {
-    /// Required. User provided package spec of the ReasoningEngine.
+    /// Optional. The service account that the Reasoning Engine artifact runs as.
+    /// It should have "roles/storage.objectViewer" for reading the user project's
+    /// Cloud Storage and "roles/aiplatform.user" for using Vertex extensions. If
+    /// not specified, the Vertex AI Reasoning Engine Service Agent in the project
+    /// will be used.
+    #[prost(string, optional, tag = "1")]
+    pub service_account: ::core::option::Option<::prost::alloc::string::String>,
+    /// Optional. User provided package spec of the ReasoningEngine.
+    /// Ignored when users directly specify a deployment image through
+    /// `deployment_spec.first_party_image_override`, but keeping the
+    /// field_behavior to avoid introducing breaking changes.
+    /// The `deployment_source` field should not be set if `package_spec` is
+    /// specified.
     #[prost(message, optional, tag = "2")]
     pub package_spec: ::core::option::Option<reasoning_engine_spec::PackageSpec>,
+    /// Optional. The specification of a Reasoning Engine deployment.
+    #[prost(message, optional, tag = "4")]
+    pub deployment_spec: ::core::option::Option<reasoning_engine_spec::DeploymentSpec>,
     /// Optional. Declarations for object class methods in OpenAPI specification
     /// format.
     #[prost(message, repeated, tag = "3")]
     pub class_methods: ::prost::alloc::vec::Vec<::prost_types::Struct>,
+    /// Optional. The OSS agent framework used to develop the agent.
+    /// Currently supported values: "google-adk", "langchain", "langgraph", "ag2",
+    /// "llama-index", "custom".
+    #[prost(string, tag = "5")]
+    pub agent_framework: ::prost::alloc::string::String,
+    /// Defines the source for the deployment.
+    /// The `package_spec` field should not be set if `deployment_source` is
+    /// specified.
+    #[prost(oneof = "reasoning_engine_spec::DeploymentSource", tags = "11")]
+    pub deployment_source: ::core::option::Option<
+        reasoning_engine_spec::DeploymentSource,
+    >,
 }
 /// Nested message and enum types in `ReasoningEngineSpec`.
 pub mod reasoning_engine_spec {
-    /// User provided package spec like pickled object and package requirements.
+    /// User-provided package specification, containing pickled object and package
+    /// requirements.
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct PackageSpec {
         /// Optional. The Cloud Storage URI of the pickled python object.
@@ -38818,10 +46505,162 @@ pub mod reasoning_engine_spec {
         /// Optional. The Cloud Storage URI of the `requirements.txt` file
         #[prost(string, tag = "3")]
         pub requirements_gcs_uri: ::prost::alloc::string::String,
-        /// Optional. The Python version. Currently support 3.8, 3.9, 3.10, 3.11.
-        /// If not specified, default value is 3.10.
+        /// Optional. The Python version. Supported values
+        /// are 3.9, 3.10, 3.11, 3.12, 3.13. If not specified, the default value
+        /// is 3.10.
         #[prost(string, tag = "4")]
         pub python_version: ::prost::alloc::string::String,
+    }
+    /// The specification of a Reasoning Engine deployment.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct DeploymentSpec {
+        /// Optional. Environment variables to be set with the Reasoning Engine
+        /// deployment. The environment variables can be updated through the
+        /// UpdateReasoningEngine API.
+        #[prost(message, repeated, tag = "1")]
+        pub env: ::prost::alloc::vec::Vec<super::EnvVar>,
+        /// Optional. Environment variables where the value is a secret in Cloud
+        /// Secret Manager.
+        /// To use this feature, add 'Secret Manager Secret Accessor' role
+        /// (roles/secretmanager.secretAccessor) to AI Platform Reasoning Engine
+        /// Service Agent.
+        #[prost(message, repeated, tag = "2")]
+        pub secret_env: ::prost::alloc::vec::Vec<super::SecretEnvVar>,
+        /// Optional. Configuration for PSC-I.
+        #[prost(message, optional, tag = "4")]
+        pub psc_interface_config: ::core::option::Option<super::PscInterfaceConfig>,
+        /// Optional. The minimum number of application instances that will be kept
+        /// running at all times. Defaults to 1. Range: \[0, 10\].
+        #[prost(int32, optional, tag = "5")]
+        pub min_instances: ::core::option::Option<i32>,
+        /// Optional. The maximum number of application instances that can be
+        /// launched to handle increased traffic. Defaults to 100. Range: \[1, 1000\].
+        ///
+        /// If VPC-SC or PSC-I is enabled, the acceptable range is \[1, 100\].
+        #[prost(int32, optional, tag = "6")]
+        pub max_instances: ::core::option::Option<i32>,
+        /// Optional. Resource limits for each container. Only 'cpu' and 'memory'
+        /// keys are supported. Defaults to {"cpu": "4", "memory": "4Gi"}.
+        ///
+        ///    * The only supported values for CPU are '1', '2', '4', '6' and '8'. For
+        ///    more information, go to
+        ///    <https://cloud.google.com/run/docs/configuring/cpu.>
+        ///    * The only supported values for memory are '1Gi', '2Gi', ... '32 Gi'.
+        ///    * For required cpu on different memory values, go to
+        ///    <https://cloud.google.com/run/docs/configuring/memory-limits>
+        #[prost(map = "string, string", tag = "7")]
+        pub resource_limits: ::std::collections::HashMap<
+            ::prost::alloc::string::String,
+            ::prost::alloc::string::String,
+        >,
+        /// Optional. Concurrency for each container and agent server. Recommended
+        /// value: 2 * cpu + 1. Defaults to 9.
+        #[prost(int32, optional, tag = "8")]
+        pub container_concurrency: ::core::option::Option<i32>,
+    }
+    /// Specification for deploying from source code.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct SourceCodeSpec {
+        /// Specifies where the source code is located.
+        #[prost(oneof = "source_code_spec::Source", tags = "1, 3")]
+        pub source: ::core::option::Option<source_code_spec::Source>,
+        /// Specifies the language-specific configuration for building and running
+        /// the code.
+        #[prost(oneof = "source_code_spec::LanguageSpec", tags = "2")]
+        pub language_spec: ::core::option::Option<source_code_spec::LanguageSpec>,
+    }
+    /// Nested message and enum types in `SourceCodeSpec`.
+    pub mod source_code_spec {
+        /// Specifies source code provided as a byte stream.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct InlineSource {
+            /// Required. Input only. The application source code archive, provided as
+            /// a compressed tarball
+            /// (.tar.gz) file.
+            #[prost(bytes = "vec", tag = "1")]
+            pub source_archive: ::prost::alloc::vec::Vec<u8>,
+        }
+        /// Specifies the configuration for fetching source code from a Git
+        /// repository that is managed by Developer Connect. This includes the
+        /// repository, revision, and directory to use.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct DeveloperConnectConfig {
+            /// Required. The Developer Connect Git repository link, formatted as
+            /// `projects/*/locations/*/connections/*/gitRepositoryLink/*`.
+            #[prost(string, tag = "1")]
+            pub git_repository_link: ::prost::alloc::string::String,
+            /// Required. Directory, relative to the source root, in which to run the
+            /// build.
+            #[prost(string, tag = "2")]
+            pub dir: ::prost::alloc::string::String,
+            /// Required. The revision to fetch from the Git repository such as a
+            /// branch, a tag, a commit SHA, or any Git ref.
+            #[prost(string, tag = "3")]
+            pub revision: ::prost::alloc::string::String,
+        }
+        /// Specifies source code to be fetched from a Git repository managed through
+        /// the Developer Connect service.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct DeveloperConnectSource {
+            /// Required. The Developer Connect configuration that defines the
+            /// specific repository, revision, and directory to use as the source code
+            /// root.
+            #[prost(message, optional, tag = "1")]
+            pub config: ::core::option::Option<DeveloperConnectConfig>,
+        }
+        /// Specification for running a Python application from source.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct PythonSpec {
+            /// Optional. The version of Python to use. Support version
+            /// includes 3.9, 3.10, 3.11, 3.12, 3.13.
+            /// If not specified, default value is 3.10.
+            #[prost(string, tag = "1")]
+            pub version: ::prost::alloc::string::String,
+            /// Optional. The Python module to load as the entrypoint, specified as a
+            /// fully qualified module name. For example: path.to.agent.
+            /// If not specified, defaults to "agent".
+            ///
+            /// The project root will be added to Python sys.path, allowing imports
+            /// to be specified relative to the root.
+            #[prost(string, tag = "2")]
+            pub entrypoint_module: ::prost::alloc::string::String,
+            /// Optional. The name of the callable object within the
+            /// `entrypoint_module` to use as the application If not specified,
+            /// defaults to "root_agent".
+            #[prost(string, tag = "3")]
+            pub entrypoint_object: ::prost::alloc::string::String,
+            /// Optional. The path to the requirements file, relative to the source
+            /// root. If not specified, defaults to "requirements.txt".
+            #[prost(string, tag = "4")]
+            pub requirements_file: ::prost::alloc::string::String,
+        }
+        /// Specifies where the source code is located.
+        #[derive(Clone, PartialEq, ::prost::Oneof)]
+        pub enum Source {
+            /// Source code is provided directly in the request.
+            #[prost(message, tag = "1")]
+            InlineSource(InlineSource),
+            /// Source code is in a Git repository managed by Developer Connect.
+            #[prost(message, tag = "3")]
+            DeveloperConnectSource(DeveloperConnectSource),
+        }
+        /// Specifies the language-specific configuration for building and running
+        /// the code.
+        #[derive(Clone, PartialEq, ::prost::Oneof)]
+        pub enum LanguageSpec {
+            /// Configuration for a Python application.
+            #[prost(message, tag = "2")]
+            PythonSpec(PythonSpec),
+        }
+    }
+    /// Defines the source for the deployment.
+    /// The `package_spec` field should not be set if `deployment_source` is
+    /// specified.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum DeploymentSource {
+        /// Deploy from source code files with a defined entrypoint.
+        #[prost(message, tag = "11")]
+        SourceCodeSpec(SourceCodeSpec),
     }
 }
 /// ReasoningEngine provides a customizable runtime for models to determine
@@ -38829,6 +46668,8 @@ pub mod reasoning_engine_spec {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReasoningEngine {
     /// Identifier. The resource name of the ReasoningEngine.
+    /// Format:
+    /// `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}`
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
     /// Required. The display name of the ReasoningEngine.
@@ -38837,7 +46678,7 @@ pub struct ReasoningEngine {
     /// Optional. The description of the ReasoningEngine.
     #[prost(string, tag = "7")]
     pub description: ::prost::alloc::string::String,
-    /// Required. Configurations of the ReasoningEngine
+    /// Optional. Configurations of the ReasoningEngine
     #[prost(message, optional, tag = "3")]
     pub spec: ::core::option::Option<ReasoningEngineSpec>,
     /// Output only. Timestamp when this ReasoningEngine was created.
@@ -38850,6 +46691,125 @@ pub struct ReasoningEngine {
     /// a blind "overwrite" update happens.
     #[prost(string, tag = "6")]
     pub etag: ::prost::alloc::string::String,
+    /// Optional. Configuration for how Agent Engine sub-resources should manage
+    /// context.
+    #[prost(message, optional, tag = "9")]
+    pub context_spec: ::core::option::Option<ReasoningEngineContextSpec>,
+    /// Customer-managed encryption key spec for a ReasoningEngine. If set, this
+    /// ReasoningEngine and all sub-resources of this ReasoningEngine will be
+    /// secured by this key.
+    #[prost(message, optional, tag = "11")]
+    pub encryption_spec: ::core::option::Option<EncryptionSpec>,
+    /// Labels for the ReasoningEngine.
+    #[prost(map = "string, string", tag = "17")]
+    pub labels: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+}
+/// Configuration for how Agent Engine sub-resources should manage context.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReasoningEngineContextSpec {
+    /// Optional. Specification for a Memory Bank, which manages memories for the
+    /// Agent Engine.
+    #[prost(message, optional, tag = "1")]
+    pub memory_bank_config: ::core::option::Option<
+        reasoning_engine_context_spec::MemoryBankConfig,
+    >,
+}
+/// Nested message and enum types in `ReasoningEngineContextSpec`.
+pub mod reasoning_engine_context_spec {
+    /// Specification for a Memory Bank.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct MemoryBankConfig {
+        /// Optional. Configuration for how to generate memories for the Memory Bank.
+        #[prost(message, optional, tag = "1")]
+        pub generation_config: ::core::option::Option<
+            memory_bank_config::GenerationConfig,
+        >,
+        /// Optional. Configuration for how to perform similarity search on memories.
+        /// If not set, the Memory Bank will use the default embedding model
+        /// `text-embedding-005`.
+        #[prost(message, optional, tag = "2")]
+        pub similarity_search_config: ::core::option::Option<
+            memory_bank_config::SimilaritySearchConfig,
+        >,
+        /// Optional. Configuration for automatic TTL ("time-to-live") of the
+        /// memories in the Memory Bank. If not set, TTL will not be applied
+        /// automatically. The TTL can be explicitly set by modifying the
+        /// `expire_time` of each Memory resource.
+        #[prost(message, optional, tag = "5")]
+        pub ttl_config: ::core::option::Option<memory_bank_config::TtlConfig>,
+    }
+    /// Nested message and enum types in `MemoryBankConfig`.
+    pub mod memory_bank_config {
+        /// Configuration for automatically setting the TTL ("time-to-live") of the
+        /// memories in the Memory Bank.
+        #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+        pub struct TtlConfig {
+            /// Configuration for automatically setting the TTL of the memories in the
+            /// Memory Bank.
+            #[prost(oneof = "ttl_config::Ttl", tags = "1, 2")]
+            pub ttl: ::core::option::Option<ttl_config::Ttl>,
+        }
+        /// Nested message and enum types in `TtlConfig`.
+        pub mod ttl_config {
+            /// Configuration for TTL of the memories in the Memory Bank based on the
+            /// action that created or updated the memory.
+            #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+            pub struct GranularTtlConfig {
+                /// Optional. The TTL duration for memories uploaded via CreateMemory.
+                #[prost(message, optional, tag = "1")]
+                pub create_ttl: ::core::option::Option<::prost_types::Duration>,
+                /// Optional. The TTL duration for memories newly generated via
+                /// GenerateMemories
+                /// ([GenerateMemoriesResponse.GeneratedMemory.Action.CREATED][google.cloud.aiplatform.v1beta1.GenerateMemoriesResponse.GeneratedMemory.Action.CREATED]).
+                #[prost(message, optional, tag = "2")]
+                pub generate_created_ttl: ::core::option::Option<
+                    ::prost_types::Duration,
+                >,
+                /// Optional. The TTL duration for memories updated via GenerateMemories
+                /// ([GenerateMemoriesResponse.GeneratedMemory.Action.CREATED][google.cloud.aiplatform.v1beta1.GenerateMemoriesResponse.GeneratedMemory.Action.CREATED]).
+                /// In the case of an UPDATE action, the `expire_time` of the existing
+                /// memory will be updated to the new value (now + TTL).
+                #[prost(message, optional, tag = "3")]
+                pub generate_updated_ttl: ::core::option::Option<
+                    ::prost_types::Duration,
+                >,
+            }
+            /// Configuration for automatically setting the TTL of the memories in the
+            /// Memory Bank.
+            #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
+            pub enum Ttl {
+                /// Optional. The default TTL duration of the memories in the Memory
+                /// Bank. This applies to all operations that create or update a memory.
+                #[prost(message, tag = "1")]
+                DefaultTtl(::prost_types::Duration),
+                /// Optional. The granular TTL configuration of the memories in the
+                /// Memory Bank.
+                #[prost(message, tag = "2")]
+                GranularTtlConfig(GranularTtlConfig),
+            }
+        }
+        /// Configuration for how to generate memories.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct GenerationConfig {
+            /// Required. The model used to generate memories.
+            /// Format:
+            /// `projects/{project}/locations/{location}/publishers/google/models/{model}`.
+            #[prost(string, tag = "1")]
+            pub model: ::prost::alloc::string::String,
+        }
+        /// Configuration for how to perform similarity search on memories.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct SimilaritySearchConfig {
+            /// Required. The model used to generate embeddings to lookup similar
+            /// memories. Format:
+            /// `projects/{project}/locations/{location}/publishers/google/models/{model}`.
+            #[prost(string, tag = "1")]
+            pub embedding_model: ::prost::alloc::string::String,
+        }
+    }
 }
 /// Request message for [ReasoningEngineExecutionService.Query][].
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -39143,6 +47103,11 @@ pub struct DeleteReasoningEngineRequest {
     /// `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}`
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
+    /// Optional. If set to true, child resources of this reasoning engine will
+    /// also be deleted. Otherwise, the request will fail with FAILED_PRECONDITION
+    /// error when the reasoning engine has undeleted child resources.
+    #[prost(bool, tag = "2")]
+    pub force: bool,
 }
 /// Generated client implementations.
 pub mod reasoning_engine_service_client {
@@ -40037,6 +48002,621 @@ pub mod schedule_service_client {
                     GrpcMethod::new(
                         "google.cloud.aiplatform.v1beta1.ScheduleService",
                         "UpdateSchedule",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+    }
+}
+/// A session contains a set of actions between users and Vertex agents.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Session {
+    /// Identifier. The resource name of the session.
+    /// Format:
+    /// 'projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}/sessions/{session}'.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Output only. Timestamp when the session was created.
+    #[prost(message, optional, tag = "3")]
+    pub create_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. Timestamp when the session was updated.
+    #[prost(message, optional, tag = "4")]
+    pub update_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Optional. The display name of the session.
+    #[prost(string, tag = "5")]
+    pub display_name: ::prost::alloc::string::String,
+    /// Optional. Session specific memory which stores key conversation points.
+    #[prost(message, optional, tag = "10")]
+    pub session_state: ::core::option::Option<::prost_types::Struct>,
+    /// Required. Immutable. String id provided by the user
+    #[prost(string, tag = "12")]
+    pub user_id: ::prost::alloc::string::String,
+    /// The expiration of the session.
+    #[prost(oneof = "session::Expiration", tags = "13, 14")]
+    pub expiration: ::core::option::Option<session::Expiration>,
+}
+/// Nested message and enum types in `Session`.
+pub mod session {
+    /// The expiration of the session.
+    #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
+    pub enum Expiration {
+        /// Optional. Timestamp of when this session is considered expired.
+        /// This is *always* provided on output, regardless of what was sent
+        /// on input.
+        #[prost(message, tag = "13")]
+        ExpireTime(::prost_types::Timestamp),
+        /// Optional. Input only. The TTL for this session.
+        #[prost(message, tag = "14")]
+        Ttl(::prost_types::Duration),
+    }
+}
+/// An event represents a message from either the user or agent.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SessionEvent {
+    /// Identifier. The resource name of the event.
+    /// Format:`projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}/sessions/{session}/events/{event}`.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Required. The name of the agent that sent the event, or user.
+    #[prost(string, tag = "3")]
+    pub author: ::prost::alloc::string::String,
+    /// Optional. Content of the event provided by the author.
+    #[prost(message, optional, tag = "4")]
+    pub content: ::core::option::Option<Content>,
+    /// Required. The invocation id of the event, multiple events can have the same
+    /// invocation id.
+    #[prost(string, tag = "5")]
+    pub invocation_id: ::prost::alloc::string::String,
+    /// Optional. Actions executed by the agent.
+    #[prost(message, optional, tag = "6")]
+    pub actions: ::core::option::Option<EventActions>,
+    /// Required. Timestamp when the event was created on client side.
+    #[prost(message, optional, tag = "8")]
+    pub timestamp: ::core::option::Option<::prost_types::Timestamp>,
+    /// Optional. Error code if the response is an error. Code varies by model.
+    #[prost(string, tag = "9")]
+    pub error_code: ::prost::alloc::string::String,
+    /// Optional. Error message if the response is an error.
+    #[prost(string, tag = "10")]
+    pub error_message: ::prost::alloc::string::String,
+    /// Optional. Metadata relating to this event.
+    #[prost(message, optional, tag = "11")]
+    pub event_metadata: ::core::option::Option<EventMetadata>,
+}
+/// Metadata relating to a LLM response event.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EventMetadata {
+    /// Optional. Metadata returned to client when grounding is enabled.
+    #[prost(message, optional, tag = "1")]
+    pub grounding_metadata: ::core::option::Option<GroundingMetadata>,
+    /// Optional. Indicates whether the text content is part of a unfinished text
+    /// stream. Only used for streaming mode and when the content is plain text.
+    #[prost(bool, tag = "2")]
+    pub partial: bool,
+    /// Optional. Indicates whether the response from the model is complete.
+    /// Only used for streaming mode.
+    #[prost(bool, tag = "3")]
+    pub turn_complete: bool,
+    /// Optional. Flag indicating that LLM was interrupted when generating the
+    /// content. Usually it's due to user interruption during a bidi streaming.
+    #[prost(bool, tag = "4")]
+    pub interrupted: bool,
+    /// Optional. Set of ids of the long running function calls.
+    /// Agent client will know from this field about which function call is long
+    /// running. Only valid for function call event.
+    #[prost(string, repeated, tag = "5")]
+    pub long_running_tool_ids: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Optional. The branch of the event.
+    /// The format is like agent_1.agent_2.agent_3, where agent_1 is the parent of
+    /// agent_2, and agent_2 is the parent of agent_3.
+    /// Branch is used when multiple child agents shouldn't see their siblings'
+    /// conversation history.
+    #[prost(string, tag = "6")]
+    pub branch: ::prost::alloc::string::String,
+    /// The custom metadata of the LlmResponse.
+    #[prost(message, optional, tag = "7")]
+    pub custom_metadata: ::core::option::Option<::prost_types::Struct>,
+}
+/// Actions are parts of events that are executed by the agent.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EventActions {
+    /// Optional. If true, it won't call model to summarize function response.
+    /// Only used for function_response event.
+    #[prost(bool, tag = "1")]
+    pub skip_summarization: bool,
+    /// Optional. Indicates that the event is updating the state with the given
+    /// delta.
+    #[prost(message, optional, tag = "2")]
+    pub state_delta: ::core::option::Option<::prost_types::Struct>,
+    /// Optional. Indicates that the event is updating an artifact. key is the
+    /// filename, value is the version.
+    #[prost(map = "string, int32", tag = "3")]
+    pub artifact_delta: ::std::collections::HashMap<::prost::alloc::string::String, i32>,
+    /// Optional. The agent is escalating to a higher level agent.
+    #[prost(bool, tag = "6")]
+    pub escalate: bool,
+    /// Optional. Will only be set by a tool response indicating tool request euc.
+    /// Struct key is the function call id since one function call response (from
+    /// model) could correspond to multiple function calls. Struct value is the
+    /// required auth config, which can be another struct.
+    #[prost(message, optional, tag = "7")]
+    pub requested_auth_configs: ::core::option::Option<::prost_types::Struct>,
+    /// Optional. If set, the event transfers to the specified agent.
+    #[prost(string, tag = "8")]
+    pub transfer_agent: ::prost::alloc::string::String,
+}
+/// Request message for
+/// [SessionService.CreateSession][google.cloud.aiplatform.v1beta1.SessionService.CreateSession].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateSessionRequest {
+    /// Required. The resource name of the location to create the session in.
+    /// Format:
+    /// `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}`
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Required. The session to create.
+    #[prost(message, optional, tag = "2")]
+    pub session: ::core::option::Option<Session>,
+}
+/// Metadata associated with the
+/// [SessionService.CreateSession][google.cloud.aiplatform.v1beta1.SessionService.CreateSession]
+/// operation.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateSessionOperationMetadata {
+    /// The common part of the operation metadata.
+    #[prost(message, optional, tag = "1")]
+    pub generic_metadata: ::core::option::Option<GenericOperationMetadata>,
+}
+/// Request message for
+/// [SessionService.GetSession][google.cloud.aiplatform.v1beta1.SessionService.GetSession].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetSessionRequest {
+    /// Required. The resource name of the session.
+    /// Format:
+    /// `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}/sessions/{session}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Request message for
+/// [SessionService.ListSessions][google.cloud.aiplatform.v1beta1.SessionService.ListSessions].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListSessionsRequest {
+    /// Required. The resource name of the location to list sessions from.
+    /// Format:
+    /// `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}`
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Optional. The maximum number of sessions to return. The service may return
+    /// fewer than this value. If unspecified, at most 100 sessions will be
+    /// returned.
+    #[prost(int32, tag = "2")]
+    pub page_size: i32,
+    /// Optional. The
+    /// [next_page_token][google.cloud.aiplatform.v1beta1.ListSessionsResponse.next_page_token]
+    /// value returned from a previous list
+    /// [SessionService.ListSessions][google.cloud.aiplatform.v1beta1.SessionService.ListSessions]
+    /// call.
+    #[prost(string, tag = "3")]
+    pub page_token: ::prost::alloc::string::String,
+    /// Optional. The standard list filter.
+    /// Supported fields:
+    ///     * `display_name`
+    ///     * `user_id`
+    ///
+    /// Example: `display_name="abc"`, `user_id="123"`.
+    #[prost(string, tag = "4")]
+    pub filter: ::prost::alloc::string::String,
+    /// Optional. A comma-separated list of fields to order by, sorted in ascending
+    /// order. Use "desc" after a field name for descending. Supported fields:
+    ///    * `create_time`
+    ///    * `update_time`
+    ///
+    /// Example: `create_time desc`.
+    #[prost(string, tag = "5")]
+    pub order_by: ::prost::alloc::string::String,
+}
+/// Response message for
+/// [SessionService.ListSessions][google.cloud.aiplatform.v1beta1.SessionService.ListSessions].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListSessionsResponse {
+    /// A list of sessions matching the request.
+    #[prost(message, repeated, tag = "1")]
+    pub sessions: ::prost::alloc::vec::Vec<Session>,
+    /// A token, which can be sent as
+    /// [ListSessionsRequest.page_token][google.cloud.aiplatform.v1beta1.ListSessionsRequest.page_token]
+    /// to retrieve the next page. Absence of this field indicates there are no
+    /// subsequent pages.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
+/// Request message for
+/// [SessionService.UpdateSession][google.cloud.aiplatform.v1beta1.SessionService.UpdateSession].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateSessionRequest {
+    /// Required. The session to update.
+    /// Format:
+    /// `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}/sessions/{session}`
+    #[prost(message, optional, tag = "1")]
+    pub session: ::core::option::Option<Session>,
+    /// Optional. Field mask is used to control which fields get updated. If the
+    /// mask is not present, all fields will be updated.
+    #[prost(message, optional, tag = "2")]
+    pub update_mask: ::core::option::Option<::prost_types::FieldMask>,
+}
+/// Request message for
+/// [SessionService.DeleteSession][google.cloud.aiplatform.v1beta1.SessionService.DeleteSession].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteSessionRequest {
+    /// Required. The resource name of the session.
+    /// Format:
+    /// `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}/sessions/{session}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Request message for
+/// [SessionService.ListEvents][google.cloud.aiplatform.v1beta1.SessionService.ListEvents].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListEventsRequest {
+    /// Required. The resource name of the session to list events from.
+    /// Format:
+    /// `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}/sessions/{session}`
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Optional. The maximum number of events to return. The service may return
+    /// fewer than this value. If unspecified, at most 100 events will be returned.
+    /// These events are ordered by timestamp in ascending order.
+    #[prost(int32, tag = "2")]
+    pub page_size: i32,
+    /// Optional. The
+    /// [next_page_token][google.cloud.aiplatform.v1beta1.ListEventsResponse.next_page_token]
+    /// value returned from a previous list
+    /// [SessionService.ListEvents][google.cloud.aiplatform.v1beta1.SessionService.ListEvents]
+    /// call.
+    #[prost(string, tag = "3")]
+    pub page_token: ::prost::alloc::string::String,
+    /// Optional. The standard list filter.
+    /// Supported fields:
+    ///     * `timestamp` range (i.e. `timestamp>="2025-01-31T11:30:00-04:00"` where
+    ///     the timestamp is in RFC 3339 format)
+    ///
+    /// More detail in [AIP-160](<https://google.aip.dev/160>).
+    #[prost(string, tag = "4")]
+    pub filter: ::prost::alloc::string::String,
+    /// Optional. A comma-separated list of fields to order by, sorted in ascending
+    /// order. Use "desc" after a field name for descending. Supported fields:
+    ///    * `timestamp`
+    ///
+    /// Example: `timestamp desc`.
+    #[prost(string, tag = "5")]
+    pub order_by: ::prost::alloc::string::String,
+}
+/// Response message for
+/// [SessionService.ListEvents][google.cloud.aiplatform.v1beta1.SessionService.ListEvents].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListEventsResponse {
+    /// A list of events matching the request. Ordered by timestamp in ascending
+    /// order.
+    #[prost(message, repeated, tag = "1")]
+    pub session_events: ::prost::alloc::vec::Vec<SessionEvent>,
+    /// A token, which can be sent as
+    /// [ListEventsRequest.page_token][google.cloud.aiplatform.v1beta1.ListEventsRequest.page_token]
+    /// to retrieve the next page. Absence of this field indicates there are no
+    /// subsequent pages.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
+/// Request message for
+/// [SessionService.AppendEvent][google.cloud.aiplatform.v1beta1.SessionService.AppendEvent].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AppendEventRequest {
+    /// Required. The resource name of the session to append event to.
+    /// Format:
+    /// `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}/sessions/{session}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Required. The event to append to the session.
+    #[prost(message, optional, tag = "2")]
+    pub event: ::core::option::Option<SessionEvent>,
+}
+/// Response message for
+/// [SessionService.AppendEvent][google.cloud.aiplatform.v1beta1.SessionService.AppendEvent].
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct AppendEventResponse {}
+/// Generated client implementations.
+pub mod session_service_client {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value,
+    )]
+    use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
+    /// The service that manages Vertex Session related resources.
+    #[derive(Debug, Clone)]
+    pub struct SessionServiceClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl SessionServiceClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> SessionServiceClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> SessionServiceClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+        {
+            SessionServiceClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        /// Creates a new [Session][google.cloud.aiplatform.v1beta1.Session].
+        pub async fn create_session(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateSessionRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.SessionService/CreateSession",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.SessionService",
+                        "CreateSession",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Gets details of the specific
+        /// [Session][google.cloud.aiplatform.v1beta1.Session].
+        pub async fn get_session(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetSessionRequest>,
+        ) -> std::result::Result<tonic::Response<super::Session>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.SessionService/GetSession",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.SessionService",
+                        "GetSession",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Lists [Sessions][google.cloud.aiplatform.v1beta1.Session] in a given
+        /// reasoning engine.
+        pub async fn list_sessions(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListSessionsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListSessionsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.SessionService/ListSessions",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.SessionService",
+                        "ListSessions",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Updates the specific [Session][google.cloud.aiplatform.v1beta1.Session].
+        pub async fn update_session(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateSessionRequest>,
+        ) -> std::result::Result<tonic::Response<super::Session>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.SessionService/UpdateSession",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.SessionService",
+                        "UpdateSession",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Deletes details of the specific
+        /// [Session][google.cloud.aiplatform.v1beta1.Session].
+        pub async fn delete_session(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteSessionRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.SessionService/DeleteSession",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.SessionService",
+                        "DeleteSession",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Lists [Events][google.cloud.aiplatform.v1beta1.Event] in a given session.
+        pub async fn list_events(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListEventsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListEventsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.SessionService/ListEvents",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.SessionService",
+                        "ListEvents",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Appends an event to a given session.
+        pub async fn append_event(
+            &mut self,
+            request: impl tonic::IntoRequest<super::AppendEventRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::AppendEventResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.SessionService/AppendEvent",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.SessionService",
+                        "AppendEvent",
                     ),
                 );
             self.inner.unary(req, path, codec).await
@@ -42495,651 +51075,6 @@ pub mod tensorboard_service_client {
         }
     }
 }
-/// Config for the embedding model to use for RAG.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct RagEmbeddingModelConfig {
-    /// The model config to use.
-    #[prost(oneof = "rag_embedding_model_config::ModelConfig", tags = "1, 2")]
-    pub model_config: ::core::option::Option<rag_embedding_model_config::ModelConfig>,
-}
-/// Nested message and enum types in `RagEmbeddingModelConfig`.
-pub mod rag_embedding_model_config {
-    /// Config representing a model hosted on Vertex Prediction Endpoint.
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct VertexPredictionEndpoint {
-        /// Required. The endpoint resource name.
-        /// Format:
-        /// `projects/{project}/locations/{location}/publishers/{publisher}/models/{model}`
-        /// or
-        /// `projects/{project}/locations/{location}/endpoints/{endpoint}`
-        #[prost(string, tag = "1")]
-        pub endpoint: ::prost::alloc::string::String,
-        /// Output only. The resource name of the model that is deployed on the
-        /// endpoint. Present only when the endpoint is not a publisher model.
-        /// Pattern:
-        /// `projects/{project}/locations/{location}/models/{model}`
-        #[prost(string, tag = "2")]
-        pub model: ::prost::alloc::string::String,
-        /// Output only. Version ID of the model that is deployed on the endpoint.
-        /// Present only when the endpoint is not a publisher model.
-        #[prost(string, tag = "3")]
-        pub model_version_id: ::prost::alloc::string::String,
-    }
-    /// Configuration for sparse emebdding generation.
-    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
-    pub struct SparseEmbeddingConfig {
-        /// The model to use for sparse embedding generation.
-        #[prost(oneof = "sparse_embedding_config::Model", tags = "1")]
-        pub model: ::core::option::Option<sparse_embedding_config::Model>,
-    }
-    /// Nested message and enum types in `SparseEmbeddingConfig`.
-    pub mod sparse_embedding_config {
-        /// Message for BM25 parameters.
-        #[derive(Clone, Copy, PartialEq, ::prost::Message)]
-        pub struct Bm25 {
-            /// Optional. Use multilingual tokenizer if set to true.
-            #[prost(bool, tag = "1")]
-            pub multilingual: bool,
-            /// Optional. The parameter to control term frequency saturation. It
-            /// determines the scaling between the matching term frequency and final
-            /// score. k1 is in the range of \[1.2, 3\]. The default value is 1.2.
-            #[prost(float, optional, tag = "2")]
-            pub k1: ::core::option::Option<f32>,
-            /// Optional. The parameter to control document length normalization. It
-            /// determines how much the document length affects the final score. b is
-            /// in the range of \[0, 1\]. The default value is 0.75.
-            #[prost(float, optional, tag = "3")]
-            pub b: ::core::option::Option<f32>,
-        }
-        /// The model to use for sparse embedding generation.
-        #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
-        pub enum Model {
-            /// Use BM25 scoring algorithm.
-            #[prost(message, tag = "1")]
-            Bm25(Bm25),
-        }
-    }
-    /// Config for hybrid search.
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct HybridSearchConfig {
-        /// Optional. The configuration for sparse embedding generation. This field
-        /// is optional the default behavior depends on the vector database choice on
-        /// the RagCorpus.
-        #[prost(message, optional, tag = "1")]
-        pub sparse_embedding_config: ::core::option::Option<SparseEmbeddingConfig>,
-        /// Required. The Vertex AI Prediction Endpoint that hosts the embedding
-        /// model for dense embedding generations.
-        #[prost(message, optional, tag = "2")]
-        pub dense_embedding_model_prediction_endpoint: ::core::option::Option<
-            VertexPredictionEndpoint,
-        >,
-    }
-    /// The model config to use.
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum ModelConfig {
-        /// The Vertex AI Prediction Endpoint that either refers to a publisher model
-        /// or an endpoint that is hosting a 1P fine-tuned text embedding model.
-        /// Endpoints hosting non-1P fine-tuned text embedding models are
-        /// currently not supported.
-        /// This is used for dense vector search.
-        #[prost(message, tag = "1")]
-        VertexPredictionEndpoint(VertexPredictionEndpoint),
-        /// Configuration for hybrid search.
-        #[prost(message, tag = "2")]
-        HybridSearchConfig(HybridSearchConfig),
-    }
-}
-/// Config for the Vector DB to use for RAG.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct RagVectorDbConfig {
-    /// Authentication config for the chosen Vector DB.
-    #[prost(message, optional, tag = "5")]
-    pub api_auth: ::core::option::Option<ApiAuth>,
-    /// Optional. Immutable. The embedding model config of the Vector DB.
-    #[prost(message, optional, tag = "7")]
-    pub rag_embedding_model_config: ::core::option::Option<RagEmbeddingModelConfig>,
-    /// The config for the Vector DB.
-    #[prost(oneof = "rag_vector_db_config::VectorDb", tags = "1, 2, 3, 4, 6")]
-    pub vector_db: ::core::option::Option<rag_vector_db_config::VectorDb>,
-}
-/// Nested message and enum types in `RagVectorDbConfig`.
-pub mod rag_vector_db_config {
-    /// The config for the default RAG-managed Vector DB.
-    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
-    pub struct RagManagedDb {}
-    /// The config for the Weaviate.
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct Weaviate {
-        /// Weaviate DB instance HTTP endpoint. e.g. 34.56.78.90:8080
-        /// Vertex RAG only supports HTTP connection to Weaviate.
-        /// This value cannot be changed after it's set.
-        #[prost(string, tag = "1")]
-        pub http_endpoint: ::prost::alloc::string::String,
-        /// The corresponding collection this corpus maps to.
-        /// This value cannot be changed after it's set.
-        #[prost(string, tag = "2")]
-        pub collection_name: ::prost::alloc::string::String,
-    }
-    /// The config for the Pinecone.
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct Pinecone {
-        /// Pinecone index name.
-        /// This value cannot be changed after it's set.
-        #[prost(string, tag = "1")]
-        pub index_name: ::prost::alloc::string::String,
-    }
-    /// The config for the Vertex Feature Store.
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct VertexFeatureStore {
-        /// The resource name of the FeatureView.
-        /// Format:
-        /// `projects/{project}/locations/{location}/featureOnlineStores/{feature_online_store}/featureViews/{feature_view}`
-        #[prost(string, tag = "1")]
-        pub feature_view_resource_name: ::prost::alloc::string::String,
-    }
-    /// The config for the Vertex Vector Search.
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct VertexVectorSearch {
-        /// The resource name of the Index Endpoint.
-        /// Format:
-        /// `projects/{project}/locations/{location}/indexEndpoints/{index_endpoint}`
-        #[prost(string, tag = "1")]
-        pub index_endpoint: ::prost::alloc::string::String,
-        /// The resource name of the Index.
-        /// Format:
-        /// `projects/{project}/locations/{location}/indexes/{index}`
-        #[prost(string, tag = "2")]
-        pub index: ::prost::alloc::string::String,
-    }
-    /// The config for the Vector DB.
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum VectorDb {
-        /// The config for the RAG-managed Vector DB.
-        #[prost(message, tag = "1")]
-        RagManagedDb(RagManagedDb),
-        /// The config for the Weaviate.
-        #[prost(message, tag = "2")]
-        Weaviate(Weaviate),
-        /// The config for the Pinecone.
-        #[prost(message, tag = "3")]
-        Pinecone(Pinecone),
-        /// The config for the Vertex Feature Store.
-        #[prost(message, tag = "4")]
-        VertexFeatureStore(VertexFeatureStore),
-        /// The config for the Vertex Vector Search.
-        #[prost(message, tag = "6")]
-        VertexVectorSearch(VertexVectorSearch),
-    }
-}
-/// RagFile status.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct FileStatus {
-    /// Output only. RagFile state.
-    #[prost(enumeration = "file_status::State", tag = "1")]
-    pub state: i32,
-    /// Output only. Only when the `state` field is ERROR.
-    #[prost(string, tag = "2")]
-    pub error_status: ::prost::alloc::string::String,
-}
-/// Nested message and enum types in `FileStatus`.
-pub mod file_status {
-    /// RagFile state.
-    #[derive(
-        Clone,
-        Copy,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash,
-        PartialOrd,
-        Ord,
-        ::prost::Enumeration
-    )]
-    #[repr(i32)]
-    pub enum State {
-        /// RagFile state is unspecified.
-        Unspecified = 0,
-        /// RagFile resource has been created and indexed successfully.
-        Active = 1,
-        /// RagFile resource is in a problematic state.
-        /// See `error_message` field for details.
-        Error = 2,
-    }
-    impl State {
-        /// String value of the enum field names used in the ProtoBuf definition.
-        ///
-        /// The values are not transformed in any way and thus are considered stable
-        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-        pub fn as_str_name(&self) -> &'static str {
-            match self {
-                Self::Unspecified => "STATE_UNSPECIFIED",
-                Self::Active => "ACTIVE",
-                Self::Error => "ERROR",
-            }
-        }
-        /// Creates an enum from field names used in the ProtoBuf definition.
-        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-            match value {
-                "STATE_UNSPECIFIED" => Some(Self::Unspecified),
-                "ACTIVE" => Some(Self::Active),
-                "ERROR" => Some(Self::Error),
-                _ => None,
-            }
-        }
-    }
-}
-/// Config for the Vertex AI Search.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct VertexAiSearchConfig {
-    /// Vertex AI Search Serving Config resource full name. For example,
-    /// `projects/{project}/locations/{location}/collections/{collection}/engines/{engine}/servingConfigs/{serving_config}`
-    /// or
-    /// `projects/{project}/locations/{location}/collections/{collection}/dataStores/{data_store}/servingConfigs/{serving_config}`.
-    #[prost(string, tag = "1")]
-    pub serving_config: ::prost::alloc::string::String,
-}
-/// RagCorpus status.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CorpusStatus {
-    /// Output only. RagCorpus life state.
-    #[prost(enumeration = "corpus_status::State", tag = "1")]
-    pub state: i32,
-    /// Output only. Only when the `state` field is ERROR.
-    #[prost(string, tag = "2")]
-    pub error_status: ::prost::alloc::string::String,
-}
-/// Nested message and enum types in `CorpusStatus`.
-pub mod corpus_status {
-    /// RagCorpus life state.
-    #[derive(
-        Clone,
-        Copy,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash,
-        PartialOrd,
-        Ord,
-        ::prost::Enumeration
-    )]
-    #[repr(i32)]
-    pub enum State {
-        /// This state is not supposed to happen.
-        Unknown = 0,
-        /// RagCorpus resource entry is initialized, but hasn't done validation.
-        Initialized = 1,
-        /// RagCorpus is provisioned successfully and is ready to serve.
-        Active = 2,
-        /// RagCorpus is in a problematic situation.
-        /// See `error_message` field for details.
-        Error = 3,
-    }
-    impl State {
-        /// String value of the enum field names used in the ProtoBuf definition.
-        ///
-        /// The values are not transformed in any way and thus are considered stable
-        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-        pub fn as_str_name(&self) -> &'static str {
-            match self {
-                Self::Unknown => "UNKNOWN",
-                Self::Initialized => "INITIALIZED",
-                Self::Active => "ACTIVE",
-                Self::Error => "ERROR",
-            }
-        }
-        /// Creates an enum from field names used in the ProtoBuf definition.
-        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-            match value {
-                "UNKNOWN" => Some(Self::Unknown),
-                "INITIALIZED" => Some(Self::Initialized),
-                "ACTIVE" => Some(Self::Active),
-                "ERROR" => Some(Self::Error),
-                _ => None,
-            }
-        }
-    }
-}
-/// A RagCorpus is a RagFile container and a project can have multiple
-/// RagCorpora.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct RagCorpus {
-    /// Output only. The resource name of the RagCorpus.
-    #[prost(string, tag = "1")]
-    pub name: ::prost::alloc::string::String,
-    /// Required. The display name of the RagCorpus.
-    /// The name can be up to 128 characters long and can consist of any UTF-8
-    /// characters.
-    #[prost(string, tag = "2")]
-    pub display_name: ::prost::alloc::string::String,
-    /// Optional. The description of the RagCorpus.
-    #[prost(string, tag = "3")]
-    pub description: ::prost::alloc::string::String,
-    /// Optional. Immutable. The embedding model config of the RagCorpus.
-    #[deprecated]
-    #[prost(message, optional, tag = "6")]
-    pub rag_embedding_model_config: ::core::option::Option<RagEmbeddingModelConfig>,
-    /// Optional. Immutable. The Vector DB config of the RagCorpus.
-    #[deprecated]
-    #[prost(message, optional, tag = "7")]
-    pub rag_vector_db_config: ::core::option::Option<RagVectorDbConfig>,
-    /// Output only. Timestamp when this RagCorpus was created.
-    #[prost(message, optional, tag = "4")]
-    pub create_time: ::core::option::Option<::prost_types::Timestamp>,
-    /// Output only. Timestamp when this RagCorpus was last updated.
-    #[prost(message, optional, tag = "5")]
-    pub update_time: ::core::option::Option<::prost_types::Timestamp>,
-    /// Output only. RagCorpus state.
-    #[prost(message, optional, tag = "8")]
-    pub corpus_status: ::core::option::Option<CorpusStatus>,
-    /// The backend config of the RagCorpus.
-    /// It can be data store and/or retrieval engine.
-    #[prost(oneof = "rag_corpus::BackendConfig", tags = "9, 10")]
-    pub backend_config: ::core::option::Option<rag_corpus::BackendConfig>,
-}
-/// Nested message and enum types in `RagCorpus`.
-pub mod rag_corpus {
-    /// The backend config of the RagCorpus.
-    /// It can be data store and/or retrieval engine.
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum BackendConfig {
-        /// Optional. Immutable. The config for the Vector DBs.
-        #[prost(message, tag = "9")]
-        VectorDbConfig(super::RagVectorDbConfig),
-        /// Optional. Immutable. The config for the Vertex AI Search.
-        #[prost(message, tag = "10")]
-        VertexAiSearchConfig(super::VertexAiSearchConfig),
-    }
-}
-/// A RagFile contains user data for chunking, embedding and indexing.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct RagFile {
-    /// Output only. The resource name of the RagFile.
-    #[prost(string, tag = "1")]
-    pub name: ::prost::alloc::string::String,
-    /// Required. The display name of the RagFile.
-    /// The name can be up to 128 characters long and can consist of any UTF-8
-    /// characters.
-    #[prost(string, tag = "2")]
-    pub display_name: ::prost::alloc::string::String,
-    /// Optional. The description of the RagFile.
-    #[prost(string, tag = "3")]
-    pub description: ::prost::alloc::string::String,
-    /// Output only. The size of the RagFile in bytes.
-    #[prost(int64, tag = "4")]
-    pub size_bytes: i64,
-    /// Output only. The type of the RagFile.
-    #[prost(enumeration = "rag_file::RagFileType", tag = "5")]
-    pub rag_file_type: i32,
-    /// Output only. Timestamp when this RagFile was created.
-    #[prost(message, optional, tag = "6")]
-    pub create_time: ::core::option::Option<::prost_types::Timestamp>,
-    /// Output only. Timestamp when this RagFile was last updated.
-    #[prost(message, optional, tag = "7")]
-    pub update_time: ::core::option::Option<::prost_types::Timestamp>,
-    /// Output only. State of the RagFile.
-    #[prost(message, optional, tag = "13")]
-    pub file_status: ::core::option::Option<FileStatus>,
-    /// The origin location of the RagFile if it is imported from Google Cloud
-    /// Storage or Google Drive.
-    #[prost(oneof = "rag_file::RagFileSource", tags = "8, 9, 10, 11, 12, 14")]
-    pub rag_file_source: ::core::option::Option<rag_file::RagFileSource>,
-}
-/// Nested message and enum types in `RagFile`.
-pub mod rag_file {
-    /// The type of the RagFile.
-    #[derive(
-        Clone,
-        Copy,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash,
-        PartialOrd,
-        Ord,
-        ::prost::Enumeration
-    )]
-    #[repr(i32)]
-    pub enum RagFileType {
-        /// RagFile type is unspecified.
-        Unspecified = 0,
-        /// RagFile type is TXT.
-        Txt = 1,
-        /// RagFile type is PDF.
-        Pdf = 2,
-    }
-    impl RagFileType {
-        /// String value of the enum field names used in the ProtoBuf definition.
-        ///
-        /// The values are not transformed in any way and thus are considered stable
-        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-        pub fn as_str_name(&self) -> &'static str {
-            match self {
-                Self::Unspecified => "RAG_FILE_TYPE_UNSPECIFIED",
-                Self::Txt => "RAG_FILE_TYPE_TXT",
-                Self::Pdf => "RAG_FILE_TYPE_PDF",
-            }
-        }
-        /// Creates an enum from field names used in the ProtoBuf definition.
-        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-            match value {
-                "RAG_FILE_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
-                "RAG_FILE_TYPE_TXT" => Some(Self::Txt),
-                "RAG_FILE_TYPE_PDF" => Some(Self::Pdf),
-                _ => None,
-            }
-        }
-    }
-    /// The origin location of the RagFile if it is imported from Google Cloud
-    /// Storage or Google Drive.
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum RagFileSource {
-        /// Output only. Google Cloud Storage location of the RagFile.
-        /// It does not support wildcards in the Cloud Storage uri for now.
-        #[prost(message, tag = "8")]
-        GcsSource(super::GcsSource),
-        /// Output only. Google Drive location. Supports importing individual files
-        /// as well as Google Drive folders.
-        #[prost(message, tag = "9")]
-        GoogleDriveSource(super::GoogleDriveSource),
-        /// Output only. The RagFile is encapsulated and uploaded in the
-        /// UploadRagFile request.
-        #[prost(message, tag = "10")]
-        DirectUploadSource(super::DirectUploadSource),
-        /// The RagFile is imported from a Slack channel.
-        #[prost(message, tag = "11")]
-        SlackSource(super::SlackSource),
-        /// The RagFile is imported from a Jira query.
-        #[prost(message, tag = "12")]
-        JiraSource(super::JiraSource),
-        /// The RagFile is imported from a SharePoint source.
-        #[prost(message, tag = "14")]
-        SharePointSources(super::SharePointSources),
-    }
-}
-/// Specifies the size and overlap of chunks for RagFiles.
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct RagFileChunkingConfig {
-    /// The size of the chunks.
-    #[deprecated]
-    #[prost(int32, tag = "1")]
-    pub chunk_size: i32,
-    /// The overlap between chunks.
-    #[deprecated]
-    #[prost(int32, tag = "2")]
-    pub chunk_overlap: i32,
-    /// Specifies the chunking config for RagFiles.
-    #[prost(oneof = "rag_file_chunking_config::ChunkingConfig", tags = "3")]
-    pub chunking_config: ::core::option::Option<
-        rag_file_chunking_config::ChunkingConfig,
-    >,
-}
-/// Nested message and enum types in `RagFileChunkingConfig`.
-pub mod rag_file_chunking_config {
-    /// Specifies the fixed length chunking config.
-    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
-    pub struct FixedLengthChunking {
-        /// The size of the chunks.
-        #[prost(int32, tag = "1")]
-        pub chunk_size: i32,
-        /// The overlap between chunks.
-        #[prost(int32, tag = "2")]
-        pub chunk_overlap: i32,
-    }
-    /// Specifies the chunking config for RagFiles.
-    #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
-    pub enum ChunkingConfig {
-        /// Specifies the fixed length chunking config.
-        #[prost(message, tag = "3")]
-        FixedLengthChunking(FixedLengthChunking),
-    }
-}
-/// Specifies the transformation config for RagFiles.
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct RagFileTransformationConfig {
-    /// Specifies the chunking config for RagFiles.
-    #[prost(message, optional, tag = "1")]
-    pub rag_file_chunking_config: ::core::option::Option<RagFileChunkingConfig>,
-}
-/// Specifies the parsing config for RagFiles.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct RagFileParsingConfig {
-    /// Whether to use advanced PDF parsing.
-    #[deprecated]
-    #[prost(bool, tag = "2")]
-    pub use_advanced_pdf_parsing: bool,
-    /// The parser to use for RagFiles.
-    #[prost(oneof = "rag_file_parsing_config::Parser", tags = "3, 4")]
-    pub parser: ::core::option::Option<rag_file_parsing_config::Parser>,
-}
-/// Nested message and enum types in `RagFileParsingConfig`.
-pub mod rag_file_parsing_config {
-    /// Specifies the advanced parsing for RagFiles.
-    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
-    pub struct AdvancedParser {
-        /// Whether to use advanced PDF parsing.
-        #[prost(bool, tag = "1")]
-        pub use_advanced_pdf_parsing: bool,
-    }
-    /// Document AI Layout Parser config.
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct LayoutParser {
-        /// The full resource name of a Document AI processor or processor version.
-        /// The processor must have type `LAYOUT_PARSER_PROCESSOR`. If specified, the
-        /// `additional_config.parse_as_scanned_pdf` field must be false.
-        /// Format:
-        /// * `projects/{project_id}/locations/{location}/processors/{processor_id}`
-        /// * `projects/{project_id}/locations/{location}/processors/{processor_id}/processorVersions/{processor_version_id}`
-        #[prost(string, tag = "1")]
-        pub processor_name: ::prost::alloc::string::String,
-        /// The maximum number of requests the job is allowed to make to the Document
-        /// AI processor per minute. Consult
-        /// <https://cloud.google.com/document-ai/quotas> and the Quota page for your
-        /// project to set an appropriate value here. If unspecified, a default value
-        /// of 120 QPM would be used.
-        #[prost(int32, tag = "2")]
-        pub max_parsing_requests_per_min: i32,
-    }
-    /// The parser to use for RagFiles.
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Parser {
-        /// The Advanced Parser to use for RagFiles.
-        #[prost(message, tag = "3")]
-        AdvancedParser(AdvancedParser),
-        /// The Layout Parser to use for RagFiles.
-        #[prost(message, tag = "4")]
-        LayoutParser(LayoutParser),
-    }
-}
-/// Config for uploading RagFile.
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct UploadRagFileConfig {
-    /// Specifies the size and overlap of chunks after uploading RagFile.
-    #[deprecated]
-    #[prost(message, optional, tag = "1")]
-    pub rag_file_chunking_config: ::core::option::Option<RagFileChunkingConfig>,
-    /// Specifies the transformation config for RagFiles.
-    #[prost(message, optional, tag = "3")]
-    pub rag_file_transformation_config: ::core::option::Option<
-        RagFileTransformationConfig,
-    >,
-}
-/// Config for importing RagFiles.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ImportRagFilesConfig {
-    /// Specifies the size and overlap of chunks after importing RagFiles.
-    #[deprecated]
-    #[prost(message, optional, tag = "4")]
-    pub rag_file_chunking_config: ::core::option::Option<RagFileChunkingConfig>,
-    /// Specifies the transformation config for RagFiles.
-    #[prost(message, optional, tag = "16")]
-    pub rag_file_transformation_config: ::core::option::Option<
-        RagFileTransformationConfig,
-    >,
-    /// Optional. Specifies the parsing config for RagFiles.
-    /// RAG will use the default parser if this field is not set.
-    #[prost(message, optional, tag = "8")]
-    pub rag_file_parsing_config: ::core::option::Option<RagFileParsingConfig>,
-    /// Optional. The max number of queries per minute that this job is allowed to
-    /// make to the embedding model specified on the corpus. This value is specific
-    /// to this job and not shared across other import jobs. Consult the Quotas
-    /// page on the project to set an appropriate value here.
-    /// If unspecified, a default value of 1,000 QPM would be used.
-    #[prost(int32, tag = "5")]
-    pub max_embedding_requests_per_min: i32,
-    /// The source of the import.
-    #[prost(oneof = "import_rag_files_config::ImportSource", tags = "2, 3, 6, 7, 13")]
-    pub import_source: ::core::option::Option<import_rag_files_config::ImportSource>,
-    /// Optional. If provided, all partial failures are written to the sink.
-    /// Deprecated. Prefer to use the `import_result_sink`.
-    #[prost(oneof = "import_rag_files_config::PartialFailureSink", tags = "11, 12")]
-    pub partial_failure_sink: ::core::option::Option<
-        import_rag_files_config::PartialFailureSink,
-    >,
-}
-/// Nested message and enum types in `ImportRagFilesConfig`.
-pub mod import_rag_files_config {
-    /// The source of the import.
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum ImportSource {
-        /// Google Cloud Storage location. Supports importing individual files as
-        /// well as entire Google Cloud Storage directories. Sample formats:
-        /// - `gs://bucket_name/my_directory/object_name/my_file.txt`
-        /// - `gs://bucket_name/my_directory`
-        #[prost(message, tag = "2")]
-        GcsSource(super::GcsSource),
-        /// Google Drive location. Supports importing individual files as
-        /// well as Google Drive folders.
-        #[prost(message, tag = "3")]
-        GoogleDriveSource(super::GoogleDriveSource),
-        /// Slack channels with their corresponding access tokens.
-        #[prost(message, tag = "6")]
-        SlackSource(super::SlackSource),
-        /// Jira queries with their corresponding authentication.
-        #[prost(message, tag = "7")]
-        JiraSource(super::JiraSource),
-        /// SharePoint sources.
-        #[prost(message, tag = "13")]
-        SharePointSources(super::SharePointSources),
-    }
-    /// Optional. If provided, all partial failures are written to the sink.
-    /// Deprecated. Prefer to use the `import_result_sink`.
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum PartialFailureSink {
-        /// The Cloud Storage path to write partial failures to.
-        /// Deprecated. Prefer to use `import_result_gcs_sink`.
-        #[prost(message, tag = "11")]
-        PartialFailureGcsSink(super::GcsDestination),
-        /// The BigQuery destination to write partial failures to. It should be a
-        /// bigquery table resource name (e.g.
-        /// "bq://projectId.bqDatasetId.bqTableId"). The dataset must exist. If the
-        /// table does not exist, it will be created with the expected schema. If the
-        /// table exists, the schema will be validated and data will be added to this
-        /// existing table.
-        /// Deprecated. Prefer to use `import_result_bq_sink`.
-        #[prost(message, tag = "12")]
-        PartialFailureBigquerySink(super::BigQueryDestination),
-    }
-}
 /// Request message for
 /// [VertexRagDataService.CreateRagCorpus][google.cloud.aiplatform.v1beta1.VertexRagDataService.CreateRagCorpus].
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -43351,6 +51286,10 @@ pub struct DeleteRagFileRequest {
     /// `projects/{project}/locations/{location}/ragCorpora/{rag_corpus}/ragFiles/{rag_file}`
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
+    /// Optional. If set to true, any errors generated by external vector database
+    /// during the deletion will be ignored. The default value is false.
+    #[prost(bool, tag = "2")]
+    pub force_delete: bool,
 }
 /// Runtime operation information for
 /// [VertexRagDataService.CreateRagCorpus][google.cloud.aiplatform.v1beta1.VertexRagDataService.CreateRagCorpus].
@@ -43359,6 +51298,16 @@ pub struct CreateRagCorpusOperationMetadata {
     /// The operation generic information.
     #[prost(message, optional, tag = "1")]
     pub generic_metadata: ::core::option::Option<GenericOperationMetadata>,
+}
+/// Request message for
+/// [VertexRagDataService.GetRagEngineConfig][google.cloud.aiplatform.v1beta1.VertexRagDataService.GetRagEngineConfig]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetRagEngineConfigRequest {
+    /// Required. The name of the RagEngineConfig resource.
+    /// Format:
+    /// `projects/{project}/locations/{location}/ragEngineConfig`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
 }
 /// Request message for
 /// [VertexRagDataService.UpdateRagCorpus][google.cloud.aiplatform.v1beta1.VertexRagDataService.UpdateRagCorpus].
@@ -43394,6 +51343,25 @@ pub struct ImportRagFilesOperationMetadata {
     ///     progress_percentage = 100 * (successes + failures + skips) / total
     #[prost(int32, tag = "4")]
     pub progress_percentage: i32,
+}
+/// Request message for
+/// [VertexRagDataService.UpdateRagEngineConfig][google.cloud.aiplatform.v1beta1.VertexRagDataService.UpdateRagEngineConfig].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateRagEngineConfigRequest {
+    /// Required. The updated RagEngineConfig.
+    ///
+    /// NOTE: Downgrading your RagManagedDb's ComputeTier could temporarily
+    /// increase request latencies until the operation is fully complete.
+    #[prost(message, optional, tag = "1")]
+    pub rag_engine_config: ::core::option::Option<RagEngineConfig>,
+}
+/// Runtime operation information for
+/// [VertexRagDataService.UpdateRagEngineConfig][google.cloud.aiplatform.v1beta1.VertexRagDataService.UpdateRagEngineConfig].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateRagEngineConfigOperationMetadata {
+    /// The operation generic information.
+    #[prost(message, optional, tag = "1")]
+    pub generic_metadata: ::core::option::Option<GenericOperationMetadata>,
 }
 /// Generated client implementations.
 pub mod vertex_rag_data_service_client {
@@ -43781,6 +51749,66 @@ pub mod vertex_rag_data_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        /// Updates a RagEngineConfig.
+        pub async fn update_rag_engine_config(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateRagEngineConfigRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.VertexRagDataService/UpdateRagEngineConfig",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.VertexRagDataService",
+                        "UpdateRagEngineConfig",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Gets a RagEngineConfig.
+        pub async fn get_rag_engine_config(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetRagEngineConfigRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::RagEngineConfig>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.aiplatform.v1beta1.VertexRagDataService/GetRagEngineConfig",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.aiplatform.v1beta1.VertexRagDataService",
+                        "GetRagEngineConfig",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
     }
 }
 /// A query to retrieve relevant contexts.
@@ -43929,6 +51957,9 @@ pub mod rag_contexts {
         /// means the most relevant and 2 means the least relevant.
         #[prost(double, optional, tag = "6")]
         pub score: ::core::option::Option<f64>,
+        /// Context of the retrieved chunk.
+        #[prost(message, optional, tag = "7")]
+        pub chunk: ::core::option::Option<super::RagChunk>,
     }
 }
 /// Response message for
@@ -44063,6 +52094,9 @@ pub struct Fact {
     /// most relevant and 2 means the least relevant.
     #[prost(double, optional, tag = "6")]
     pub score: ::core::option::Option<f64>,
+    /// If present, chunk properties.
+    #[prost(message, optional, tag = "7")]
+    pub chunk: ::core::option::Option<RagChunk>,
 }
 /// Claim that is extracted from the input text and facts that support it.
 #[derive(Clone, PartialEq, ::prost::Message)]

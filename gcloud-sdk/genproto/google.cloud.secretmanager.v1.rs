@@ -92,8 +92,8 @@ pub struct Secret {
     /// destruction happens after the TTL expires.
     #[prost(message, optional, tag = "14")]
     pub version_destroy_ttl: ::core::option::Option<::prost_types::Duration>,
-    /// Optional. The customer-managed encryption configuration of the Regionalised
-    /// Secrets. If no configuration is provided, Google-managed default encryption
+    /// Optional. The customer-managed encryption configuration of the regionalized
+    /// secrets. If no configuration is provided, Google-managed default encryption
     /// is used.
     ///
     /// Updates to the [Secret][google.cloud.secretmanager.v1.Secret] encryption
@@ -103,6 +103,19 @@ pub struct Secret {
     /// [SecretVersions][google.cloud.secretmanager.v1.SecretVersion].
     #[prost(message, optional, tag = "15")]
     pub customer_managed_encryption: ::core::option::Option<CustomerManagedEncryption>,
+    /// Optional. Input only. Immutable. Mapping of Tag keys/values directly bound
+    /// to this resource. For example:
+    ///    "123/environment": "production",
+    ///    "123/costCenter": "marketing"
+    ///
+    /// Tags are used to organize and group resources.
+    ///
+    /// Tags can be used to control policy evaluation for the resource.
+    #[prost(map = "string, string", tag = "16")]
+    pub tags: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
     /// Expiration policy attached to the
     /// [Secret][google.cloud.secretmanager.v1.Secret]. If specified the
     /// [Secret][google.cloud.secretmanager.v1.Secret] and all
@@ -189,15 +202,14 @@ pub struct SecretVersion {
     /// Optional. Output only. Scheduled destroy time for secret version.
     /// This is a part of the Delayed secret version destroy feature. For a
     /// Secret with a valid version destroy TTL, when a secert version is
-    /// destroyed, the version is moved to disabled state and it is scheduled for
-    /// destruction. The version is destroyed only after the
-    /// `scheduled_destroy_time`.
+    /// destroyed, version is moved to disabled state and it is scheduled for
+    /// destruction Version is destroyed only after the scheduled_destroy_time.
     #[prost(message, optional, tag = "8")]
     pub scheduled_destroy_time: ::core::option::Option<::prost_types::Timestamp>,
     /// Output only. The customer-managed encryption status of the
     /// [SecretVersion][google.cloud.secretmanager.v1.SecretVersion]. Only
     /// populated if customer-managed encryption is used and
-    /// [Secret][google.cloud.secretmanager.v1.Secret] is a Regionalised Secret.
+    /// [Secret][google.cloud.secretmanager.v1.Secret] is a regionalized secret.
     #[prost(message, optional, tag = "9")]
     pub customer_managed_encryption: ::core::option::Option<
         CustomerManagedEncryptionStatus,
@@ -292,7 +304,8 @@ pub mod replication {
     }
     /// A replication policy that replicates the
     /// [Secret][google.cloud.secretmanager.v1.Secret] payload into the locations
-    /// specified in [Secret.replication.user_managed.replicas][]
+    /// specified in
+    /// [Replication.UserManaged.replicas][google.cloud.secretmanager.v1.Replication.UserManaged.replicas]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct UserManaged {
         /// Required. The list of Replicas for this
@@ -458,10 +471,10 @@ pub struct CustomerManagedEncryptionStatus {
 /// events occur on this secret.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Topic {
-    /// Required. The resource name of the Pub/Sub topic that will be published to,
-    /// in the following format: `projects/*/topics/*`. For publication to succeed,
-    /// the Secret Manager service agent must have the `pubsub.topic.publish`
-    /// permission on the topic. The Pub/Sub Publisher role
+    /// Identifier. The resource name of the Pub/Sub topic that will be published
+    /// to, in the following format: `projects/*/topics/*`. For publication to
+    /// succeed, the Secret Manager service agent must have the
+    /// `pubsub.topic.publish` permission on the topic. The Pub/Sub Publisher role
     /// (`roles/pubsub.publisher`) includes this permission.
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,

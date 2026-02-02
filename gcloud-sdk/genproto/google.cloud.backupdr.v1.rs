@@ -39,8 +39,9 @@ pub struct BackupPlan {
     #[prost(enumeration = "backup_plan::State", tag = "7")]
     pub state: i32,
     /// Required. The resource type to which the `BackupPlan` will be applied.
-    /// Examples include, "compute.googleapis.com/Instance" and
-    /// "storage.googleapis.com/Bucket".
+    /// Examples include, "compute.googleapis.com/Instance",
+    /// "sqladmin.googleapis.com/Instance", "alloydb.googleapis.com/Cluster",
+    /// "compute.googleapis.com/Disk".
     #[prost(string, tag = "8")]
     pub resource_type: ::prost::alloc::string::String,
     /// Optional. `etag` is returned from the service in the response. As a user of
@@ -58,6 +59,29 @@ pub struct BackupPlan {
     /// Vault Service Account.
     #[prost(string, tag = "11")]
     pub backup_vault_service_account: ::prost::alloc::string::String,
+    /// Optional. Applicable only for CloudSQL and AlloyDB resource_type.
+    ///
+    /// Configures how long logs will be stored. It is defined in “days”. This
+    /// value should be greater than or equal to minimum enforced log retention
+    /// duration of the backup vault.
+    #[prost(int64, tag = "12")]
+    pub log_retention_days: i64,
+    /// Output only. All resource types to which backupPlan can be applied.
+    #[prost(string, repeated, tag = "13")]
+    pub supported_resource_types: ::prost::alloc::vec::Vec<
+        ::prost::alloc::string::String,
+    >,
+    /// Output only. The user friendly revision ID of the `BackupPlanRevision`.
+    ///
+    /// Example: v0, v1, v2, etc.
+    #[prost(string, tag = "14")]
+    pub revision_id: ::prost::alloc::string::String,
+    /// Output only. The resource id of the `BackupPlanRevision`.
+    ///
+    /// Format:
+    /// `projects/{project}/locations/{location}/backupPlans/{backup_plan}/revisions/{revision_id}`
+    #[prost(string, tag = "15")]
+    pub revision_name: ::prost::alloc::string::String,
 }
 /// Nested message and enum types in `BackupPlan`.
 pub mod backup_plan {
@@ -85,6 +109,8 @@ pub mod backup_plan {
         Deleting = 3,
         /// The resource has been created but is not usable.
         Inactive = 4,
+        /// The resource is being updated.
+        Updating = 5,
     }
     impl State {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -98,6 +124,7 @@ pub mod backup_plan {
                 Self::Active => "ACTIVE",
                 Self::Deleting => "DELETING",
                 Self::Inactive => "INACTIVE",
+                Self::Updating => "UPDATING",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -108,6 +135,7 @@ pub mod backup_plan {
                 "ACTIVE" => Some(Self::Active),
                 "DELETING" => Some(Self::Deleting),
                 "INACTIVE" => Some(Self::Inactive),
+                "UPDATING" => Some(Self::Updating),
                 _ => None,
             }
         }
@@ -125,10 +153,12 @@ pub struct BackupRule {
     /// Required. Configures the duration for which backup data will be kept. It is
     /// defined in “days”. The value should be greater than or equal to minimum
     /// enforced retention of the backup vault.
+    ///
+    /// Minimum value is 1 and maximum value is 36159 for custom retention
+    /// on-demand backup.
+    /// Minimum and maximum values are workload specific for all other rules.
     #[prost(int32, tag = "4")]
     pub backup_retention_days: i32,
-    /// Required.
-    ///
     /// The schedule that defines the automated backup workloads for this
     /// `BackupRule`.
     #[prost(oneof = "backup_rule::BackupScheduleOneof", tags = "5")]
@@ -136,13 +166,11 @@ pub struct BackupRule {
 }
 /// Nested message and enum types in `BackupRule`.
 pub mod backup_rule {
-    /// Required.
-    ///
     /// The schedule that defines the automated backup workloads for this
     /// `BackupRule`.
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum BackupScheduleOneof {
-        /// Required. Defines a schedule that runs within the confines of a defined
+        /// Optional. Defines a schedule that runs within the confines of a defined
         /// window of time.
         #[prost(message, tag = "5")]
         StandardSchedule(super::StandardSchedule),
@@ -163,7 +191,7 @@ pub struct StandardSchedule {
     /// otherwise. A validation error will occur if a value is supplied and
     /// `recurrence_type` is not `HOURLY`.
     ///
-    /// Value of hourly frequency should be between 6 and 23.
+    /// Value of hourly frequency should be between 4 and 23.
     ///
     /// Reason for limit : We found that there is bandwidth limitation of 3GB/S for
     /// GMI while taking a backup and 5GB/S while doing a restore. Given the amount
@@ -497,51 +525,66 @@ pub struct DeleteBackupPlanRequest {
     #[prost(string, tag = "2")]
     pub request_id: ::prost::alloc::string::String,
 }
-/// A BackupPlanAssociation represents a single BackupPlanAssociation which
-/// contains details like workload, backup plan etc
+/// Request message for updating a backup plan.
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct BackupPlanAssociation {
-    /// Output only. Identifier. The resource name of BackupPlanAssociation in
-    /// below format Format :
-    /// projects/{project}/locations/{location}/backupPlanAssociations/{backupPlanAssociationId}
+pub struct UpdateBackupPlanRequest {
+    /// Required. The resource being updated
+    #[prost(message, optional, tag = "1")]
+    pub backup_plan: ::core::option::Option<BackupPlan>,
+    /// Required. The list of fields to update.
+    /// Field mask is used to specify the fields to be overwritten in the
+    /// BackupPlan resource by the update.
+    /// The fields specified in the update_mask are relative to the resource, not
+    /// the full request. A field will be overwritten if it is in the mask. If the
+    /// user does not provide a mask then the request will fail.
+    /// Currently, these fields are supported in update: description, schedules,
+    /// retention period, adding and removing Backup Rules.
+    #[prost(message, optional, tag = "2")]
+    pub update_mask: ::core::option::Option<::prost_types::FieldMask>,
+    /// Optional. An optional request ID to identify requests. Specify a unique
+    /// request ID so that if you must retry your request, the server will know to
+    /// ignore the request if it has already been completed. The server will
+    /// guarantee that for at least 60 minutes since the first request.
+    ///
+    /// For example, consider a situation where you make an initial request and t
+    /// he request times out. If you make the request again with the same request
+    /// ID, the server can check if original operation with the same request ID
+    /// was received, and if so, will ignore the second request. This prevents
+    /// clients from accidentally creating duplicate commitments.
+    ///
+    /// The request ID must be a valid UUID with the exception that zero UUID is
+    /// not supported (00000000-0000-0000-0000-000000000000).
+    #[prost(string, tag = "3")]
+    pub request_id: ::prost::alloc::string::String,
+}
+/// `BackupPlanRevision` represents a snapshot of a `BackupPlan` at a point in
+/// time.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BackupPlanRevision {
+    /// Output only. Identifier. The resource name of the `BackupPlanRevision`.
+    ///
+    /// Format:
+    /// `projects/{project}/locations/{location}/backupPlans/{backup_plan}/revisions/{revision}`
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
-    /// Optional. Resource type of workload on which backupplan is applied
+    /// Output only. The user friendly revision ID of the `BackupPlanRevision`.
+    ///
+    /// Example: v0, v1, v2, etc.
     #[prost(string, tag = "2")]
-    pub resource_type: ::prost::alloc::string::String,
-    /// Required. Immutable. Resource name of workload on which backupplan is
-    /// applied
-    #[prost(string, tag = "3")]
-    pub resource: ::prost::alloc::string::String,
-    /// Required. Resource name of backup plan which needs to be applied on
-    /// workload. Format:
-    /// projects/{project}/locations/{location}/backupPlans/{backupPlanId}
-    #[prost(string, tag = "4")]
-    pub backup_plan: ::prost::alloc::string::String,
-    /// Output only. The time when the instance was created.
+    pub revision_id: ::prost::alloc::string::String,
+    /// Output only. Resource State
+    #[prost(enumeration = "backup_plan_revision::State", tag = "3")]
+    pub state: i32,
+    /// The Backup Plan being encompassed by this revision.
+    #[prost(message, optional, tag = "4")]
+    pub backup_plan_snapshot: ::core::option::Option<BackupPlan>,
+    /// Output only. The timestamp that the revision was created.
     #[prost(message, optional, tag = "5")]
     pub create_time: ::core::option::Option<::prost_types::Timestamp>,
-    /// Output only. The time when the instance was updated.
-    #[prost(message, optional, tag = "6")]
-    pub update_time: ::core::option::Option<::prost_types::Timestamp>,
-    /// Output only. The BackupPlanAssociation resource state.
-    #[prost(enumeration = "backup_plan_association::State", tag = "7")]
-    pub state: i32,
-    /// Output only. The config info related to backup rules.
-    #[prost(message, repeated, tag = "8")]
-    pub rules_config_info: ::prost::alloc::vec::Vec<RuleConfigInfo>,
-    /// Output only. Output Only.
-    ///
-    /// Resource name of data source which will be used as storage location for
-    /// backups taken.
-    /// Format :
-    /// projects/{project}/locations/{location}/backupVaults/{backupvault}/dataSources/{datasource}
-    #[prost(string, tag = "9")]
-    pub data_source: ::prost::alloc::string::String,
 }
-/// Nested message and enum types in `BackupPlanAssociation`.
-pub mod backup_plan_association {
-    /// Enum for State of BackupPlan Association
+/// Nested message and enum types in `BackupPlanRevision`.
+pub mod backup_plan_revision {
+    /// The state of the `BackupPlanRevision`.
     #[derive(
         Clone,
         Copy,
@@ -593,20 +636,336 @@ pub mod backup_plan_association {
         }
     }
 }
+/// The request message for getting a `BackupPlanRevision`.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetBackupPlanRevisionRequest {
+    /// Required. The resource name of the `BackupPlanRevision` to retrieve.
+    ///
+    /// Format:
+    /// `projects/{project}/locations/{location}/backupPlans/{backup_plan}/revisions/{revision}`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// The request message for getting a list of `BackupPlanRevision`.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListBackupPlanRevisionsRequest {
+    /// Required. The project and location for which to retrieve
+    /// `BackupPlanRevisions` information. Format:
+    /// `projects/{project}/locations/{location}/backupPlans/{backup_plan}`. In
+    /// Cloud BackupDR, locations map to GCP regions, for e.g. **us-central1**.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Optional. The maximum number of `BackupPlans` to return in a single
+    /// response. If not specified, a default value will be chosen by the service.
+    /// Note that the response may include a partial list and a caller should
+    /// only rely on the response's
+    /// [next_page_token][google.cloud.backupdr.v1.ListBackupPlansResponse.next_page_token]
+    /// to determine if there are more instances left to be queried.
+    #[prost(int32, tag = "2")]
+    pub page_size: i32,
+    /// Optional. The value of
+    /// [next_page_token][google.cloud.backupdr.v1.ListBackupPlansResponse.next_page_token]
+    /// received from a previous `ListBackupPlans` call.
+    /// Provide this to retrieve the subsequent page in a multi-page list of
+    /// results. When paginating, all other parameters provided to
+    /// `ListBackupPlans` must match the call that provided the page token.
+    #[prost(string, tag = "3")]
+    pub page_token: ::prost::alloc::string::String,
+}
+/// The response message for getting a list of `BackupPlanRevision`.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListBackupPlanRevisionsResponse {
+    /// The list of `BackupPlanRevisions` in the project for the specified
+    /// location.
+    ///
+    /// If the `{location}` value in the request is "-", the response contains a
+    /// list of resources from all locations. In case any location is unreachable,
+    /// the response will only return backup plans in reachable locations and
+    /// the 'unreachable' field will be populated with a list of unreachable
+    /// locations.
+    #[prost(message, repeated, tag = "1")]
+    pub backup_plan_revisions: ::prost::alloc::vec::Vec<BackupPlanRevision>,
+    /// A token which may be sent as
+    /// [page_token][google.cloud.backupdr.v1.ListBackupPlanRevisionsRequest.page_token]
+    /// in a subsequent `ListBackupPlanRevisions` call to retrieve the next page of
+    /// results. If this field is omitted or empty, then there are no more results
+    /// to return.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+    /// Locations that could not be reached.
+    #[prost(string, repeated, tag = "3")]
+    pub unreachable: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+/// CloudSqlInstanceDataSourceProperties represents the properties of a
+/// Cloud SQL resource that are stored in the DataSource.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CloudSqlInstanceDataSourceProperties {
+    /// Output only. Name of the Cloud SQL instance backed up by the datasource.
+    /// Format:
+    /// projects/{project}/instances/{instance}
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Output only. The installed database version of the Cloud SQL instance.
+    #[prost(string, tag = "2")]
+    pub database_installed_version: ::prost::alloc::string::String,
+    /// Output only. The instance creation timestamp.
+    #[prost(message, optional, tag = "3")]
+    pub instance_create_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. The tier (or machine type) for this instance. Example:
+    /// `db-custom-1-3840`
+    #[prost(string, tag = "5")]
+    pub instance_tier: ::prost::alloc::string::String,
+}
+/// CloudSqlInstanceBackupProperties represents Cloud SQL Instance
+/// Backup properties.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CloudSqlInstanceBackupProperties {
+    /// Output only. The installed database version of the Cloud SQL instance
+    /// when the backup was taken.
+    #[prost(string, tag = "2")]
+    pub database_installed_version: ::prost::alloc::string::String,
+    /// Output only. Whether the backup is a final backup.
+    #[prost(bool, tag = "3")]
+    pub final_backup: bool,
+    /// Output only. The source instance of the backup.
+    /// Format:
+    /// projects/{project}/instances/{instance}
+    #[prost(string, tag = "4")]
+    pub source_instance: ::prost::alloc::string::String,
+    /// Output only. The instance creation timestamp.
+    #[prost(message, optional, tag = "5")]
+    pub instance_create_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. The tier (or machine type) for this instance. Example:
+    /// `db-custom-1-3840`
+    #[prost(string, tag = "6")]
+    pub instance_tier: ::prost::alloc::string::String,
+    /// Output only. The instance delete timestamp.
+    #[prost(message, optional, tag = "8")]
+    pub instance_delete_time: ::core::option::Option<::prost_types::Timestamp>,
+}
+/// CloudSqlInstanceDataSourceReferenceProperties represents the properties of a
+/// Cloud SQL resource that are stored in the DataSourceReference.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CloudSqlInstanceDataSourceReferenceProperties {
+    /// Output only. Name of the Cloud SQL instance backed up by the datasource.
+    /// Format:
+    /// projects/{project}/instances/{instance}
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Output only. The installed database version of the Cloud SQL instance.
+    #[prost(string, tag = "2")]
+    pub database_installed_version: ::prost::alloc::string::String,
+    /// Output only. The instance creation timestamp.
+    #[prost(message, optional, tag = "3")]
+    pub instance_create_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. The tier (or machine type) for this instance. Example:
+    /// `db-custom-1-3840`
+    #[prost(string, tag = "5")]
+    pub instance_tier: ::prost::alloc::string::String,
+}
+/// CloudSqlInstanceInitializationConfig contains the configuration for
+/// initializing a Cloud SQL instance.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct CloudSqlInstanceInitializationConfig {
+    /// Required. The edition of the Cloud SQL instance.
+    #[prost(
+        enumeration = "cloud_sql_instance_initialization_config::Edition",
+        tag = "1"
+    )]
+    pub edition: i32,
+}
+/// Nested message and enum types in `CloudSqlInstanceInitializationConfig`.
+pub mod cloud_sql_instance_initialization_config {
+    /// The edition of the Cloud SQL instance. For details, see
+    /// <https://cloud.google.com/sql/docs/editions-intro.>
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Edition {
+        /// Unspecified edition.
+        Unspecified = 0,
+        /// Enterprise edition.
+        Enterprise = 1,
+        /// Enterprise Plus edition.
+        EnterprisePlus = 2,
+    }
+    impl Edition {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "EDITION_UNSPECIFIED",
+                Self::Enterprise => "ENTERPRISE",
+                Self::EnterprisePlus => "ENTERPRISE_PLUS",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "EDITION_UNSPECIFIED" => Some(Self::Unspecified),
+                "ENTERPRISE" => Some(Self::Enterprise),
+                "ENTERPRISE_PLUS" => Some(Self::EnterprisePlus),
+                _ => None,
+            }
+        }
+    }
+}
+/// Cloud SQL instance's BPA properties.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct CloudSqlInstanceBackupPlanAssociationProperties {
+    /// Output only. The time when the instance was created.
+    #[prost(message, optional, tag = "1")]
+    pub instance_create_time: ::core::option::Option<::prost_types::Timestamp>,
+}
+/// A BackupPlanAssociation represents a single BackupPlanAssociation which
+/// contains details like workload, backup plan etc
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BackupPlanAssociation {
+    /// Output only. Identifier. The resource name of BackupPlanAssociation in
+    /// below format Format :
+    /// projects/{project}/locations/{location}/backupPlanAssociations/{backupPlanAssociationId}
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Required. Immutable. Resource type of workload on which backupplan is
+    /// applied
+    #[prost(string, tag = "2")]
+    pub resource_type: ::prost::alloc::string::String,
+    /// Required. Immutable. Resource name of workload on which the backup plan is
+    /// applied.
+    ///
+    /// The format can either be the resource name (e.g.,
+    /// "projects/my-project/zones/us-central1-a/instances/my-instance") or the
+    /// full resource URI (e.g.,
+    /// "<https://www.googleapis.com/compute/v1/projects/my-project/zones/us-central1-a/instances/my-instance">).
+    #[prost(string, tag = "3")]
+    pub resource: ::prost::alloc::string::String,
+    /// Required. Resource name of backup plan which needs to be applied on
+    /// workload. Format:
+    /// projects/{project}/locations/{location}/backupPlans/{backupPlanId}
+    #[prost(string, tag = "4")]
+    pub backup_plan: ::prost::alloc::string::String,
+    /// Output only. The time when the instance was created.
+    #[prost(message, optional, tag = "5")]
+    pub create_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. The time when the instance was updated.
+    #[prost(message, optional, tag = "6")]
+    pub update_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. The BackupPlanAssociation resource state.
+    #[prost(enumeration = "backup_plan_association::State", tag = "7")]
+    pub state: i32,
+    /// Output only. The config info related to backup rules.
+    #[prost(message, repeated, tag = "8")]
+    pub rules_config_info: ::prost::alloc::vec::Vec<RuleConfigInfo>,
+    /// Output only. Resource name of data source which will be used as storage
+    /// location for backups taken. Format :
+    /// projects/{project}/locations/{location}/backupVaults/{backupvault}/dataSources/{datasource}
+    #[prost(string, tag = "9")]
+    pub data_source: ::prost::alloc::string::String,
+    /// Output only. The user friendly revision ID of the `BackupPlanRevision`.
+    ///
+    /// Example: v0, v1, v2, etc.
+    #[prost(string, tag = "11")]
+    pub backup_plan_revision_id: ::prost::alloc::string::String,
+    /// Output only. The resource id of the `BackupPlanRevision`.
+    ///
+    /// Format:
+    /// `projects/{project}/locations/{location}/backupPlans/{backup_plan}/revisions/{revision_id}`
+    #[prost(string, tag = "12")]
+    pub backup_plan_revision_name: ::prost::alloc::string::String,
+    /// Properties of the protected GCP resource.
+    #[prost(oneof = "backup_plan_association::ResourceProperties", tags = "10")]
+    pub resource_properties: ::core::option::Option<
+        backup_plan_association::ResourceProperties,
+    >,
+}
+/// Nested message and enum types in `BackupPlanAssociation`.
+pub mod backup_plan_association {
+    /// Enum for State of BackupPlan Association
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum State {
+        /// State not set.
+        Unspecified = 0,
+        /// The resource is being created.
+        Creating = 1,
+        /// The resource has been created and is fully usable.
+        Active = 2,
+        /// The resource is being deleted.
+        Deleting = 3,
+        /// The resource has been created but is not usable.
+        Inactive = 4,
+        /// The resource is being updated.
+        Updating = 5,
+    }
+    impl State {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "STATE_UNSPECIFIED",
+                Self::Creating => "CREATING",
+                Self::Active => "ACTIVE",
+                Self::Deleting => "DELETING",
+                Self::Inactive => "INACTIVE",
+                Self::Updating => "UPDATING",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "STATE_UNSPECIFIED" => Some(Self::Unspecified),
+                "CREATING" => Some(Self::Creating),
+                "ACTIVE" => Some(Self::Active),
+                "DELETING" => Some(Self::Deleting),
+                "INACTIVE" => Some(Self::Inactive),
+                "UPDATING" => Some(Self::Updating),
+                _ => None,
+            }
+        }
+    }
+    /// Properties of the protected GCP resource.
+    #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
+    pub enum ResourceProperties {
+        /// Output only. Cloud SQL instance's backup plan association properties.
+        #[prost(message, tag = "10")]
+        CloudSqlInstanceBackupPlanAssociationProperties(
+            super::CloudSqlInstanceBackupPlanAssociationProperties,
+        ),
+    }
+}
 /// Message for rules config info.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RuleConfigInfo {
-    /// Output only. Output Only.
-    ///
-    /// Backup Rule id fetched from backup plan.
+    /// Output only. Backup Rule id fetched from backup plan.
     #[prost(string, tag = "1")]
     pub rule_id: ::prost::alloc::string::String,
     /// Output only. The last backup state for rule.
     #[prost(enumeration = "rule_config_info::LastBackupState", tag = "3")]
     pub last_backup_state: i32,
-    /// Output only. Output Only.
-    ///
-    /// google.rpc.Status object to store the last backup error.
+    /// Output only. google.rpc.Status object to store the last backup error.
     #[prost(message, optional, tag = "4")]
     pub last_backup_error: ::core::option::Option<super::super::super::rpc::Status>,
     /// Output only. The point in time when the last successful backup was captured
@@ -744,6 +1103,62 @@ pub struct ListBackupPlanAssociationsResponse {
     #[prost(string, repeated, tag = "3")]
     pub unreachable: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
+/// Request for the FetchBackupPlanAssociationsForResourceType method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FetchBackupPlanAssociationsForResourceTypeRequest {
+    /// Required. The parent resource name.
+    /// Format: projects/{project}/locations/{location}
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Required. The type of the GCP resource.
+    /// Ex: sql.googleapis.com/Instance
+    #[prost(string, tag = "2")]
+    pub resource_type: ::prost::alloc::string::String,
+    /// Optional. The maximum number of BackupPlanAssociations to return. The
+    /// service may return fewer than this value. If unspecified, at most 50
+    /// BackupPlanAssociations will be returned. The maximum value is 100; values
+    /// above 100 will be coerced to 100.
+    #[prost(int32, tag = "3")]
+    pub page_size: i32,
+    /// Optional. A page token, received from a previous call of
+    /// `FetchBackupPlanAssociationsForResourceType`.
+    /// Provide this to retrieve the subsequent page.
+    ///
+    /// When paginating, all other parameters provided to
+    /// `FetchBackupPlanAssociationsForResourceType` must match
+    /// the call that provided the page token.
+    #[prost(string, tag = "4")]
+    pub page_token: ::prost::alloc::string::String,
+    /// Optional. A filter expression that filters the results fetched in the
+    /// response. The expression must specify the field name, a comparison
+    /// operator, and the value that you want to use for filtering. Supported
+    /// fields:
+    /// * resource
+    /// * backup_plan
+    /// * state
+    /// * data_source
+    /// * cloud_sql_instance_backup_plan_association_properties.instance_create_time
+    #[prost(string, tag = "5")]
+    pub filter: ::prost::alloc::string::String,
+    /// Optional. A comma-separated list of fields to order by, sorted in ascending
+    /// order. Use "desc" after a field name for descending.
+    ///
+    /// Supported fields:
+    /// * name
+    #[prost(string, tag = "6")]
+    pub order_by: ::prost::alloc::string::String,
+}
+/// Response for the FetchBackupPlanAssociationsForResourceType method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FetchBackupPlanAssociationsForResourceTypeResponse {
+    /// Output only. The BackupPlanAssociations from the specified parent.
+    #[prost(message, repeated, tag = "1")]
+    pub backup_plan_associations: ::prost::alloc::vec::Vec<BackupPlanAssociation>,
+    /// Output only. A token, which can be sent as `page_token` to retrieve the
+    /// next page. If this field is omitted, there are no subsequent pages.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
 /// Request message for getting a BackupPlanAssociation resource.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetBackupPlanAssociationRequest {
@@ -775,6 +1190,37 @@ pub struct DeleteBackupPlanAssociationRequest {
     #[prost(string, tag = "2")]
     pub request_id: ::prost::alloc::string::String,
 }
+/// Request message for updating a backup plan association.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateBackupPlanAssociationRequest {
+    /// Required. The resource being updated
+    #[prost(message, optional, tag = "1")]
+    pub backup_plan_association: ::core::option::Option<BackupPlanAssociation>,
+    /// Required. The list of fields to update.
+    /// Field mask is used to specify the fields to be overwritten in the
+    /// BackupPlanAssociation resource by the update.
+    /// The fields specified in the update_mask are relative to the resource, not
+    /// the full request. A field will be overwritten if it is in the mask. If the
+    /// user does not provide a mask then the request will fail.
+    /// Currently backup_plan_association.backup_plan is the only supported field.
+    #[prost(message, optional, tag = "2")]
+    pub update_mask: ::core::option::Option<::prost_types::FieldMask>,
+    /// Optional. An optional request ID to identify requests. Specify a unique
+    /// request ID so that if you must retry your request, the server will know to
+    /// ignore the request if it has already been completed. The server will
+    /// guarantee that for at least 60 minutes since the first request.
+    ///
+    /// For example, consider a situation where you make an initial request and t
+    /// he request times out. If you make the request again with the same request
+    /// ID, the server can check if original operation with the same request ID
+    /// was received, and if so, will ignore the second request. This prevents
+    /// clients from accidentally creating duplicate commitments.
+    ///
+    /// The request ID must be a valid UUID with the exception that zero UUID is
+    /// not supported (00000000-0000-0000-0000-000000000000).
+    #[prost(string, tag = "3")]
+    pub request_id: ::prost::alloc::string::String,
+}
 /// Request message for triggering a backup.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TriggerBackupRequest {
@@ -800,6 +1246,36 @@ pub struct TriggerBackupRequest {
     /// not supported (00000000-0000-0000-0000-000000000000).
     #[prost(string, tag = "3")]
     pub request_id: ::prost::alloc::string::String,
+}
+/// AlloyDBClusterDataSourceProperties represents the properties of a
+/// AlloyDB cluster resource that are stored in the DataSource.
+/// .
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AlloyDbClusterDataSourceProperties {
+    /// Output only. Name of the AlloyDB cluster backed up by the datasource.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// AlloyDbClusterBackupProperties represents AlloyDB cluster
+/// backup properties.
+/// .
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AlloyDbClusterBackupProperties {
+    /// An optional text description for the backup.
+    #[prost(string, optional, tag = "1")]
+    pub description: ::core::option::Option<::prost::alloc::string::String>,
+    /// Output only. Storage usage of this particular backup
+    #[prost(int64, tag = "2")]
+    pub stored_bytes: i64,
+    /// Output only. The chain id of this backup. Backups belonging to the same
+    /// chain are sharing the same chain id. This property is calculated and
+    /// maintained by BackupDR.
+    #[prost(string, tag = "3")]
+    pub chain_id: ::prost::alloc::string::String,
+    /// Output only. The PostgreSQL major version of the AlloyDB cluster when the
+    /// backup was taken.
+    #[prost(string, tag = "4")]
+    pub database_version: ::prost::alloc::string::String,
 }
 /// BackupApplianceBackupProperties represents BackupDR backup appliance's
 /// properties.
@@ -924,7 +1400,8 @@ pub struct ComputeInstanceRestoreProperties {
     #[prost(string, optional, tag = "6")]
     pub description: ::core::option::Option<::prost::alloc::string::String>,
     /// Optional. Array of disks associated with this instance. Persistent disks
-    /// must be created before you can assign them.
+    /// must be created before you can assign them. Source regional persistent
+    /// disks will be restored with default replica zones if not specified.
     #[prost(message, repeated, tag = "7")]
     pub disks: ::prost::alloc::vec::Vec<AttachedDisk>,
     /// Optional. Enables display device for the instance.
@@ -967,7 +1444,7 @@ pub struct ComputeInstanceRestoreProperties {
     /// Optional. An array of network configurations for this instance. These
     /// specify how interfaces are configured to interact with other network
     /// services, such as connecting to the internet. Multiple interfaces are
-    /// supported per instance.
+    /// supported per instance. Required to restore in different project or region.
     #[prost(message, repeated, tag = "17")]
     pub network_interfaces: ::prost::alloc::vec::Vec<NetworkInterface>,
     /// Optional. Configure network performance such as egress bandwidth tier.
@@ -989,6 +1466,7 @@ pub struct ComputeInstanceRestoreProperties {
     #[prost(message, optional, tag = "21")]
     pub allocation_affinity: ::core::option::Option<AllocationAffinity>,
     /// Optional. Resource policies applied to this instance.
+    /// By default, no resource policies will be applied.
     #[prost(string, repeated, tag = "22")]
     pub resource_policies: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
     /// Optional. Sets the scheduling options for this instance.
@@ -1466,9 +1944,9 @@ pub mod network_performance_config {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AccessConfig {
     /// Optional. In accessConfigs (IPv4), the
-    ///   default and only option is ONE_TO_ONE_NAT. In
-    ///   ipv6AccessConfigs, the default and only option is
-    ///   DIRECT_IPV6.
+    /// default and only option is ONE_TO_ONE_NAT. In
+    /// ipv6AccessConfigs, the default and only option is
+    /// DIRECT_IPV6.
     #[prost(enumeration = "access_config::AccessType", optional, tag = "1")]
     pub r#type: ::core::option::Option<i32>,
     /// Optional. The name of this access configuration.
@@ -2334,6 +2812,298 @@ impl KeyRevocationActionType {
         }
     }
 }
+/// DiskTargetEnvironment represents the target environment for the disk.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DiskTargetEnvironment {
+    /// Required. Target project for the disk.
+    #[prost(string, tag = "1")]
+    pub project: ::prost::alloc::string::String,
+    /// Required. Target zone for the disk.
+    #[prost(string, tag = "2")]
+    pub zone: ::prost::alloc::string::String,
+}
+/// RegionDiskTargetEnvironment represents the target environment for the disk.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RegionDiskTargetEnvironment {
+    /// Required. Target project for the disk.
+    #[prost(string, tag = "1")]
+    pub project: ::prost::alloc::string::String,
+    /// Required. Target region for the disk.
+    #[prost(string, tag = "2")]
+    pub region: ::prost::alloc::string::String,
+    /// Required. Target URLs of the replica zones for the disk.
+    #[prost(string, repeated, tag = "3")]
+    pub replica_zones: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+/// DiskRestoreProperties represents the properties of a Disk restore.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DiskRestoreProperties {
+    /// Required. Name of the disk.
+    #[prost(string, optional, tag = "1")]
+    pub name: ::core::option::Option<::prost::alloc::string::String>,
+    /// Optional. An optional description of this resource. Provide this property
+    /// when you create the resource.
+    #[prost(string, optional, tag = "2")]
+    pub description: ::core::option::Option<::prost::alloc::string::String>,
+    /// Required. The size of the disk in GB.
+    #[prost(int64, optional, tag = "3")]
+    pub size_gb: ::core::option::Option<i64>,
+    /// Optional. A list of publicly available licenses that are applicable to this
+    /// backup. This is applicable if the original image had licenses attached,
+    /// e.g. Windows image
+    #[prost(string, repeated, tag = "4")]
+    pub licenses: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Optional. A list of features to enable in the guest operating system. This
+    /// is applicable only for bootable images.
+    #[prost(message, repeated, tag = "5")]
+    pub guest_os_feature: ::prost::alloc::vec::Vec<GuestOsFeature>,
+    /// Optional. Encrypts the disk using a
+    /// customer-supplied encryption key or a customer-managed encryption key.
+    #[prost(message, optional, tag = "6")]
+    pub disk_encryption_key: ::core::option::Option<CustomerEncryptionKey>,
+    /// Optional. Physical block size of the persistent disk, in bytes.
+    /// If not present in a request, a default value is used.
+    /// Currently, the supported size is 4096.
+    #[prost(int64, optional, tag = "7")]
+    pub physical_block_size_bytes: ::core::option::Option<i64>,
+    /// Optional. Indicates how many IOPS to provision for the disk. This sets the
+    /// number of I/O operations per second that the disk can handle.
+    #[prost(int64, optional, tag = "8")]
+    pub provisioned_iops: ::core::option::Option<i64>,
+    /// Optional. Indicates how much throughput to provision for the disk. This
+    /// sets the number of throughput MB per second that the disk can handle.
+    #[prost(int64, optional, tag = "9")]
+    pub provisioned_throughput: ::core::option::Option<i64>,
+    /// Optional. Indicates whether this disk is using confidential compute mode.
+    /// Encryption with a Cloud KMS key is required to enable this option.
+    #[prost(bool, optional, tag = "10")]
+    pub enable_confidential_compute: ::core::option::Option<bool>,
+    /// Optional. The storage pool in which the new disk is created. You can
+    /// provide this as a partial or full URL to the resource.
+    #[prost(string, optional, tag = "11")]
+    pub storage_pool: ::core::option::Option<::prost::alloc::string::String>,
+    /// Optional. The access mode of the disk.
+    #[prost(enumeration = "disk_restore_properties::AccessMode", optional, tag = "12")]
+    pub access_mode: ::core::option::Option<i32>,
+    /// Optional. The architecture of the source disk. Valid values are
+    /// ARM64 or X86_64.
+    #[prost(enumeration = "disk_restore_properties::Architecture", optional, tag = "14")]
+    pub architecture: ::core::option::Option<i32>,
+    /// Optional. Resource policies applied to this disk.
+    #[prost(string, repeated, tag = "15")]
+    pub resource_policy: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Required. URL of the disk type resource describing which disk type to use
+    /// to create the disk.
+    #[prost(string, optional, tag = "16")]
+    pub r#type: ::core::option::Option<::prost::alloc::string::String>,
+    /// Optional. Labels to apply to this disk. These can be modified later using
+    /// <code>setLabels</code> method. Label values can be empty.
+    #[prost(map = "string, string", tag = "17")]
+    pub labels: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+    /// Optional. Resource manager tags to be bound to the disk.
+    #[prost(map = "string, string", tag = "18")]
+    pub resource_manager_tags: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+}
+/// Nested message and enum types in `DiskRestoreProperties`.
+pub mod disk_restore_properties {
+    /// The supported access modes of the disk.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AccessMode {
+        /// The default AccessMode, means the disk can be attached to single instance
+        /// in RW mode.
+        ReadWriteSingle = 0,
+        /// The AccessMode means the disk can be attached to multiple instances in RW
+        /// mode.
+        ReadWriteMany = 1,
+        /// The AccessMode means the disk can be attached to multiple instances in RO
+        /// mode.
+        ReadOnlyMany = 2,
+    }
+    impl AccessMode {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::ReadWriteSingle => "READ_WRITE_SINGLE",
+                Self::ReadWriteMany => "READ_WRITE_MANY",
+                Self::ReadOnlyMany => "READ_ONLY_MANY",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "READ_WRITE_SINGLE" => Some(Self::ReadWriteSingle),
+                "READ_WRITE_MANY" => Some(Self::ReadWriteMany),
+                "READ_ONLY_MANY" => Some(Self::ReadOnlyMany),
+                _ => None,
+            }
+        }
+    }
+    /// Architecture of the source disk.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Architecture {
+        /// Default value. This value is unused.
+        Unspecified = 0,
+        /// Disks with architecture X86_64
+        X8664 = 1,
+        /// Disks with architecture ARM64
+        Arm64 = 2,
+    }
+    impl Architecture {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "ARCHITECTURE_UNSPECIFIED",
+                Self::X8664 => "X86_64",
+                Self::Arm64 => "ARM64",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "ARCHITECTURE_UNSPECIFIED" => Some(Self::Unspecified),
+                "X86_64" => Some(Self::X8664),
+                "ARM64" => Some(Self::Arm64),
+                _ => None,
+            }
+        }
+    }
+}
+/// DiskBackupProperties represents the properties of a Disk backup.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DiskBackupProperties {
+    /// A description of the source disk.
+    #[prost(string, optional, tag = "1")]
+    pub description: ::core::option::Option<::prost::alloc::string::String>,
+    /// A list of publicly available licenses that are applicable to this backup.
+    /// This is applicable if the original image had licenses attached, e.g.
+    /// Windows image.
+    #[prost(string, repeated, tag = "2")]
+    pub licenses: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// A list of guest OS features that are applicable to this backup.
+    #[prost(message, repeated, tag = "3")]
+    pub guest_os_feature: ::prost::alloc::vec::Vec<GuestOsFeature>,
+    /// The architecture of the source disk. Valid values are
+    /// ARM64 or X86_64.
+    #[prost(enumeration = "disk_backup_properties::Architecture", optional, tag = "4")]
+    pub architecture: ::core::option::Option<i32>,
+    /// The URL of the type of the disk.
+    #[prost(string, optional, tag = "5")]
+    pub r#type: ::core::option::Option<::prost::alloc::string::String>,
+    /// Size(in GB) of the source disk.
+    #[prost(int64, optional, tag = "6")]
+    pub size_gb: ::core::option::Option<i64>,
+    /// Region and zone are mutually exclusive fields.
+    /// The URL of the region of the source disk.
+    #[prost(string, optional, tag = "7")]
+    pub region: ::core::option::Option<::prost::alloc::string::String>,
+    /// The URL of the Zone where the source disk.
+    #[prost(string, optional, tag = "8")]
+    pub zone: ::core::option::Option<::prost::alloc::string::String>,
+    /// The URL of the Zones where the source disk should be replicated.
+    #[prost(string, repeated, tag = "9")]
+    pub replica_zones: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// The source disk used to create this backup.
+    #[prost(string, optional, tag = "10")]
+    pub source_disk: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// Nested message and enum types in `DiskBackupProperties`.
+pub mod disk_backup_properties {
+    /// Architecture of the source disk.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Architecture {
+        /// Default value. This value is unused.
+        Unspecified = 0,
+        /// Disks with architecture X86_64
+        X8664 = 1,
+        /// Disks with architecture ARM64
+        Arm64 = 2,
+    }
+    impl Architecture {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "ARCHITECTURE_UNSPECIFIED",
+                Self::X8664 => "X86_64",
+                Self::Arm64 => "ARM64",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "ARCHITECTURE_UNSPECIFIED" => Some(Self::Unspecified),
+                "X86_64" => Some(Self::X8664),
+                "ARM64" => Some(Self::Arm64),
+                _ => None,
+            }
+        }
+    }
+}
+/// DiskDataSourceProperties represents the properties of a
+/// Disk resource that are stored in the DataSource.
+/// .
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DiskDataSourceProperties {
+    /// Name of the disk backed up by the datasource.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// The description of the disk.
+    #[prost(string, tag = "2")]
+    pub description: ::prost::alloc::string::String,
+    /// The type of the disk.
+    #[prost(string, tag = "3")]
+    pub r#type: ::prost::alloc::string::String,
+    /// The size of the disk in GB.
+    #[prost(int64, tag = "4")]
+    pub size_gb: i64,
+}
 /// Message describing a BackupVault object.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct BackupVault {
@@ -2367,6 +3137,14 @@ pub struct BackupVault {
     pub backup_minimum_enforced_retention_duration: ::core::option::Option<
         ::prost_types::Duration,
     >,
+    /// Optional. Setting for how a backup's enforced retention end time is
+    /// inherited.
+    #[prost(
+        enumeration = "backup_vault::BackupRetentionInheritance",
+        optional,
+        tag = "27"
+    )]
+    pub backup_retention_inheritance: ::core::option::Option<i32>,
     /// Output only. Set to true when there are no backups nested under this
     /// resource.
     #[prost(bool, optional, tag = "8")]
@@ -2392,8 +3170,7 @@ pub struct BackupVault {
     /// Output only. Total size of the storage used by all backup resources.
     #[prost(int64, tag = "19")]
     pub total_stored_bytes: i64,
-    /// Output only. Output only
-    /// Immutable after resource creation until resource deletion.
+    /// Output only. Immutable after resource creation until resource deletion.
     #[prost(string, tag = "21")]
     pub uid: ::prost::alloc::string::String,
     /// Optional. User annotations. See <https://google.aip.dev/128#annotations>
@@ -2406,15 +3183,80 @@ pub struct BackupVault {
     /// Optional. Note: This field is added for future use case and will not be
     /// supported in the current release.
     ///
-    /// Optional.
-    ///
     /// Access restriction for the backup vault.
     /// Default value is WITHIN_ORGANIZATION if not provided during creation.
     #[prost(enumeration = "backup_vault::AccessRestriction", tag = "24")]
     pub access_restriction: i32,
+    /// Optional. The encryption config of the backup vault.
+    #[prost(message, optional, tag = "29")]
+    pub encryption_config: ::core::option::Option<backup_vault::EncryptionConfig>,
 }
 /// Nested message and enum types in `BackupVault`.
 pub mod backup_vault {
+    /// Message describing the EncryptionConfig of backup vault.
+    /// This determines how data within the vault is encrypted at rest.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct EncryptionConfig {
+        /// Optional. The Cloud KMS key name to encrypt backups in this backup vault.
+        /// Must be in the same region as the vault. Some workload backups like
+        /// compute disk backups may use their inherited source key instead. Format:
+        /// projects/{project}/locations/{location}/keyRings/{ring}/cryptoKeys/{key}
+        #[prost(string, optional, tag = "1")]
+        pub kms_key_name: ::core::option::Option<::prost::alloc::string::String>,
+    }
+    /// How a backup's enforced retention end time is inherited.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum BackupRetentionInheritance {
+        /// Inheritance behavior not set. This will default to
+        /// `INHERIT_VAULT_RETENTION`.
+        Unspecified = 0,
+        /// The enforced retention end time of a backup will be inherited from the
+        /// backup vault's `backup_minimum_enforced_retention_duration` field.
+        ///
+        /// This is the default behavior.
+        InheritVaultRetention = 1,
+        /// The enforced retention end time of a backup will always match the expire
+        /// time of the backup.
+        ///
+        /// If this is set, the backup's enforced retention end time will be set to
+        /// match the expire time during creation of the backup. When updating, the
+        /// ERET and expire time must be updated together and have the same value.
+        /// Invalid update requests will be rejected by the server.
+        MatchBackupExpireTime = 2,
+    }
+    impl BackupRetentionInheritance {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "BACKUP_RETENTION_INHERITANCE_UNSPECIFIED",
+                Self::InheritVaultRetention => "INHERIT_VAULT_RETENTION",
+                Self::MatchBackupExpireTime => "MATCH_BACKUP_EXPIRE_TIME",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "BACKUP_RETENTION_INHERITANCE_UNSPECIFIED" => Some(Self::Unspecified),
+                "INHERIT_VAULT_RETENTION" => Some(Self::InheritVaultRetention),
+                "MATCH_BACKUP_EXPIRE_TIME" => Some(Self::MatchBackupExpireTime),
+                _ => None,
+            }
+        }
+    }
     /// Holds the state of the backup vault resource.
     #[derive(
         Clone,
@@ -2439,6 +3281,8 @@ pub mod backup_vault {
         Deleting = 3,
         /// The backup vault is experiencing an issue and might be unusable.
         Error = 4,
+        /// The backup vault is being updated.
+        Updating = 5,
     }
     impl State {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -2452,6 +3296,7 @@ pub mod backup_vault {
                 Self::Active => "ACTIVE",
                 Self::Deleting => "DELETING",
                 Self::Error => "ERROR",
+                Self::Updating => "UPDATING",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -2462,6 +3307,7 @@ pub mod backup_vault {
                 "ACTIVE" => Some(Self::Active),
                 "DELETING" => Some(Self::Deleting),
                 "ERROR" => Some(Self::Error),
+                "UPDATING" => Some(Self::Updating),
                 _ => None,
             }
         }
@@ -2480,7 +3326,8 @@ pub mod backup_vault {
     )]
     #[repr(i32)]
     pub enum AccessRestriction {
-        /// Access restriction not set.
+        /// Access restriction not set. If user does not provide any value or pass
+        /// this value, it will be changed to WITHIN_ORGANIZATION.
         Unspecified = 0,
         /// Access to or from resources outside your current project will be denied.
         WithinProject = 1,
@@ -2489,6 +3336,9 @@ pub mod backup_vault {
         WithinOrganization = 2,
         /// No access restriction.
         Unrestricted = 3,
+        /// Access to or from resources outside your current organization will be
+        /// denied except for backup appliance.
+        WithinOrgButUnrestrictedForBa = 4,
     }
     impl AccessRestriction {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -2501,6 +3351,9 @@ pub mod backup_vault {
                 Self::WithinProject => "WITHIN_PROJECT",
                 Self::WithinOrganization => "WITHIN_ORGANIZATION",
                 Self::Unrestricted => "UNRESTRICTED",
+                Self::WithinOrgButUnrestrictedForBa => {
+                    "WITHIN_ORG_BUT_UNRESTRICTED_FOR_BA"
+                }
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -2510,6 +3363,9 @@ pub mod backup_vault {
                 "WITHIN_PROJECT" => Some(Self::WithinProject),
                 "WITHIN_ORGANIZATION" => Some(Self::WithinOrganization),
                 "UNRESTRICTED" => Some(Self::Unrestricted),
+                "WITHIN_ORG_BUT_UNRESTRICTED_FOR_BA" => {
+                    Some(Self::WithinOrgButUnrestrictedForBa)
+                }
                 _ => None,
             }
         }
@@ -2559,6 +3415,10 @@ pub struct DataSource {
     /// Output only. Details of how the resource is configured for backup.
     #[prost(message, optional, tag = "25")]
     pub backup_config_info: ::core::option::Option<BackupConfigInfo>,
+    /// Output only. This field is set to true if the backup is blocked by vault
+    /// access restriction.
+    #[prost(bool, tag = "28")]
+    pub backup_blocked_by_vault_access_restriction: bool,
     /// The source resource that is represented by this DataSource. It can be a
     /// Google Cloud resource, or one backed up by a Backup Appliance.
     #[prost(oneof = "data_source::SourceResource", tags = "26, 27")]
@@ -2737,6 +3597,13 @@ pub struct GcpBackupConfig {
     /// The names of the backup plan rules which point to this backupvault
     #[prost(string, repeated, tag = "4")]
     pub backup_plan_rules: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// The name of the backup plan revision.
+    #[prost(string, tag = "5")]
+    pub backup_plan_revision_name: ::prost::alloc::string::String,
+    /// The user friendly id of the backup plan revision.
+    /// E.g. v0, v1 etc.
+    #[prost(string, tag = "6")]
+    pub backup_plan_revision_id: ::prost::alloc::string::String,
 }
 /// BackupApplianceBackupConfig captures the backup configuration for
 /// applications that are protected by Backup Appliances.
@@ -2781,7 +3648,10 @@ pub struct DataSourceGcpResource {
     #[prost(string, tag = "3")]
     pub r#type: ::prost::alloc::string::String,
     /// gcp_Properties has properties of the Google Cloud Resource.
-    #[prost(oneof = "data_source_gcp_resource::GcpResourceProperties", tags = "4")]
+    #[prost(
+        oneof = "data_source_gcp_resource::GcpResourceProperties",
+        tags = "4, 5, 6, 7"
+    )]
     pub gcp_resource_properties: ::core::option::Option<
         data_source_gcp_resource::GcpResourceProperties,
     >,
@@ -2795,6 +3665,20 @@ pub mod data_source_gcp_resource {
         /// properties that are useful at the Datasource level.
         #[prost(message, tag = "4")]
         ComputeInstanceDatasourceProperties(super::ComputeInstanceDataSourceProperties),
+        /// Output only. CloudSqlInstanceDataSourceProperties has a subset of Cloud
+        /// SQL Instance properties that are useful at the Datasource level.
+        #[prost(message, tag = "5")]
+        CloudSqlInstanceDatasourceProperties(
+            super::CloudSqlInstanceDataSourceProperties,
+        ),
+        /// Output only. AlloyDBClusterDataSourceProperties has a subset of AlloyDB
+        /// cluster properties that are useful at the Datasource level.
+        #[prost(message, tag = "6")]
+        AlloyDbClusterDatasourceProperties(super::AlloyDbClusterDataSourceProperties),
+        /// DiskDataSourceProperties has a subset of Disk properties that are useful
+        /// at the Datasource level.
+        #[prost(message, tag = "7")]
+        DiskDatasourceProperties(super::DiskDataSourceProperties),
     }
 }
 /// BackupApplianceApplication describes a Source Resource when it is an
@@ -2923,6 +3807,14 @@ pub struct Backup {
     /// Optional. The backup can not be deleted before this time.
     #[prost(message, optional, tag = "6")]
     pub enforced_retention_end_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. Setting for how the enforced retention end time is inherited.
+    /// This value is copied from this backup's BackupVault.
+    #[prost(
+        enumeration = "backup_vault::BackupRetentionInheritance",
+        optional,
+        tag = "30"
+    )]
+    pub backup_retention_inheritance: ::core::option::Option<i32>,
     /// Optional. When this backup is automatically expired.
     #[prost(message, optional, tag = "7")]
     pub expire_time: ::core::option::Option<::prost_types::Timestamp>,
@@ -2950,12 +3842,25 @@ pub struct Backup {
     /// Output only. source resource size in bytes at the time of the backup.
     #[prost(int64, tag = "23")]
     pub resource_size_bytes: i64,
+    /// Optional. Output only. Reserved for future use.
+    #[prost(bool, optional, tag = "24")]
+    pub satisfies_pzs: ::core::option::Option<bool>,
+    /// Optional. Output only. Reserved for future use.
+    #[prost(bool, optional, tag = "25")]
+    pub satisfies_pzi: ::core::option::Option<bool>,
+    /// Optional. Output only. The list of KMS key versions used to encrypt the
+    /// backup.
+    #[prost(string, repeated, tag = "33")]
+    pub kms_key_versions: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
     /// Workload specific backup properties.
-    #[prost(oneof = "backup::BackupProperties", tags = "19, 21")]
+    #[prost(oneof = "backup::BackupProperties", tags = "19, 26, 21, 27, 28")]
     pub backup_properties: ::core::option::Option<backup::BackupProperties>,
     /// Configuration Info has the resource format-specific configuration.
     #[prost(oneof = "backup::PlanInfo", tags = "22")]
     pub plan_info: ::core::option::Option<backup::PlanInfo>,
+    /// Resource that is being backed up.
+    #[prost(oneof = "backup::SourceResource", tags = "31")]
+    pub source_resource: ::core::option::Option<backup::SourceResource>,
 }
 /// Nested message and enum types in `Backup`.
 pub mod backup {
@@ -2973,6 +3878,16 @@ pub mod backup {
         /// scheduled backup or used for
         #[prost(string, tag = "2")]
         pub backup_plan_rule_id: ::prost::alloc::string::String,
+        /// Resource name of the backup plan revision which triggered this backup in
+        /// case of scheduled backup or used for on demand backup.
+        /// Format:
+        /// projects/{project}/locations/{location}/backupPlans/{backupPlanId}/revisions/{revisionId}
+        #[prost(string, tag = "3")]
+        pub backup_plan_revision_name: ::prost::alloc::string::String,
+        /// The user friendly id of the backup plan revision which triggered this
+        /// backup in case of scheduled backup or used for on demand backup.
+        #[prost(string, tag = "4")]
+        pub backup_plan_revision_id: ::prost::alloc::string::String,
     }
     /// Holds the state of the backup resource.
     #[derive(
@@ -2998,6 +3913,8 @@ pub mod backup {
         Deleting = 3,
         /// The backup is experiencing an issue and might be unusable.
         Error = 4,
+        /// The backup is being uploaded.
+        Uploading = 5,
     }
     impl State {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -3011,6 +3928,7 @@ pub mod backup {
                 Self::Active => "ACTIVE",
                 Self::Deleting => "DELETING",
                 Self::Error => "ERROR",
+                Self::Uploading => "UPLOADING",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -3021,6 +3939,7 @@ pub mod backup {
                 "ACTIVE" => Some(Self::Active),
                 "DELETING" => Some(Self::Deleting),
                 "ERROR" => Some(Self::Error),
+                "UPLOADING" => Some(Self::Uploading),
                 _ => None,
             }
         }
@@ -3045,6 +3964,8 @@ pub mod backup {
         Scheduled = 1,
         /// On demand backup.
         OnDemand = 2,
+        /// Operational backup.
+        OnDemandOperational = 3,
     }
     impl BackupType {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -3056,6 +3977,7 @@ pub mod backup {
                 Self::Unspecified => "BACKUP_TYPE_UNSPECIFIED",
                 Self::Scheduled => "SCHEDULED",
                 Self::OnDemand => "ON_DEMAND",
+                Self::OnDemandOperational => "ON_DEMAND_OPERATIONAL",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -3064,6 +3986,7 @@ pub mod backup {
                 "BACKUP_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
                 "SCHEDULED" => Some(Self::Scheduled),
                 "ON_DEMAND" => Some(Self::OnDemand),
+                "ON_DEMAND_OPERATIONAL" => Some(Self::OnDemandOperational),
                 _ => None,
             }
         }
@@ -3074,9 +3997,18 @@ pub mod backup {
         /// Output only. Compute Engine specific backup properties.
         #[prost(message, tag = "19")]
         ComputeInstanceBackupProperties(super::ComputeInstanceBackupProperties),
+        /// Output only. Cloud SQL specific backup properties.
+        #[prost(message, tag = "26")]
+        CloudSqlInstanceBackupProperties(super::CloudSqlInstanceBackupProperties),
         /// Output only. Backup Appliance specific backup properties.
         #[prost(message, tag = "21")]
         BackupApplianceBackupProperties(super::BackupApplianceBackupProperties),
+        /// Output only. AlloyDB specific backup properties.
+        #[prost(message, tag = "27")]
+        AlloyDbBackupProperties(super::AlloyDbClusterBackupProperties),
+        /// Output only. Disk specific backup properties.
+        #[prost(message, tag = "28")]
+        DiskBackupProperties(super::DiskBackupProperties),
     }
     /// Configuration Info has the resource format-specific configuration.
     #[derive(Clone, PartialEq, ::prost::Oneof)]
@@ -3084,6 +4016,14 @@ pub mod backup {
         /// Output only. Configuration for a Google Cloud resource.
         #[prost(message, tag = "22")]
         GcpBackupPlanInfo(GcpBackupPlanInfo),
+    }
+    /// Resource that is being backed up.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum SourceResource {
+        /// Output only. Unique identifier of the GCP resource that is being backed
+        /// up.
+        #[prost(message, tag = "31")]
+        GcpResource(super::BackupGcpResource),
     }
 }
 /// Message for creating a BackupVault.
@@ -3214,6 +4154,59 @@ pub struct FetchUsableBackupVaultsResponse {
     #[prost(string, repeated, tag = "3")]
     pub unreachable: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
+/// Request for the FetchBackupsForResourceType method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FetchBackupsForResourceTypeRequest {
+    /// Required. Datasources are the parent resource for the backups.
+    /// Format:
+    /// projects/{project}/locations/{location}/backupVaults/{backupVaultId}/dataSources/{datasourceId}
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Required. The type of the GCP resource.
+    /// Ex: sqladmin.googleapis.com/Instance
+    #[prost(string, tag = "2")]
+    pub resource_type: ::prost::alloc::string::String,
+    /// Optional. The maximum number of Backups to return. The service may
+    /// return fewer than this value. If unspecified, at most 50
+    /// Backups will be returned. The maximum value is 100; values
+    /// above 100 will be coerced to 100.
+    #[prost(int32, tag = "3")]
+    pub page_size: i32,
+    /// Optional. A page token, received from a previous call of
+    /// `FetchBackupsForResourceType`.
+    /// Provide this to retrieve the subsequent page.
+    ///
+    /// When paginating, all other parameters provided to
+    /// `FetchBackupsForResourceType` must match
+    /// the call that provided the page token.
+    #[prost(string, tag = "4")]
+    pub page_token: ::prost::alloc::string::String,
+    /// Optional. A filter expression that filters the results fetched in the
+    /// response. The expression must specify the field name, a comparison
+    /// operator, and the value that you want to use for filtering. Supported
+    /// fields:
+    #[prost(string, tag = "5")]
+    pub filter: ::prost::alloc::string::String,
+    /// Optional. A comma-separated list of fields to order by, sorted in ascending
+    /// order. Use "desc" after a field name for descending.
+    #[prost(string, tag = "6")]
+    pub order_by: ::prost::alloc::string::String,
+    /// Optional. This parameter is used to specify the view of the backup.
+    /// If not specified, the default view is BASIC.
+    #[prost(enumeration = "BackupView", tag = "7")]
+    pub view: i32,
+}
+/// Response for the FetchBackupsForResourceType method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FetchBackupsForResourceTypeResponse {
+    /// The Backups from the specified parent.
+    #[prost(message, repeated, tag = "1")]
+    pub backups: ::prost::alloc::vec::Vec<Backup>,
+    /// A token, which can be sent as `page_token` to retrieve the next page.
+    /// If this field is omitted, there are no subsequent pages.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
 /// Request message for getting a BackupVault.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetBackupVaultRequest {
@@ -3262,6 +4255,10 @@ pub struct UpdateBackupVaultRequest {
     /// enforcement duration.
     #[prost(bool, tag = "5")]
     pub force: bool,
+    /// Optional. If set to true, we will force update access restriction even if
+    /// some non compliant data sources are present. The default is 'false'.
+    #[prost(bool, tag = "6")]
+    pub force_update_access_restriction: bool,
 }
 /// Message for deleting a BackupVault.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -3301,6 +4298,10 @@ pub struct DeleteBackupVaultRequest {
     /// succeed but no action will be taken.
     #[prost(bool, tag = "6")]
     pub allow_missing: bool,
+    /// Optional. If set to true, backupvault deletion will proceed even if there
+    /// are backup plans referencing the backupvault. The default is 'false'.
+    #[prost(bool, tag = "7")]
+    pub ignore_backup_plan_references: bool,
 }
 /// Request message for listing DataSources.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -3521,13 +4522,27 @@ pub struct RestoreBackupRequest {
     /// not supported (00000000-0000-0000-0000-000000000000).
     #[prost(string, tag = "2")]
     pub request_id: ::prost::alloc::string::String,
+    /// Optional. A field mask used to clear server-side default values
+    /// for fields within the `instance_properties` oneof.
+    ///
+    /// When a field in this mask is cleared, the server will not apply its
+    /// default logic (like inheriting a value from the source) for that field.
+    ///
+    /// The most common current use case is clearing default encryption keys.
+    ///
+    /// Examples of field mask paths:
+    /// - Compute Instance Disks:
+    /// `compute_instance_restore_properties.disks.*.disk_encryption_key`
+    /// - Single Disk: `disk_restore_properties.disk_encryption_key`
+    #[prost(message, optional, tag = "8")]
+    pub clear_overrides_field_mask: ::core::option::Option<::prost_types::FieldMask>,
     /// The target environment for the restore operation.
-    #[prost(oneof = "restore_backup_request::TargetEnvironment", tags = "3")]
+    #[prost(oneof = "restore_backup_request::TargetEnvironment", tags = "3, 5, 6")]
     pub target_environment: ::core::option::Option<
         restore_backup_request::TargetEnvironment,
     >,
     /// The property overrides for the instance being restored.
-    #[prost(oneof = "restore_backup_request::InstanceProperties", tags = "4")]
+    #[prost(oneof = "restore_backup_request::InstanceProperties", tags = "4, 7")]
     pub instance_properties: ::core::option::Option<
         restore_backup_request::InstanceProperties,
     >,
@@ -3540,6 +4555,12 @@ pub mod restore_backup_request {
         /// Compute Engine target environment to be used during restore.
         #[prost(message, tag = "3")]
         ComputeInstanceTargetEnvironment(super::ComputeInstanceTargetEnvironment),
+        /// Disk target environment to be used during restore.
+        #[prost(message, tag = "5")]
+        DiskTargetEnvironment(super::DiskTargetEnvironment),
+        /// Region disk target environment to be used during restore.
+        #[prost(message, tag = "6")]
+        RegionDiskTargetEnvironment(super::RegionDiskTargetEnvironment),
     }
     /// The property overrides for the instance being restored.
     #[derive(Clone, PartialEq, ::prost::Oneof)]
@@ -3547,6 +4568,9 @@ pub mod restore_backup_request {
         /// Compute Engine instance properties to be overridden during restore.
         #[prost(message, tag = "4")]
         ComputeInstanceRestoreProperties(super::ComputeInstanceRestoreProperties),
+        /// Disk properties to be overridden during restore.
+        #[prost(message, tag = "7")]
+        DiskRestoreProperties(super::DiskRestoreProperties),
     }
 }
 /// Response message for restoring from a Backup.
@@ -3578,6 +4602,20 @@ pub mod target_resource {
 /// Minimum details to identify a Google Cloud resource
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GcpResource {
+    /// Name of the Google Cloud resource.
+    #[prost(string, tag = "1")]
+    pub gcp_resourcename: ::prost::alloc::string::String,
+    /// Location of the resource: <region>/<zone>/"global"/"unspecified".
+    #[prost(string, tag = "2")]
+    pub location: ::prost::alloc::string::String,
+    /// Type of the resource. Use the Unified Resource Type,
+    /// eg. compute.googleapis.com/Instance.
+    #[prost(string, tag = "3")]
+    pub r#type: ::prost::alloc::string::String,
+}
+/// Minimum details to identify a Google Cloud resource for a backup.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BackupGcpResource {
     /// Name of the Google Cloud resource.
     #[prost(string, tag = "1")]
     pub gcp_resourcename: ::prost::alloc::string::String,
@@ -3691,6 +4729,208 @@ impl BackupVaultView {
             _ => None,
         }
     }
+}
+/// DataSourceReference is a reference to a DataSource resource.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DataSourceReference {
+    /// Identifier. The resource name of the DataSourceReference.
+    /// Format:
+    /// projects/{project}/locations/{location}/dataSourceReferences/{data_source_reference}
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Output only. The resource name of the DataSource.
+    /// Format:
+    /// projects/{project}/locations/{location}/backupVaults/{backupVault}/dataSources/{dataSource}
+    #[prost(string, tag = "2")]
+    pub data_source: ::prost::alloc::string::String,
+    /// Output only. The time when the DataSourceReference was created.
+    #[prost(message, optional, tag = "3")]
+    pub create_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. The backup configuration state of the DataSource.
+    #[prost(enumeration = "BackupConfigState", tag = "4")]
+    pub data_source_backup_config_state: i32,
+    /// Output only. Number of backups in the DataSource.
+    #[prost(int64, tag = "5")]
+    pub data_source_backup_count: i64,
+    /// Output only. Information of backup configuration on the DataSource.
+    #[prost(message, optional, tag = "6")]
+    pub data_source_backup_config_info: ::core::option::Option<
+        DataSourceBackupConfigInfo,
+    >,
+    /// Output only. The GCP resource that the DataSource is associated with.
+    #[prost(message, optional, tag = "7")]
+    pub data_source_gcp_resource_info: ::core::option::Option<DataSourceGcpResourceInfo>,
+    /// Output only. Total size of the storage used by all backup resources for the
+    /// referenced datasource.
+    #[prost(int64, optional, tag = "8")]
+    pub total_stored_bytes: ::core::option::Option<i64>,
+}
+/// Information of backup configuration on the DataSource.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct DataSourceBackupConfigInfo {
+    /// Output only. The status of the last backup in this DataSource
+    #[prost(enumeration = "backup_config_info::LastBackupState", tag = "1")]
+    pub last_backup_state: i32,
+    /// Output only. Timestamp of the last successful backup to this DataSource.
+    #[prost(message, optional, tag = "2")]
+    pub last_successful_backup_consistency_time: ::core::option::Option<
+        ::prost_types::Timestamp,
+    >,
+}
+/// The GCP resource that the DataSource is associated with.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DataSourceGcpResourceInfo {
+    /// Output only. The resource name of the GCP resource.
+    /// Ex: projects/{project}/zones/{zone}/instances/{instance}
+    #[prost(string, tag = "1")]
+    pub gcp_resourcename: ::prost::alloc::string::String,
+    /// Output only. The type of the GCP resource.
+    /// Ex: compute.googleapis.com/Instance
+    #[prost(string, tag = "2")]
+    pub r#type: ::prost::alloc::string::String,
+    /// Output only. The location of the GCP resource.
+    /// Ex: <region>/<zone>/"global"/"unspecified"
+    #[prost(string, tag = "3")]
+    pub location: ::prost::alloc::string::String,
+    /// The properties of the GCP resource.
+    #[prost(oneof = "data_source_gcp_resource_info::ResourceProperties", tags = "4")]
+    pub resource_properties: ::core::option::Option<
+        data_source_gcp_resource_info::ResourceProperties,
+    >,
+}
+/// Nested message and enum types in `DataSourceGcpResourceInfo`.
+pub mod data_source_gcp_resource_info {
+    /// The properties of the GCP resource.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum ResourceProperties {
+        /// Output only. The properties of the Cloud SQL instance.
+        #[prost(message, tag = "4")]
+        CloudSqlInstanceProperties(super::CloudSqlInstanceDataSourceReferenceProperties),
+    }
+}
+/// Request for the GetDataSourceReference method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetDataSourceReferenceRequest {
+    /// Required. The name of the DataSourceReference to retrieve.
+    /// Format:
+    /// projects/{project}/locations/{location}/dataSourceReferences/{data_source_reference}
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Request for the ListDataSourceReferences method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListDataSourceReferencesRequest {
+    /// Required. The parent resource name.
+    /// Format: projects/{project}/locations/{location}
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Optional. The maximum number of DataSourceReferences to return. The service
+    /// may return fewer than this value. If unspecified, at most 50
+    /// DataSourceReferences will be returned. The maximum value is 100; values
+    /// above 100 will be coerced to 100.
+    #[prost(int32, tag = "2")]
+    pub page_size: i32,
+    /// Optional. A page token, received from a previous `ListDataSourceReferences`
+    /// call. Provide this to retrieve the subsequent page.
+    ///
+    /// When paginating, all other parameters provided to
+    /// `ListDataSourceReferences` must match the call that provided the page
+    /// token.
+    #[prost(string, tag = "3")]
+    pub page_token: ::prost::alloc::string::String,
+    /// Optional. A filter expression that filters the results listed in the
+    /// response. The expression must specify the field name, a comparison
+    /// operator, and the value that you want to use for filtering.
+    ///
+    /// The following field and operator combinations are supported:
+    ///
+    /// * data_source_gcp_resource_info.gcp_resourcename with `=`, `!=`
+    /// * data_source_gcp_resource_info.type with `=`, `!=`
+    #[prost(string, tag = "4")]
+    pub filter: ::prost::alloc::string::String,
+    /// Optional. A comma-separated list of fields to order by, sorted in ascending
+    /// order. Use "desc" after a field name for descending.
+    ///
+    /// Supported fields:
+    ///
+    /// * data_source
+    /// * data_source_gcp_resource_info.gcp_resourcename
+    #[prost(string, tag = "5")]
+    pub order_by: ::prost::alloc::string::String,
+}
+/// Response for the ListDataSourceReferences method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListDataSourceReferencesResponse {
+    /// The DataSourceReferences from the specified parent.
+    #[prost(message, repeated, tag = "1")]
+    pub data_source_references: ::prost::alloc::vec::Vec<DataSourceReference>,
+    /// A token, which can be sent as `page_token` to retrieve the next page.
+    /// If this field is omitted, there are no subsequent pages.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+    /// Locations that could not be reached.
+    #[prost(string, repeated, tag = "3")]
+    pub unreachable: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+/// Request for the FetchDataSourceReferencesForResourceType method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FetchDataSourceReferencesForResourceTypeRequest {
+    /// Required. The parent resource name.
+    /// Format: projects/{project}/locations/{location}
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Required. The type of the GCP resource.
+    /// Ex: sql.googleapis.com/Instance
+    #[prost(string, tag = "2")]
+    pub resource_type: ::prost::alloc::string::String,
+    /// Optional. The maximum number of DataSourceReferences to return. The service
+    /// may return fewer than this value. If unspecified, at most 50
+    /// DataSourceReferences will be returned. The maximum value is 100; values
+    /// above 100 will be coerced to 100.
+    #[prost(int32, tag = "3")]
+    pub page_size: i32,
+    /// Optional. A page token, received from a previous call of
+    /// `FetchDataSourceReferencesForResourceType`.
+    /// Provide this to retrieve the subsequent page.
+    ///
+    /// When paginating, all other parameters provided to
+    /// `FetchDataSourceReferencesForResourceType` must match
+    /// the call that provided the page token.
+    #[prost(string, tag = "4")]
+    pub page_token: ::prost::alloc::string::String,
+    /// Optional. A filter expression that filters the results fetched in the
+    /// response. The expression must specify the field name, a comparison
+    /// operator, and the value that you want to use for filtering. Supported
+    /// fields:
+    /// * data_source
+    /// * data_source_gcp_resource_info.gcp_resourcename
+    /// * data_source_backup_config_state
+    /// * data_source_backup_count
+    /// * data_source_backup_config_info.last_backup_state
+    /// * data_source_gcp_resource_info.gcp_resourcename
+    /// * data_source_gcp_resource_info.type
+    /// * data_source_gcp_resource_info.location
+    /// * data_source_gcp_resource_info.cloud_sql_instance_properties.instance_create_time
+    #[prost(string, tag = "5")]
+    pub filter: ::prost::alloc::string::String,
+    /// Optional. A comma-separated list of fields to order by, sorted in ascending
+    /// order. Use "desc" after a field name for descending.
+    ///
+    /// Supported fields:
+    /// * name
+    #[prost(string, tag = "6")]
+    pub order_by: ::prost::alloc::string::String,
+}
+/// Response for the FetchDataSourceReferencesForResourceType method.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FetchDataSourceReferencesForResourceTypeResponse {
+    /// The DataSourceReferences from the specified parent.
+    #[prost(message, repeated, tag = "1")]
+    pub data_source_references: ::prost::alloc::vec::Vec<DataSourceReference>,
+    /// A token, which can be sent as `page_token` to retrieve the next page.
+    /// If this field is omitted, there are no subsequent pages.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
 }
 /// Network configuration for ManagementServer instance.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -3819,8 +5059,9 @@ pub struct ManagementServer {
     /// Output only. The ManagementServer state.
     #[prost(enumeration = "management_server::InstanceState", tag = "7")]
     pub state: i32,
-    /// Required. VPC networks to which the ManagementServer instance is connected.
-    /// For this version, only a single network is supported.
+    /// Optional. VPC networks to which the ManagementServer instance is connected.
+    /// For this version, only a single network is supported. This field is
+    /// optional if MS is created without PSA
     #[prost(message, repeated, tag = "8")]
     pub networks: ::prost::alloc::vec::Vec<NetworkConfig>,
     /// Optional. Server specified ETag for the ManagementServer resource to
@@ -4065,6 +5306,66 @@ pub struct DeleteManagementServerRequest {
     #[prost(string, tag = "2")]
     pub request_id: ::prost::alloc::string::String,
 }
+/// Request message for initializing the service.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct InitializeServiceRequest {
+    /// Required. The resource name of the serviceConfig used to initialize the
+    /// service. Format:
+    /// `projects/{project_id}/locations/{location}/serviceConfig`.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Required. The resource type to which the default service config will be
+    /// applied. Examples include, "compute.googleapis.com/Instance" and
+    /// "storage.googleapis.com/Bucket".
+    #[prost(string, tag = "2")]
+    pub resource_type: ::prost::alloc::string::String,
+    /// Optional. An optional request ID to identify requests. Specify a unique
+    /// request ID so that if you must retry your request, the server will know to
+    /// ignore the request if it has already been completed. The server will
+    /// guarantee that for at least 60 minutes since the first request.
+    ///
+    /// For example, consider a situation where you make an initial request and t
+    /// he request times out. If you make the request again with the same request
+    /// ID, the server can check if original operation with the same request ID
+    /// was received, and if so, will ignore the second request. This prevents
+    /// clients from accidentally creating duplicate commitments.
+    ///
+    /// The request ID must be a valid UUID with the exception that zero UUID is
+    /// not supported (00000000-0000-0000-0000-000000000000).
+    #[prost(string, tag = "3")]
+    pub request_id: ::prost::alloc::string::String,
+    /// The configuration for initializing the resource.
+    #[prost(oneof = "initialize_service_request::InitializationConfig", tags = "4")]
+    pub initialization_config: ::core::option::Option<
+        initialize_service_request::InitializationConfig,
+    >,
+}
+/// Nested message and enum types in `InitializeServiceRequest`.
+pub mod initialize_service_request {
+    /// The configuration for initializing the resource.
+    #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
+    pub enum InitializationConfig {
+        /// Optional. The configuration for initializing a Cloud SQL instance.
+        #[prost(message, tag = "4")]
+        CloudSqlInstanceInitializationConfig(
+            super::CloudSqlInstanceInitializationConfig,
+        ),
+    }
+}
+/// Response message for initializing the service.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct InitializeServiceResponse {
+    /// The resource name of the default `BackupVault` created.
+    /// Format:
+    /// `projects/{project_id}/locations/{location}/backupVaults/{backup_vault_id}`.
+    #[prost(string, tag = "1")]
+    pub backup_vault_name: ::prost::alloc::string::String,
+    /// The resource name of the default `BackupPlan` created.
+    /// Format:
+    /// `projects/{project_id}/locations/{location}/backupPlans/{backup_plan_id}`.
+    #[prost(string, tag = "2")]
+    pub backup_plan_name: ::prost::alloc::string::String,
+}
 /// Represents the metadata of the long-running operation.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OperationMetadata {
@@ -4085,9 +5386,10 @@ pub struct OperationMetadata {
     pub status_message: ::prost::alloc::string::String,
     /// Output only. Identifies whether the user has requested cancellation
     /// of the operation. Operations that have successfully been cancelled
-    /// have [Operation.error][] value with a
-    /// [google.rpc.Status.code][google.rpc.Status.code] of 1, corresponding to
-    /// 'Code.CANCELLED'.
+    /// have
+    /// [google.longrunning.Operation.error][google.longrunning.Operation.error]
+    /// value with a [google.rpc.Status.code][google.rpc.Status.code] of 1,
+    /// corresponding to 'Code.CANCELLED'.
     #[prost(bool, tag = "6")]
     pub requested_cancellation: bool,
     /// Output only. API version used to start the operation.
@@ -4603,6 +5905,36 @@ pub mod backup_dr_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        /// Fetch Backups for a given resource type.
+        pub async fn fetch_backups_for_resource_type(
+            &mut self,
+            request: impl tonic::IntoRequest<super::FetchBackupsForResourceTypeRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::FetchBackupsForResourceTypeResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.backupdr.v1.BackupDR/FetchBackupsForResourceType",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.backupdr.v1.BackupDR",
+                        "FetchBackupsForResourceType",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
         /// Gets details of a Backup.
         pub async fn get_backup(
             &mut self,
@@ -4738,6 +6070,36 @@ pub mod backup_dr_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        /// Update a BackupPlan.
+        pub async fn update_backup_plan(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateBackupPlanRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.backupdr.v1.BackupDR/UpdateBackupPlan",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.backupdr.v1.BackupDR",
+                        "UpdateBackupPlan",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
         /// Gets details of a single BackupPlan.
         pub async fn get_backup_plan(
             &mut self,
@@ -4822,6 +6184,66 @@ pub mod backup_dr_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        /// Gets details of a single BackupPlanRevision.
+        pub async fn get_backup_plan_revision(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetBackupPlanRevisionRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::BackupPlanRevision>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.backupdr.v1.BackupDR/GetBackupPlanRevision",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.backupdr.v1.BackupDR",
+                        "GetBackupPlanRevision",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Lists BackupPlanRevisions in a given project and location.
+        pub async fn list_backup_plan_revisions(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListBackupPlanRevisionsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListBackupPlanRevisionsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.backupdr.v1.BackupDR/ListBackupPlanRevisions",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.backupdr.v1.BackupDR",
+                        "ListBackupPlanRevisions",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
         /// Create a BackupPlanAssociation
         pub async fn create_backup_plan_association(
             &mut self,
@@ -4848,6 +6270,36 @@ pub mod backup_dr_client {
                     GrpcMethod::new(
                         "google.cloud.backupdr.v1.BackupDR",
                         "CreateBackupPlanAssociation",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Update a BackupPlanAssociation.
+        pub async fn update_backup_plan_association(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateBackupPlanAssociationRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.backupdr.v1.BackupDR/UpdateBackupPlanAssociation",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.backupdr.v1.BackupDR",
+                        "UpdateBackupPlanAssociation",
                     ),
                 );
             self.inner.unary(req, path, codec).await
@@ -4912,6 +6364,38 @@ pub mod backup_dr_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        /// List BackupPlanAssociations for a given resource type.
+        pub async fn fetch_backup_plan_associations_for_resource_type(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::FetchBackupPlanAssociationsForResourceTypeRequest,
+            >,
+        ) -> std::result::Result<
+            tonic::Response<super::FetchBackupPlanAssociationsForResourceTypeResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.backupdr.v1.BackupDR/FetchBackupPlanAssociationsForResourceType",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.backupdr.v1.BackupDR",
+                        "FetchBackupPlanAssociationsForResourceType",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
         /// Deletes a single BackupPlanAssociation.
         pub async fn delete_backup_plan_association(
             &mut self,
@@ -4966,6 +6450,673 @@ pub mod backup_dr_client {
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new("google.cloud.backupdr.v1.BackupDR", "TriggerBackup"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Gets details of a single DataSourceReference.
+        pub async fn get_data_source_reference(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetDataSourceReferenceRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::DataSourceReference>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.backupdr.v1.BackupDR/GetDataSourceReference",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.backupdr.v1.BackupDR",
+                        "GetDataSourceReference",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Lists DataSourceReferences for a given project and location.
+        pub async fn list_data_source_references(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListDataSourceReferencesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListDataSourceReferencesResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.backupdr.v1.BackupDR/ListDataSourceReferences",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.backupdr.v1.BackupDR",
+                        "ListDataSourceReferences",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Fetch DataSourceReferences for a given project, location and resource type.
+        pub async fn fetch_data_source_references_for_resource_type(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::FetchDataSourceReferencesForResourceTypeRequest,
+            >,
+        ) -> std::result::Result<
+            tonic::Response<super::FetchDataSourceReferencesForResourceTypeResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.backupdr.v1.BackupDR/FetchDataSourceReferencesForResourceType",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.backupdr.v1.BackupDR",
+                        "FetchDataSourceReferencesForResourceType",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Initializes the service related config for a project.
+        pub async fn initialize_service(
+            &mut self,
+            request: impl tonic::IntoRequest<super::InitializeServiceRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.backupdr.v1.BackupDR/InitializeService",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.backupdr.v1.BackupDR",
+                        "InitializeService",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+    }
+}
+/// Request for ListResourceBackupConfigs.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListResourceBackupConfigsRequest {
+    /// Required. The project and location for which to retrieve resource backup
+    /// configs. Format: 'projects/{project_id}/locations/{location}'. In Google
+    /// Cloud Backup and DR, locations map to Google Cloud regions, for example
+    /// **us-central1**.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Optional. Requested page size. Server may return fewer items than
+    /// requested. If unspecified, server will use 100 as default. Maximum value is
+    /// 500 and values above 500 will be coerced to 500.
+    #[prost(int32, tag = "2")]
+    pub page_size: i32,
+    /// Optional. A token identifying a page of results the server should return.
+    #[prost(string, tag = "3")]
+    pub page_token: ::prost::alloc::string::String,
+    /// Optional. Filtering results.
+    #[prost(string, tag = "4")]
+    pub filter: ::prost::alloc::string::String,
+    /// Optional. Hint for how to order the results.
+    #[prost(string, tag = "5")]
+    pub order_by: ::prost::alloc::string::String,
+}
+/// Response for ListResourceBackupConfigs.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListResourceBackupConfigsResponse {
+    /// The list of ResourceBackupConfigs for the specified scope.
+    #[prost(message, repeated, tag = "1")]
+    pub resource_backup_configs: ::prost::alloc::vec::Vec<ResourceBackupConfig>,
+    /// A token identifying a page of results the server should return.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
+/// ResourceBackupConfig represents a resource along with its backup
+/// configurations.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ResourceBackupConfig {
+    /// Identifier. The resource name of the ResourceBackupConfig.
+    /// Format:
+    /// projects/{project}/locations/{location}/resourceBackupConfigs/{uid}
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Output only. The unique identifier of the resource backup config.
+    #[prost(string, tag = "2")]
+    pub uid: ::prost::alloc::string::String,
+    /// Output only. The [full resource
+    /// name](<https://cloud.google.com/asset-inventory/docs/resource-name-format>)
+    /// of the cloud resource that this configuration applies to. Supported
+    /// resource types are
+    /// [ResourceBackupConfig.ResourceType][google.cloud.backupdr.v1.ResourceBackupConfig.ResourceType].
+    #[prost(string, tag = "3")]
+    pub target_resource: ::prost::alloc::string::String,
+    /// Output only. The human friendly name of the target resource.
+    #[prost(string, tag = "4")]
+    pub target_resource_display_name: ::prost::alloc::string::String,
+    /// Output only. The type of the target resource.
+    #[prost(enumeration = "resource_backup_config::ResourceType", tag = "5")]
+    pub target_resource_type: i32,
+    /// Labels associated with the target resource.
+    #[prost(map = "string, string", tag = "6")]
+    pub target_resource_labels: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+    /// Backup configurations applying to the target resource, including those
+    /// targeting its related/child resources. For example, backup configuration
+    /// applicable to Compute Engine disks will be populated in this field for a
+    /// Compute Engine VM which has the disk associated.
+    #[prost(message, repeated, tag = "7")]
+    pub backup_configs_details: ::prost::alloc::vec::Vec<BackupConfigDetails>,
+    /// Output only. Whether the target resource is configured for backup. This is
+    /// true if the backup_configs_details is not empty.
+    #[prost(bool, tag = "8")]
+    pub backup_configured: bool,
+    /// Output only. Whether the target resource is protected by a backup vault.
+    /// This is true if the backup_configs_details is not empty and any of the
+    /// [ResourceBackupConfig.backup_configs_details][google.cloud.backupdr.v1.ResourceBackupConfig.backup_configs_details]
+    /// has a backup configuration with
+    /// [BackupConfigDetails.backup_vault][google.cloud.backupdr.v1.BackupConfigDetails.backup_vault]
+    /// set. set.
+    #[prost(bool, tag = "9")]
+    pub vaulted: bool,
+}
+/// Nested message and enum types in `ResourceBackupConfig`.
+pub mod resource_backup_config {
+    /// The type of the cloud resource.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum ResourceType {
+        /// Resource type not set.
+        Unspecified = 0,
+        /// Cloud SQL instance.
+        CloudSqlInstance = 1,
+        /// Compute Engine VM.
+        ComputeEngineVm = 2,
+        /// Compute Engine Disk.
+        ComputeEngineDisk = 3,
+        /// Compute Engine Regional Disk.
+        ComputeEngineRegionalDisk = 4,
+    }
+    impl ResourceType {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "RESOURCE_TYPE_UNSPECIFIED",
+                Self::CloudSqlInstance => "CLOUD_SQL_INSTANCE",
+                Self::ComputeEngineVm => "COMPUTE_ENGINE_VM",
+                Self::ComputeEngineDisk => "COMPUTE_ENGINE_DISK",
+                Self::ComputeEngineRegionalDisk => "COMPUTE_ENGINE_REGIONAL_DISK",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "RESOURCE_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+                "CLOUD_SQL_INSTANCE" => Some(Self::CloudSqlInstance),
+                "COMPUTE_ENGINE_VM" => Some(Self::ComputeEngineVm),
+                "COMPUTE_ENGINE_DISK" => Some(Self::ComputeEngineDisk),
+                "COMPUTE_ENGINE_REGIONAL_DISK" => Some(Self::ComputeEngineRegionalDisk),
+                _ => None,
+            }
+        }
+    }
+}
+/// BackupConfigDetails has information about how the resource is configured
+/// for backups and about the most recent backup taken for this configuration.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BackupConfigDetails {
+    /// Output only. The full resource name of the backup config source resource.
+    /// For example,
+    /// "//backupdr.googleapis.com/v1/projects/{project}/locations/{region}/backupPlans/{backupplanId}"
+    /// or
+    /// "//compute.googleapis.com/projects/{project}/locations/{region}/resourcePolicies/{resourcePolicyId}".
+    #[prost(string, tag = "1")]
+    pub backup_config_source: ::prost::alloc::string::String,
+    /// Output only. The display name of the backup config source resource.
+    #[prost(string, tag = "2")]
+    pub backup_config_source_display_name: ::prost::alloc::string::String,
+    /// Output only. The type of the backup config resource.
+    #[prost(enumeration = "backup_config_details::Type", tag = "3")]
+    pub r#type: i32,
+    /// Output only. The state of the backup config resource.
+    #[prost(enumeration = "backup_config_details::State", tag = "4")]
+    pub state: i32,
+    /// Output only. Point in time recovery settings of the backup configuration
+    /// resource.
+    #[prost(message, optional, tag = "5")]
+    pub pitr_settings: ::core::option::Option<PitrSettings>,
+    /// Output only. Timestamp of the latest successful backup created via this
+    /// backup configuration.
+    #[prost(message, optional, tag = "6")]
+    pub latest_successful_backup_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. The [full resource
+    /// name](<https://cloud.google.com/asset-inventory/docs/resource-name-format>)
+    /// of the resource that is applicable for the backup configuration. Example:
+    /// "//compute.googleapis.com/projects/{project}/zones/{zone}/instances/{instance}"
+    #[prost(string, tag = "7")]
+    pub applicable_resource: ::prost::alloc::string::String,
+    /// Output only. The [full resource
+    /// name](<https://cloud.google.com/asset-inventory/docs/resource-name-format>)
+    /// of the backup vault that will store the backups generated through this
+    /// backup configuration. Example:
+    /// "//backupdr.googleapis.com/v1/projects/{project}/locations/{region}/backupVaults/{backupvaultId}"
+    #[prost(string, tag = "8")]
+    pub backup_vault: ::prost::alloc::string::String,
+    /// The locations where the backups are to be stored.
+    #[prost(message, repeated, tag = "12")]
+    pub backup_locations: ::prost::alloc::vec::Vec<BackupLocation>,
+    /// The plan specific config. This depends on the value of
+    /// [BackupConfigDetails.type][google.cloud.backupdr.v1.BackupConfigDetails.type].
+    /// For type=BACKUPDR_BACKUP_PLAN, backup_dr_plan_config would be populated to
+    /// capture information related to Google Cloud Backup and DR's Backup Plans.
+    /// For type=BACKUPDR_TEMPLATE, backup_dr_template_config would be populated to
+    /// capture information related to Google Cloud Backup and DR's Template
+    /// details.
+    #[prost(oneof = "backup_config_details::PlanSpecificConfig", tags = "10, 11")]
+    pub plan_specific_config: ::core::option::Option<
+        backup_config_details::PlanSpecificConfig,
+    >,
+}
+/// Nested message and enum types in `BackupConfigDetails`.
+pub mod backup_config_details {
+    /// Type of the backup configuration.
+    /// This enum may receive new values in the future.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Type {
+        /// Backup config type is unspecified.
+        Unspecified = 0,
+        /// Backup config is Cloud SQL instance's automated backup config.
+        CloudSqlInstanceBackupConfig = 1,
+        /// Backup config is Compute Engine Resource Policy.
+        ComputeEngineResourcePolicy = 2,
+        /// Backup config is Google Cloud Backup and DR's Backup Plan.
+        BackupdrBackupPlan = 3,
+        /// Backup config is Google Cloud Backup and DR's Template.
+        BackupdrTemplate = 4,
+    }
+    impl Type {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "TYPE_UNSPECIFIED",
+                Self::CloudSqlInstanceBackupConfig => "CLOUD_SQL_INSTANCE_BACKUP_CONFIG",
+                Self::ComputeEngineResourcePolicy => "COMPUTE_ENGINE_RESOURCE_POLICY",
+                Self::BackupdrBackupPlan => "BACKUPDR_BACKUP_PLAN",
+                Self::BackupdrTemplate => "BACKUPDR_TEMPLATE",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+                "CLOUD_SQL_INSTANCE_BACKUP_CONFIG" => {
+                    Some(Self::CloudSqlInstanceBackupConfig)
+                }
+                "COMPUTE_ENGINE_RESOURCE_POLICY" => {
+                    Some(Self::ComputeEngineResourcePolicy)
+                }
+                "BACKUPDR_BACKUP_PLAN" => Some(Self::BackupdrBackupPlan),
+                "BACKUPDR_TEMPLATE" => Some(Self::BackupdrTemplate),
+                _ => None,
+            }
+        }
+    }
+    /// The state tells whether the backup config is active or not.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum State {
+        /// Backup config state not set.
+        Unspecified = 0,
+        /// The config is in an active state protecting the resource
+        Active = 1,
+        /// The config is currently not protecting the resource. Either because it is
+        /// disabled or the owning project has been deleted without cleanup of the
+        /// actual resource.
+        Inactive = 2,
+        /// The config still exists but because of some error state it is not
+        /// protecting the resource. Like the source project is deleted. For eg.
+        /// PlanAssociation, BackupPlan is deleted.
+        Error = 3,
+    }
+    impl State {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "STATE_UNSPECIFIED",
+                Self::Active => "ACTIVE",
+                Self::Inactive => "INACTIVE",
+                Self::Error => "ERROR",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "STATE_UNSPECIFIED" => Some(Self::Unspecified),
+                "ACTIVE" => Some(Self::Active),
+                "INACTIVE" => Some(Self::Inactive),
+                "ERROR" => Some(Self::Error),
+                _ => None,
+            }
+        }
+    }
+    /// The plan specific config. This depends on the value of
+    /// [BackupConfigDetails.type][google.cloud.backupdr.v1.BackupConfigDetails.type].
+    /// For type=BACKUPDR_BACKUP_PLAN, backup_dr_plan_config would be populated to
+    /// capture information related to Google Cloud Backup and DR's Backup Plans.
+    /// For type=BACKUPDR_TEMPLATE, backup_dr_template_config would be populated to
+    /// capture information related to Google Cloud Backup and DR's Template
+    /// details.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum PlanSpecificConfig {
+        /// Google Cloud Backup and DR's Backup Plan specific data.
+        #[prost(message, tag = "10")]
+        BackupDrPlanConfig(super::BackupDrPlanConfig),
+        /// Google Cloud Backup and DR's Template specific data.
+        #[prost(message, tag = "11")]
+        BackupDrTemplateConfig(super::BackupDrTemplateConfig),
+    }
+}
+/// Point in time recovery settings of the backup configuration resource.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct PitrSettings {
+    /// Output only. Number of days to retain the backup.
+    #[prost(int32, tag = "1")]
+    pub retention_days: i32,
+}
+/// Provides additional information about Google Cloud Backup
+/// and DR's Template backup configuration.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BackupDrTemplateConfig {
+    /// Output only. The URI of the BackupDr template resource for the first party
+    /// identity users.
+    #[prost(string, tag = "1")]
+    pub first_party_management_uri: ::prost::alloc::string::String,
+    /// Output only. The URI of the BackupDr template resource for the third party
+    /// identity users.
+    #[prost(string, tag = "2")]
+    pub third_party_management_uri: ::prost::alloc::string::String,
+}
+/// BackupDrPlanConfig has additional information about Google Cloud Backup and
+/// DR's Plan backup configuration.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BackupDrPlanConfig {
+    /// Backup rules of the backup plan resource.
+    #[prost(message, repeated, tag = "1")]
+    pub backup_dr_plan_rules: ::prost::alloc::vec::Vec<BackupDrPlanRule>,
+}
+/// BackupDrPlanRule has rule specific information of the backup plan resource.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BackupDrPlanRule {
+    /// Output only. Unique Id of the backup rule.
+    #[prost(string, tag = "1")]
+    pub rule_id: ::prost::alloc::string::String,
+    /// Output only. Timestamp of the latest successful backup created via this
+    /// backup rule.
+    #[prost(message, optional, tag = "2")]
+    pub last_successful_backup_time: ::core::option::Option<::prost_types::Timestamp>,
+}
+/// BackupLocation represents a cloud location where a backup can be stored.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BackupLocation {
+    /// Output only. The type of the location.
+    #[prost(enumeration = "backup_location::Type", tag = "1")]
+    pub r#type: i32,
+    /// Output only. The id of the cloud location. Example: "us-central1"
+    #[prost(string, tag = "2")]
+    pub location_id: ::prost::alloc::string::String,
+}
+/// Nested message and enum types in `BackupLocation`.
+pub mod backup_location {
+    /// The type of the location.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Type {
+        /// Location type is unspecified.
+        Unspecified = 0,
+        /// Location type is zonal.
+        Zonal = 1,
+        /// Location type is regional.
+        Regional = 2,
+        /// Location type is multi regional.
+        MultiRegional = 3,
+    }
+    impl Type {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "TYPE_UNSPECIFIED",
+                Self::Zonal => "ZONAL",
+                Self::Regional => "REGIONAL",
+                Self::MultiRegional => "MULTI_REGIONAL",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+                "ZONAL" => Some(Self::Zonal),
+                "REGIONAL" => Some(Self::Regional),
+                "MULTI_REGIONAL" => Some(Self::MultiRegional),
+                _ => None,
+            }
+        }
+    }
+}
+/// Generated client implementations.
+pub mod backup_dr_protection_summary_client {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value,
+    )]
+    use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
+    /// The Protection Summary service.
+    #[derive(Debug, Clone)]
+    pub struct BackupDrProtectionSummaryClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl BackupDrProtectionSummaryClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> BackupDrProtectionSummaryClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> BackupDrProtectionSummaryClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+        {
+            BackupDrProtectionSummaryClient::new(
+                InterceptedService::new(inner, interceptor),
+            )
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        /// Lists ResourceBackupConfigs.
+        pub async fn list_resource_backup_configs(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListResourceBackupConfigsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListResourceBackupConfigsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.backupdr.v1.BackupDrProtectionSummary/ListResourceBackupConfigs",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.backupdr.v1.BackupDrProtectionSummary",
+                        "ListResourceBackupConfigs",
+                    ),
                 );
             self.inner.unary(req, path, codec).await
         }
