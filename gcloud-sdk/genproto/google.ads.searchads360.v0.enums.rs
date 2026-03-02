@@ -1088,6 +1088,8 @@ pub mod served_asset_field_type_enum {
         LeadForm = 30,
         /// The asset is used as a business logo.
         BusinessLogo = 31,
+        /// The asset is used as a description prefix.
+        DescriptionPrefix = 32,
     }
     impl ServedAssetFieldType {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -1128,6 +1130,7 @@ pub mod served_asset_field_type_enum {
                 Self::AdImage => "AD_IMAGE",
                 Self::LeadForm => "LEAD_FORM",
                 Self::BusinessLogo => "BUSINESS_LOGO",
+                Self::DescriptionPrefix => "DESCRIPTION_PREFIX",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -1165,6 +1168,7 @@ pub mod served_asset_field_type_enum {
                 "AD_IMAGE" => Some(Self::AdImage),
                 "LEAD_FORM" => Some(Self::LeadForm),
                 "BUSINESS_LOGO" => Some(Self::BusinessLogo),
+                "DESCRIPTION_PREFIX" => Some(Self::DescriptionPrefix),
                 _ => None,
             }
         }
@@ -1224,6 +1228,59 @@ pub mod target_impression_share_location_enum {
                 "ANYWHERE_ON_PAGE" => Some(Self::AnywhereOnPage),
                 "TOP_OF_PAGE" => Some(Self::TopOfPage),
                 "ABSOLUTE_TOP_OF_PAGE" => Some(Self::AbsoluteTopOfPage),
+                _ => None,
+            }
+        }
+    }
+}
+/// The possible OS types for a deeplink AppUrl.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct AppUrlOperatingSystemTypeEnum {}
+/// Nested message and enum types in `AppUrlOperatingSystemTypeEnum`.
+pub mod app_url_operating_system_type_enum {
+    /// Operating System
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AppUrlOperatingSystemType {
+        /// Not specified.
+        Unspecified = 0,
+        /// Used for return value only. Represents value unknown in this version.
+        Unknown = 1,
+        /// The Apple IOS operating system.
+        Ios = 2,
+        /// The Android operating system.
+        Android = 3,
+    }
+    impl AppUrlOperatingSystemType {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "UNSPECIFIED",
+                Self::Unknown => "UNKNOWN",
+                Self::Ios => "IOS",
+                Self::Android => "ANDROID",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNSPECIFIED" => Some(Self::Unspecified),
+                "UNKNOWN" => Some(Self::Unknown),
+                "IOS" => Some(Self::Ios),
+                "ANDROID" => Some(Self::Android),
                 _ => None,
             }
         }
@@ -1813,6 +1870,83 @@ pub mod targeting_dimension_enum {
                 "PLACEMENT" => Some(Self::Placement),
                 "PARENTAL_STATUS" => Some(Self::ParentalStatus),
                 "INCOME_RANGE" => Some(Self::IncomeRange),
+                _ => None,
+            }
+        }
+    }
+}
+/// Container for enum describing possible account levels.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct AccountLevelTypeEnum {}
+/// Nested message and enum types in `AccountLevelTypeEnum`.
+pub mod account_level_type_enum {
+    /// Enum describing possible account levels.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AccountLevelType {
+        /// Not specified.
+        Unspecified = 0,
+        /// Used for return value only. Represents value unknown in this version.
+        Unknown = 1,
+        /// Client account (Facebook)
+        ClientAccountFacebook = 2,
+        /// Client account (Google Ads)
+        ClientAccountGoogleAds = 3,
+        /// Client account (Microsoft)
+        ClientAccountMicrosoft = 4,
+        /// Client account (Yahoo Japan)
+        ClientAccountYahooJapan = 5,
+        /// Client account (Engine Track)
+        ClientAccountEngineTrack = 6,
+        /// Top-level manager.
+        Manager = 30,
+        /// Sub manager.
+        SubManager = 31,
+        /// Associate manager.
+        AssociateManager = 32,
+    }
+    impl AccountLevelType {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "UNSPECIFIED",
+                Self::Unknown => "UNKNOWN",
+                Self::ClientAccountFacebook => "CLIENT_ACCOUNT_FACEBOOK",
+                Self::ClientAccountGoogleAds => "CLIENT_ACCOUNT_GOOGLE_ADS",
+                Self::ClientAccountMicrosoft => "CLIENT_ACCOUNT_MICROSOFT",
+                Self::ClientAccountYahooJapan => "CLIENT_ACCOUNT_YAHOO_JAPAN",
+                Self::ClientAccountEngineTrack => "CLIENT_ACCOUNT_ENGINE_TRACK",
+                Self::Manager => "MANAGER",
+                Self::SubManager => "SUB_MANAGER",
+                Self::AssociateManager => "ASSOCIATE_MANAGER",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNSPECIFIED" => Some(Self::Unspecified),
+                "UNKNOWN" => Some(Self::Unknown),
+                "CLIENT_ACCOUNT_FACEBOOK" => Some(Self::ClientAccountFacebook),
+                "CLIENT_ACCOUNT_GOOGLE_ADS" => Some(Self::ClientAccountGoogleAds),
+                "CLIENT_ACCOUNT_MICROSOFT" => Some(Self::ClientAccountMicrosoft),
+                "CLIENT_ACCOUNT_YAHOO_JAPAN" => Some(Self::ClientAccountYahooJapan),
+                "CLIENT_ACCOUNT_ENGINE_TRACK" => Some(Self::ClientAccountEngineTrack),
+                "MANAGER" => Some(Self::Manager),
+                "SUB_MANAGER" => Some(Self::SubManager),
+                "ASSOCIATE_MANAGER" => Some(Self::AssociateManager),
                 _ => None,
             }
         }
@@ -3260,7 +3394,7 @@ pub mod advertising_channel_type_enum {
 pub struct AssetEngineStatusEnum {}
 /// Nested message and enum types in `AssetEngineStatusEnum`.
 pub mod asset_engine_status_enum {
-    /// Next ID = 11
+    /// Enum describing possible Asset engine statuses.
     #[derive(
         Clone,
         Copy,
@@ -3401,6 +3535,10 @@ pub mod asset_field_type_enum {
         HotelProperty = 28,
         /// The asset is linked for use as a discovery carousel card.
         DiscoveryCarouselCard = 29,
+        /// The asset is linked for use as a long description.
+        LongDescription = 39,
+        /// The asset is linked for use as a call-to-action.
+        CallToAction = 40,
     }
     impl AssetFieldType {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -3439,6 +3577,8 @@ pub mod asset_field_type_enum {
                 Self::BusinessLogo => "BUSINESS_LOGO",
                 Self::HotelProperty => "HOTEL_PROPERTY",
                 Self::DiscoveryCarouselCard => "DISCOVERY_CAROUSEL_CARD",
+                Self::LongDescription => "LONG_DESCRIPTION",
+                Self::CallToAction => "CALL_TO_ACTION",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -3474,6 +3614,8 @@ pub mod asset_field_type_enum {
                 "BUSINESS_LOGO" => Some(Self::BusinessLogo),
                 "HOTEL_PROPERTY" => Some(Self::HotelProperty),
                 "DISCOVERY_CAROUSEL_CARD" => Some(Self::DiscoveryCarouselCard),
+                "LONG_DESCRIPTION" => Some(Self::LongDescription),
+                "CALL_TO_ACTION" => Some(Self::CallToAction),
                 _ => None,
             }
         }
@@ -3697,6 +3839,123 @@ pub mod asset_set_link_status_enum {
                 "UNKNOWN" => Some(Self::Unknown),
                 "ENABLED" => Some(Self::Enabled),
                 "REMOVED" => Some(Self::Removed),
+                _ => None,
+            }
+        }
+    }
+}
+/// Container for enum describing possible types of an asset set.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct AssetSetTypeEnum {}
+/// Nested message and enum types in `AssetSetTypeEnum`.
+pub mod asset_set_type_enum {
+    /// Possible types of an asset set.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AssetSetType {
+        /// Not specified.
+        Unspecified = 0,
+        /// Used for return value only. Represents value unknown in this version.
+        Unknown = 1,
+        /// Page asset set.
+        PageFeed = 2,
+        /// Dynamic education asset set.
+        DynamicEducation = 3,
+        /// Google Merchant Center asset set.
+        MerchantCenterFeed = 4,
+        /// Dynamic real estate asset set.
+        DynamicRealEstate = 5,
+        /// Dynamic custom asset set.
+        DynamicCustom = 6,
+        /// Dynamic hotels and rentals asset set.
+        DynamicHotelsAndRentals = 7,
+        /// Dynamic flights asset set.
+        DynamicFlights = 8,
+        /// Dynamic travel asset set.
+        DynamicTravel = 9,
+        /// Dynamic local asset set.
+        DynamicLocal = 10,
+        /// Dynamic jobs asset set.
+        DynamicJobs = 11,
+        /// Location sync level asset set.
+        LocationSync = 12,
+        /// Business Profile location group asset set.
+        BusinessProfileDynamicLocationGroup = 13,
+        /// Chain location group asset set which can be used for both owned
+        /// locations and affiliate locations.
+        ChainDynamicLocationGroup = 14,
+        /// Static location group asset set which can be used for both owned
+        /// locations and affiliate locations.
+        StaticLocationGroup = 15,
+        /// Hotel Property asset set which is used to link a hotel property feed to
+        /// Performance Max for travel goals campaigns.
+        HotelProperty = 16,
+        /// Travel Feed asset set type. Can represent either a Hotel feed or a Things
+        /// to Do (activities) feed.
+        TravelFeed = 17,
+    }
+    impl AssetSetType {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "UNSPECIFIED",
+                Self::Unknown => "UNKNOWN",
+                Self::PageFeed => "PAGE_FEED",
+                Self::DynamicEducation => "DYNAMIC_EDUCATION",
+                Self::MerchantCenterFeed => "MERCHANT_CENTER_FEED",
+                Self::DynamicRealEstate => "DYNAMIC_REAL_ESTATE",
+                Self::DynamicCustom => "DYNAMIC_CUSTOM",
+                Self::DynamicHotelsAndRentals => "DYNAMIC_HOTELS_AND_RENTALS",
+                Self::DynamicFlights => "DYNAMIC_FLIGHTS",
+                Self::DynamicTravel => "DYNAMIC_TRAVEL",
+                Self::DynamicLocal => "DYNAMIC_LOCAL",
+                Self::DynamicJobs => "DYNAMIC_JOBS",
+                Self::LocationSync => "LOCATION_SYNC",
+                Self::BusinessProfileDynamicLocationGroup => {
+                    "BUSINESS_PROFILE_DYNAMIC_LOCATION_GROUP"
+                }
+                Self::ChainDynamicLocationGroup => "CHAIN_DYNAMIC_LOCATION_GROUP",
+                Self::StaticLocationGroup => "STATIC_LOCATION_GROUP",
+                Self::HotelProperty => "HOTEL_PROPERTY",
+                Self::TravelFeed => "TRAVEL_FEED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNSPECIFIED" => Some(Self::Unspecified),
+                "UNKNOWN" => Some(Self::Unknown),
+                "PAGE_FEED" => Some(Self::PageFeed),
+                "DYNAMIC_EDUCATION" => Some(Self::DynamicEducation),
+                "MERCHANT_CENTER_FEED" => Some(Self::MerchantCenterFeed),
+                "DYNAMIC_REAL_ESTATE" => Some(Self::DynamicRealEstate),
+                "DYNAMIC_CUSTOM" => Some(Self::DynamicCustom),
+                "DYNAMIC_HOTELS_AND_RENTALS" => Some(Self::DynamicHotelsAndRentals),
+                "DYNAMIC_FLIGHTS" => Some(Self::DynamicFlights),
+                "DYNAMIC_TRAVEL" => Some(Self::DynamicTravel),
+                "DYNAMIC_LOCAL" => Some(Self::DynamicLocal),
+                "DYNAMIC_JOBS" => Some(Self::DynamicJobs),
+                "LOCATION_SYNC" => Some(Self::LocationSync),
+                "BUSINESS_PROFILE_DYNAMIC_LOCATION_GROUP" => {
+                    Some(Self::BusinessProfileDynamicLocationGroup)
+                }
+                "CHAIN_DYNAMIC_LOCATION_GROUP" => Some(Self::ChainDynamicLocationGroup),
+                "STATIC_LOCATION_GROUP" => Some(Self::StaticLocationGroup),
+                "HOTEL_PROPERTY" => Some(Self::HotelProperty),
+                "TRAVEL_FEED" => Some(Self::TravelFeed),
                 _ => None,
             }
         }
@@ -4902,7 +5161,9 @@ pub mod conversion_action_type_enum {
         GoogleHosted = 28,
         /// Conversions reported when a user submits a lead form. Read only.
         LeadFormSubmit = 29,
-        /// Conversions that come from Salesforce. Read only.
+        /// Deprecated: The Salesforce integration will be going away and
+        /// replaced with an improved way to import your conversions from Salesforce.
+        /// - see <https://support.google.com/google-ads/answer/14728349>
         Salesforce = 30,
         /// Conversions imported from Search Ads 360 Floodlight data. Read only.
         SearchAds360 = 31,

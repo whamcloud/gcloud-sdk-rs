@@ -11,6 +11,10 @@ pub struct TranslateTextGlossaryConfig {
     /// Default value is false if missing.
     #[prost(bool, tag = "2")]
     pub ignore_case: bool,
+    /// Optional. If set to true, the glossary will be used for contextual
+    /// translation.
+    #[prost(bool, tag = "4")]
+    pub contextual_translation_enabled: bool,
 }
 /// The request message for synchronous translation.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -27,13 +31,15 @@ pub struct TranslateTextRequest {
     pub mime_type: ::prost::alloc::string::String,
     /// Optional. The BCP-47 language code of the input text if
     /// known, for example, "en-US" or "sr-Latn". Supported language codes are
-    /// listed in Language Support. If the source language isn't specified, the API
-    /// attempts to identify the source language automatically and returns the
-    /// source language within the response.
+    /// listed in [Language
+    /// Support](<https://cloud.google.com/translate/docs/languages>). If the source
+    /// language isn't specified, the API attempts to identify the source language
+    /// automatically and returns the source language within the response.
     #[prost(string, tag = "4")]
     pub source_language_code: ::prost::alloc::string::String,
     /// Required. The BCP-47 language code to use for translation of the input
-    /// text, set to one of the language codes listed in Language Support.
+    /// text, set to one of the language codes listed in [Language
+    /// Support](<https://cloud.google.com/translate/docs/languages>).
     #[prost(string, tag = "5")]
     pub target_language_code: ::prost::alloc::string::String,
     /// Required. Project or location to make a call. Must refer to a caller's
@@ -563,14 +569,16 @@ pub struct TranslateDocumentRequest {
     pub parent: ::prost::alloc::string::String,
     /// Optional. The BCP-47 language code of the input document if known, for
     /// example, "en-US" or "sr-Latn". Supported language codes are listed in
-    /// Language Support. If the source language isn't specified, the API attempts
-    /// to identify the source language automatically and returns the source
-    /// language within the response. Source language must be specified if the
-    /// request contains a glossary or a custom model.
+    /// [Language Support](<https://cloud.google.com/translate/docs/languages>). If
+    /// the source language isn't specified, the API attempts to identify the
+    /// source language automatically and returns the source language within the
+    /// response. Source language must be specified if the request contains a
+    /// glossary or a custom model.
     #[prost(string, tag = "2")]
     pub source_language_code: ::prost::alloc::string::String,
     /// Required. The BCP-47 language code to use for translation of the input
-    /// document, set to one of the language codes listed in Language Support.
+    /// document, set to one of the language codes listed in [Language
+    /// Support](<https://cloud.google.com/translate/docs/languages>).
     #[prost(string, tag = "3")]
     pub target_language_code: ::prost::alloc::string::String,
     /// Required. Input configurations.
@@ -696,10 +704,14 @@ pub struct BatchTranslateTextRequest {
     /// error is returned.
     #[prost(string, tag = "1")]
     pub parent: ::prost::alloc::string::String,
-    /// Required. Source language code.
+    /// Required. Source language code. Supported language codes are listed in
+    /// [Language
+    /// Support](<https://cloud.google.com/translate/docs/languages>).
     #[prost(string, tag = "2")]
     pub source_language_code: ::prost::alloc::string::String,
-    /// Required. Specify up to 10 language codes here.
+    /// Required. Specify up to 10 language codes here. Supported language codes
+    /// are listed in [Language
+    /// Support](<https://cloud.google.com/translate/docs/languages>).
     #[prost(string, repeated, tag = "3")]
     pub target_language_codes: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
     /// Optional. The models to use for translation. Map's key is target language
@@ -1213,7 +1225,9 @@ pub struct BatchTranslateDocumentRequest {
     #[prost(string, tag = "2")]
     pub source_language_code: ::prost::alloc::string::String,
     /// Required. The BCP-47 language code to use for translation of the input
-    /// document. Specify up to 10 language codes here.
+    /// document. Specify up to 10 language codes here. Supported language codes
+    /// are listed in [Language
+    /// Support](<https://cloud.google.com/translate/docs/languages>).
     #[prost(string, repeated, tag = "3")]
     pub target_language_codes: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
     /// Required. Input configurations.
@@ -1283,6 +1297,9 @@ pub struct BatchTranslateDocumentRequest {
     /// Optional. If true, enable auto rotation correction in DVS.
     #[prost(bool, tag = "12")]
     pub enable_rotation_correction: bool,
+    /// Optional. If true, only native pdf pages will be translated.
+    #[prost(bool, tag = "13")]
+    pub pdf_native_only: bool,
 }
 /// Input configuration for BatchTranslateDocument request.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1529,6 +1546,48 @@ pub mod batch_translate_document_metadata {
             }
         }
     }
+}
+/// A single refinement entry for RefineTextRequest.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RefinementEntry {
+    /// Required. The source text to be refined.
+    #[prost(string, tag = "1")]
+    pub source_text: ::prost::alloc::string::String,
+    /// Required. The original translation of the source text.
+    #[prost(string, tag = "2")]
+    pub original_translation: ::prost::alloc::string::String,
+}
+/// Request message for RefineText.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RefineTextRequest {
+    /// Required. Project or location to make a call. Must refer to a caller's
+    /// project.
+    ///
+    /// Format: `projects/{project-number-or-id}/locations/{location-id}`.
+    ///
+    /// For global calls, use `projects/{project-number-or-id}/locations/global` or
+    /// `projects/{project-number-or-id}`.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Required. The source texts and original translations in the source and
+    /// target languages.
+    #[prost(message, repeated, tag = "2")]
+    pub refinement_entries: ::prost::alloc::vec::Vec<RefinementEntry>,
+    /// Required. The BCP-47 language code of the source text in the request, for
+    /// example, "en-US".
+    #[prost(string, tag = "4")]
+    pub source_language_code: ::prost::alloc::string::String,
+    /// Required. The BCP-47 language code for translation output, for example,
+    /// "zh-CN".
+    #[prost(string, tag = "5")]
+    pub target_language_code: ::prost::alloc::string::String,
+}
+/// Response message for RefineText.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RefineTextResponse {
+    /// The refined translations obtained from the original translations.
+    #[prost(string, repeated, tag = "1")]
+    pub refined_translations: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 /// Generated client implementations.
 pub mod translation_service_client {
@@ -1932,6 +1991,36 @@ pub mod translation_service_client {
                     GrpcMethod::new(
                         "google.cloud.translation.v3beta1.TranslationService",
                         "DeleteGlossary",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Refines the input translated text to improve the quality.
+        pub async fn refine_text(
+            &mut self,
+            request: impl tonic::IntoRequest<super::RefineTextRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::RefineTextResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.translation.v3beta1.TranslationService/RefineText",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.translation.v3beta1.TranslationService",
+                        "RefineText",
                     ),
                 );
             self.inner.unary(req, path, codec).await

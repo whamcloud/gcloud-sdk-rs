@@ -132,6 +132,21 @@ pub struct DeliveryVehicleLocation {
     /// Accuracy of `raw_location` as a radius, in meters.
     #[prost(message, optional, tag = "25")]
     pub raw_location_accuracy: ::core::option::Option<f64>,
+    /// The location from Android's Fused Location Provider.
+    #[prost(message, optional, tag = "29")]
+    pub flp_location: ::core::option::Option<
+        super::super::super::super::google::r#type::LatLng,
+    >,
+    /// Update timestamp of the `flp_location`
+    #[prost(message, optional, tag = "30")]
+    pub flp_update_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Accuracy of `flp_location` in meters as a radius.
+    #[prost(message, optional, tag = "31")]
+    pub flp_latlng_accuracy_meters: ::core::option::Option<f64>,
+    /// Direction the vehicle is moving in degrees, as determined by the Fused
+    /// Location Provider. 0 represents North. The valid range is [0,360).
+    #[prost(message, optional, tag = "32")]
+    pub flp_heading_degrees: ::core::option::Option<i32>,
     /// Supplemental location provided by the integrating app.
     #[prost(message, optional, tag = "18")]
     pub supplemental_location: ::core::option::Option<
@@ -315,6 +330,13 @@ pub struct DeliveryVehicle {
     /// The last reported location of the Delivery Vehicle.
     #[prost(message, optional, tag = "2")]
     pub last_location: ::core::option::Option<DeliveryVehicleLocation>,
+    /// Input only. Locations where this Delivery Vehicle has been in the past that
+    /// haven't yet been reported to Fleet Engine. This is used in
+    /// `UpdateDeliveryVehicleRequest` to record locations which were previously
+    /// unable to be sent to the server. Typically this happens when the Delivery
+    /// Vehicle does not have internet connectivity.
+    #[prost(message, repeated, tag = "12")]
+    pub past_locations: ::prost::alloc::vec::Vec<DeliveryVehicleLocation>,
     /// The Delivery Vehicle's navigation status.
     #[prost(enumeration = "DeliveryVehicleNavigationStatus", tag = "3")]
     pub navigation_status: i32,
@@ -1269,6 +1291,19 @@ pub struct GetDeliveryVehicleRequest {
     #[prost(string, tag = "3")]
     pub name: ::prost::alloc::string::String,
 }
+/// DeleteDeliveryVehicle request message.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteDeliveryVehicleRequest {
+    /// Optional. The standard Delivery API request header.
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<DeliveryRequestHeader>,
+    /// Required. Must be in the format
+    /// `providers/{provider}/deliveryVehicles/{delivery_vehicle}`.
+    /// The `provider` must be the Google Cloud Project ID. For example,
+    /// `sample-cloud-project`.
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+}
 /// The `ListDeliveryVehicles` request message.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListDeliveryVehiclesRequest {
@@ -1417,6 +1452,12 @@ pub struct CreateTaskRequest {
     /// * `planned_location` (optional for `UNAVAILABLE` tasks)
     /// * `task_duration`
     ///
+    /// The following fields can be optionally set:
+    ///
+    /// * `target_time_window`
+    /// * `task_tracking_view_config`
+    /// * `attributes`
+    ///
     /// Note: The Task's `name` field is ignored. All other Task fields must not be
     /// set; otherwise, an error is returned.
     #[prost(message, optional, tag = "4")]
@@ -1432,6 +1473,18 @@ pub struct GetTaskRequest {
     /// `provider` must be the Google Cloud Project ID. For example,
     /// `sample-cloud-project`.
     #[prost(string, tag = "3")]
+    pub name: ::prost::alloc::string::String,
+}
+/// DeleteTask request message.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteTaskRequest {
+    /// Optional. The standard Delivery API request header.
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<DeliveryRequestHeader>,
+    /// Required. Must be in the format `providers/{provider}/tasks/{task}`. The
+    /// `provider` must be the Google Cloud Project ID. For example,
+    /// `sample-cloud-project`.
+    #[prost(string, tag = "2")]
     pub name: ::prost::alloc::string::String,
 }
 /// The `UpdateTask` request message.
@@ -1683,6 +1736,36 @@ pub mod delivery_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        /// Deletes a DeliveryVehicle from the Fleet Engine.
+        ///
+        /// Returns FAILED_PRECONDITION if the DeliveryVehicle has OPEN Tasks
+        /// assigned to it.
+        pub async fn delete_delivery_vehicle(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteDeliveryVehicleRequest>,
+        ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/maps.fleetengine.delivery.v1.DeliveryService/DeleteDeliveryVehicle",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "maps.fleetengine.delivery.v1.DeliveryService",
+                        "DeleteDeliveryVehicle",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
         /// Writes updated `DeliveryVehicle` data to Fleet Engine, and assigns
         /// `Tasks` to the `DeliveryVehicle`. You cannot update the name of the
         /// `DeliveryVehicle`. You *can* update `remaining_vehicle_journey_segments`,
@@ -1799,6 +1882,36 @@ pub mod delivery_service_client {
                     GrpcMethod::new(
                         "maps.fleetengine.delivery.v1.DeliveryService",
                         "GetTask",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Deletes a single Task.
+        ///
+        /// Returns FAILED_PRECONDITION if the Task is OPEN and assigned to a
+        /// DeliveryVehicle.
+        pub async fn delete_task(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteTaskRequest>,
+        ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/maps.fleetengine.delivery.v1.DeliveryService/DeleteTask",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "maps.fleetengine.delivery.v1.DeliveryService",
+                        "DeleteTask",
                     ),
                 );
             self.inner.unary(req, path, codec).await

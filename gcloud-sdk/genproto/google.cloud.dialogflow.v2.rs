@@ -907,6 +907,1271 @@ pub mod agents_client {
         }
     }
 }
+/// Agent Coaching instructions that customer can configure.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AgentCoachingInstruction {
+    /// Optional. Display name for the instruction.
+    #[prost(string, tag = "1")]
+    pub display_name: ::prost::alloc::string::String,
+    /// Optional. The detailed description of this instruction.
+    #[prost(string, tag = "2")]
+    pub display_details: ::prost::alloc::string::String,
+    /// Optional. The condition of the instruction. For example, "the customer
+    /// wants to cancel an order".  If the users want the instruction to be
+    /// triggered unconditionally, the condition can be empty.
+    #[prost(string, tag = "3")]
+    pub condition: ::prost::alloc::string::String,
+    /// Optional. The action that human agent should take. For example, "apologize
+    /// for the slow shipping". If the users only want to use agent coaching for
+    /// intent detection, agent_action can be empty
+    #[prost(string, tag = "4")]
+    pub agent_action: ::prost::alloc::string::String,
+    /// Optional. The action that system should take. For example,
+    /// "call GetOrderTime with order_number={order number provided by the
+    /// customer}". If the users don't have plugins or don't want to trigger
+    /// plugins, the system_action can be empty
+    #[prost(string, tag = "5")]
+    pub system_action: ::prost::alloc::string::String,
+    /// Output only. Duplication check for the AgentCoachingInstruction.
+    #[prost(message, optional, tag = "8")]
+    pub duplicate_check_result: ::core::option::Option<
+        agent_coaching_instruction::DuplicateCheckResult,
+    >,
+    /// Optional. The event that should trigger this instruction.
+    /// If UNSPECIFIED, the instruction triggering will be same as the generator's
+    /// trigger_event.
+    #[prost(enumeration = "agent_coaching_instruction::TriggerEvent", tag = "10")]
+    pub triggering_event: i32,
+}
+/// Nested message and enum types in `AgentCoachingInstruction`.
+pub mod agent_coaching_instruction {
+    /// Duplication check for the suggestion.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct DuplicateCheckResult {
+        /// Output only. The duplicate suggestions.
+        #[prost(message, repeated, tag = "1")]
+        pub duplicate_suggestions: ::prost::alloc::vec::Vec<
+            duplicate_check_result::DuplicateSuggestion,
+        >,
+    }
+    /// Nested message and enum types in `DuplicateCheckResult`.
+    pub mod duplicate_check_result {
+        /// The duplicate suggestion details.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct DuplicateSuggestion {
+            /// Output only. The answer record id of the past duplicate suggestion.
+            #[prost(string, tag = "1")]
+            pub answer_record: ::prost::alloc::string::String,
+            /// Output only. The index of the duplicate suggestion in the past
+            /// suggestion list.
+            #[prost(int32, tag = "3")]
+            pub suggestion_index: i32,
+            /// Output only. The similarity score of between the past and current
+            /// suggestion.
+            #[prost(float, tag = "4")]
+            pub similarity_score: f32,
+        }
+    }
+    /// The event that should trigger this instruction.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum TriggerEvent {
+        /// Default value for TriggerEvent.
+        Unspecified = 0,
+        /// Triggers when each chat message or voice utterance ends.
+        EndOfUtterance = 1,
+        /// Triggers on the conversation manually by API calls.
+        ManualCall = 2,
+        /// Triggers after each customer message.
+        CustomerMessage = 3,
+        /// Triggers after each agent message.
+        AgentMessage = 4,
+        /// Triggers on tool call completion.
+        ToolCallCompletion = 5,
+    }
+    impl TriggerEvent {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "TRIGGER_EVENT_UNSPECIFIED",
+                Self::EndOfUtterance => "END_OF_UTTERANCE",
+                Self::ManualCall => "MANUAL_CALL",
+                Self::CustomerMessage => "CUSTOMER_MESSAGE",
+                Self::AgentMessage => "AGENT_MESSAGE",
+                Self::ToolCallCompletion => "TOOL_CALL_COMPLETION",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "TRIGGER_EVENT_UNSPECIFIED" => Some(Self::Unspecified),
+                "END_OF_UTTERANCE" => Some(Self::EndOfUtterance),
+                "MANUAL_CALL" => Some(Self::ManualCall),
+                "CUSTOMER_MESSAGE" => Some(Self::CustomerMessage),
+                "AGENT_MESSAGE" => Some(Self::AgentMessage),
+                "TOOL_CALL_COMPLETION" => Some(Self::ToolCallCompletion),
+                _ => None,
+            }
+        }
+    }
+}
+/// Represents a call of a specific tool's action with the specified inputs.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ToolCall {
+    /// Optional. A human readable short name of the tool, to be shown on the UI.
+    #[prost(string, tag = "9")]
+    pub tool_display_name: ::prost::alloc::string::String,
+    /// Optional. A human readable description of the tool.
+    #[prost(string, tag = "10")]
+    pub tool_display_details: ::prost::alloc::string::String,
+    /// Optional. The name of the tool's action associated with this call.
+    #[prost(string, tag = "2")]
+    pub action: ::prost::alloc::string::String,
+    /// Optional. The action's input parameters.
+    #[prost(message, optional, tag = "3")]
+    pub input_parameters: ::core::option::Option<::prost_types::Struct>,
+    /// Output only. Create time of the tool call.
+    #[prost(message, optional, tag = "4")]
+    pub create_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Optional. The answer record associated with this tool call.
+    #[prost(string, tag = "6")]
+    pub answer_record: ::prost::alloc::string::String,
+    /// Output only. State of the tool call.
+    #[prost(enumeration = "tool_call::State", tag = "7")]
+    pub state: i32,
+    /// Specifies the source of this tool call.
+    #[prost(oneof = "tool_call::Source", tags = "1")]
+    pub source: ::core::option::Option<tool_call::Source>,
+}
+/// Nested message and enum types in `ToolCall`.
+pub mod tool_call {
+    /// Tool call states.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum State {
+        /// Default value.
+        Unspecified = 0,
+        /// The tool call has been triggered.
+        Triggered = 1,
+        /// The tool call requires confirmation from a human.
+        NeedsConfirmation = 2,
+    }
+    impl State {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "STATE_UNSPECIFIED",
+                Self::Triggered => "TRIGGERED",
+                Self::NeedsConfirmation => "NEEDS_CONFIRMATION",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "STATE_UNSPECIFIED" => Some(Self::Unspecified),
+                "TRIGGERED" => Some(Self::Triggered),
+                "NEEDS_CONFIRMATION" => Some(Self::NeedsConfirmation),
+                _ => None,
+            }
+        }
+    }
+    /// Specifies the source of this tool call.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Source {
+        /// Optional. The [tool][google.cloud.dialogflow.v2.Tool] associated with
+        /// this call. Format:
+        /// `projects/<ProjectID>/locations/<LocationID>/tools/<ToolID>`.
+        #[prost(string, tag = "1")]
+        Tool(::prost::alloc::string::String),
+    }
+}
+/// The result of calling a tool's action.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ToolCallResult {
+    /// Optional. The name of the tool's action associated with this call.
+    #[prost(string, tag = "2")]
+    pub action: ::prost::alloc::string::String,
+    /// Output only. Create time of the tool call result.
+    #[prost(message, optional, tag = "7")]
+    pub create_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Optional. The answer record associated with this tool call result.
+    #[prost(string, tag = "9")]
+    pub answer_record: ::prost::alloc::string::String,
+    /// Specifies the source of this tool call.
+    #[prost(oneof = "tool_call_result::Source", tags = "1")]
+    pub source: ::core::option::Option<tool_call_result::Source>,
+    /// The tool call's result.
+    #[prost(oneof = "tool_call_result::Result", tags = "3, 5, 6")]
+    pub result: ::core::option::Option<tool_call_result::Result>,
+}
+/// Nested message and enum types in `ToolCallResult`.
+pub mod tool_call_result {
+    /// An error produced by the tool call.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Error {
+        /// Optional. The error message of the function.
+        #[prost(string, tag = "1")]
+        pub message: ::prost::alloc::string::String,
+    }
+    /// Specifies the source of this tool call.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Source {
+        /// Optional. The [tool][google.cloud.dialogflow.v2.Tool] associated with
+        /// this call. Format:
+        /// `projects/<ProjectID>/locations/<LocationID>/tools/<ToolID>`.
+        #[prost(string, tag = "1")]
+        Tool(::prost::alloc::string::String),
+    }
+    /// The tool call's result.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Result {
+        /// The tool call's error.
+        #[prost(message, tag = "3")]
+        Error(Error),
+        /// Only populated if the response content is not utf-8 encoded.
+        /// (by definition byte fields are base64 encoded).
+        #[prost(bytes, tag = "5")]
+        RawContent(::prost::alloc::vec::Vec<u8>),
+        /// Only populated if the response content is utf-8 encoded.
+        #[prost(string, tag = "6")]
+        Content(::prost::alloc::string::String),
+    }
+}
+/// Request message of CreateGenerator.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateGeneratorRequest {
+    /// Required. The project/location to create generator for. Format:
+    /// `projects/<Project ID>/locations/<Location ID>`
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Required. The generator to create.
+    #[prost(message, optional, tag = "2")]
+    pub generator: ::core::option::Option<Generator>,
+    /// Optional. The ID to use for the generator, which will become the final
+    /// component of the generator's resource name.
+    ///
+    /// The generator ID must be compliant with the regression formula
+    /// `[a-zA-Z][a-zA-Z0-9_-]*` with the characters length in range of \[3,64\].
+    /// If the field is not provided, an Id will be auto-generated.
+    /// If the field is provided, the caller is responsible for
+    /// 1. the uniqueness of the ID, otherwise the request will be rejected.
+    /// 2. the consistency for whether to use custom ID or not under a project to
+    /// better ensure uniqueness.
+    #[prost(string, tag = "3")]
+    pub generator_id: ::prost::alloc::string::String,
+}
+/// Request message of GetGenerator.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetGeneratorRequest {
+    /// Required. The generator resource name to retrieve. Format:
+    /// `projects/<Project ID>/locations/<Location ID>/generators/<Generator ID>`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Request message of ListGenerators.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListGeneratorsRequest {
+    /// Required. The project/location to list generators for. Format:
+    /// `projects/<Project ID>/locations/<Location ID>`
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Optional. Maximum number of conversation models to return in a single page.
+    /// Default to 10.
+    #[prost(int32, tag = "2")]
+    pub page_size: i32,
+    /// Optional. The next_page_token value returned from a previous list request.
+    #[prost(string, tag = "3")]
+    pub page_token: ::prost::alloc::string::String,
+}
+/// Response of ListGenerators.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListGeneratorsResponse {
+    /// List of generators retrieved.
+    #[prost(message, repeated, tag = "1")]
+    pub generators: ::prost::alloc::vec::Vec<Generator>,
+    /// Token to retrieve the next page of results, or empty if there are no more
+    /// results in the list.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
+/// Request of DeleteGenerator.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteGeneratorRequest {
+    /// Required. The generator resource name to delete. Format:
+    /// `projects/<Project ID>/locations/<Location ID>/generators/<Generator ID>`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Request of UpdateGenerator.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateGeneratorRequest {
+    /// Required. The generator to update.
+    /// The name field of generator is to identify the generator to update.
+    #[prost(message, optional, tag = "1")]
+    pub generator: ::core::option::Option<Generator>,
+    /// Optional. The list of fields to update.
+    #[prost(message, optional, tag = "2")]
+    pub update_mask: ::core::option::Option<::prost_types::FieldMask>,
+}
+/// Represents a message entry of a conversation.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MessageEntry {
+    /// Optional. Participant role of the message.
+    #[prost(enumeration = "message_entry::Role", tag = "1")]
+    pub role: i32,
+    /// Optional. Transcript content of the message.
+    #[prost(string, tag = "2")]
+    pub text: ::prost::alloc::string::String,
+    /// Optional. The language of the text. See [Language
+    /// Support](<https://cloud.google.com/dialogflow/docs/reference/language>) for a
+    /// list of the currently supported language codes.
+    #[prost(string, tag = "3")]
+    pub language_code: ::prost::alloc::string::String,
+    /// Optional. Create time of the message entry.
+    #[prost(message, optional, tag = "4")]
+    pub create_time: ::core::option::Option<::prost_types::Timestamp>,
+}
+/// Nested message and enum types in `MessageEntry`.
+pub mod message_entry {
+    /// Enumeration of the roles a participant can play in a conversation.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Role {
+        /// Participant role not set.
+        Unspecified = 0,
+        /// Participant is a human agent.
+        HumanAgent = 1,
+        /// Participant is an automated agent, such as a Dialogflow agent.
+        AutomatedAgent = 2,
+        /// Participant is an end user that has called or chatted with
+        /// Dialogflow services.
+        EndUser = 3,
+    }
+    impl Role {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "ROLE_UNSPECIFIED",
+                Self::HumanAgent => "HUMAN_AGENT",
+                Self::AutomatedAgent => "AUTOMATED_AGENT",
+                Self::EndUser => "END_USER",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "ROLE_UNSPECIFIED" => Some(Self::Unspecified),
+                "HUMAN_AGENT" => Some(Self::HumanAgent),
+                "AUTOMATED_AGENT" => Some(Self::AutomatedAgent),
+                "END_USER" => Some(Self::EndUser),
+                _ => None,
+            }
+        }
+    }
+}
+/// Context of the conversation, including transcripts.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ConversationContext {
+    /// Optional. List of message transcripts in the conversation.
+    #[prost(message, repeated, tag = "1")]
+    pub message_entries: ::prost::alloc::vec::Vec<MessageEntry>,
+}
+/// List of summarization sections.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SummarizationSectionList {
+    /// Optional. Summarization sections.
+    #[prost(message, repeated, tag = "1")]
+    pub summarization_sections: ::prost::alloc::vec::Vec<SummarizationSection>,
+}
+/// Providing examples in the generator (i.e. building a few-shot generator)
+/// helps convey the desired format of the LLM response.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FewShotExample {
+    /// Optional. Conversation transcripts.
+    #[prost(message, optional, tag = "3")]
+    pub conversation_context: ::core::option::Option<ConversationContext>,
+    /// Optional. Key is the placeholder field name in input, value is the value of
+    /// the placeholder. E.g. instruction contains "@price", and ingested data has
+    /// <"price", "10">
+    #[prost(map = "string, string", tag = "4")]
+    pub extra_info: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+    /// Required. Example output of the model.
+    #[prost(message, optional, tag = "7")]
+    pub output: ::core::option::Option<GeneratorSuggestion>,
+    /// Instruction list of this few_shot example.
+    #[prost(oneof = "few_shot_example::InstructionList", tags = "6")]
+    pub instruction_list: ::core::option::Option<few_shot_example::InstructionList>,
+}
+/// Nested message and enum types in `FewShotExample`.
+pub mod few_shot_example {
+    /// Instruction list of this few_shot example.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum InstructionList {
+        /// Summarization sections.
+        #[prost(message, tag = "6")]
+        SummarizationSectionList(super::SummarizationSectionList),
+    }
+}
+/// The parameters of inference.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct InferenceParameter {
+    /// Optional. Maximum number of the output tokens for the generator.
+    #[prost(int32, optional, tag = "1")]
+    pub max_output_tokens: ::core::option::Option<i32>,
+    /// Optional. Controls the randomness of LLM predictions.
+    /// Low temperature = less random. High temperature = more random.
+    /// If unset (or 0), uses a default value of 0.
+    #[prost(double, optional, tag = "2")]
+    pub temperature: ::core::option::Option<f64>,
+    /// Optional. Top-k changes how the model selects tokens for output. A top-k of
+    /// 1 means the selected token is the most probable among all tokens in the
+    /// model's vocabulary (also called greedy decoding), while a top-k of 3 means
+    /// that the next token is selected from among the 3 most probable tokens
+    /// (using temperature). For each token selection step, the top K tokens with
+    /// the highest probabilities are sampled. Then tokens are further filtered
+    /// based on topP with the final token selected using temperature sampling.
+    /// Specify a lower value for less random responses and a higher value for more
+    /// random responses. Acceptable value is \[1, 40\], default to 40.
+    #[prost(int32, optional, tag = "3")]
+    pub top_k: ::core::option::Option<i32>,
+    /// Optional. Top-p changes how the model selects tokens for output. Tokens are
+    /// selected from most K (see topK parameter) probable to least until the sum
+    /// of their probabilities equals the top-p value. For example, if tokens A, B,
+    /// and C have a probability of 0.3, 0.2, and 0.1 and the top-p value is 0.5,
+    /// then the model will select either A or B as the next token (using
+    /// temperature) and doesn't consider C. The default top-p value is 0.95.
+    /// Specify a lower value for less random responses and a higher value for more
+    /// random responses. Acceptable value is \[0.0, 1.0\], default to 0.95.
+    #[prost(double, optional, tag = "4")]
+    pub top_p: ::core::option::Option<f64>,
+}
+/// Agent Coaching context that customer can configure.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AgentCoachingContext {
+    /// Optional. The overarching guidance for the agent coaching. This should be
+    /// set only for v1.5 and later versions.
+    #[prost(string, tag = "7")]
+    pub overarching_guidance: ::prost::alloc::string::String,
+    /// Optional. Customized instructions for agent coaching.
+    #[prost(message, repeated, tag = "1")]
+    pub instructions: ::prost::alloc::vec::Vec<AgentCoachingInstruction>,
+    /// Optional. Version of the feature. If not set, default to latest version.
+    /// Current candidates are \["1.2"\].
+    #[prost(string, tag = "2")]
+    pub version: ::prost::alloc::string::String,
+    /// Optional. Output language code.
+    #[prost(string, tag = "9")]
+    pub output_language_code: ::prost::alloc::string::String,
+}
+/// Represents the section of summarization.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SummarizationSection {
+    /// Optional. Name of the section, for example, "situation".
+    #[prost(string, tag = "1")]
+    pub key: ::prost::alloc::string::String,
+    /// Optional. Definition of the section, for example, "what the customer needs
+    /// help with or has question about."
+    #[prost(string, tag = "2")]
+    pub definition: ::prost::alloc::string::String,
+    /// Optional. Type of the summarization section.
+    #[prost(enumeration = "summarization_section::Type", tag = "3")]
+    pub r#type: i32,
+}
+/// Nested message and enum types in `SummarizationSection`.
+pub mod summarization_section {
+    /// Type enum of the summarization sections.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Type {
+        /// Undefined section type, does not return anything.
+        Unspecified = 0,
+        /// What the customer needs help with or has question about.
+        /// Section name: "situation".
+        Situation = 1,
+        /// What the agent does to help the customer.
+        /// Section name: "action".
+        Action = 2,
+        /// Result of the customer service. A single word describing the result
+        /// of the conversation.
+        /// Section name: "resolution".
+        Resolution = 3,
+        /// Reason for cancellation if the customer requests for a cancellation.
+        /// "N/A" otherwise.
+        /// Section name: "reason_for_cancellation".
+        ReasonForCancellation = 4,
+        /// "Unsatisfied" or "Satisfied" depending on the customer's feelings at
+        /// the end of the conversation.
+        /// Section name: "customer_satisfaction".
+        CustomerSatisfaction = 5,
+        /// Key entities extracted from the conversation, such as ticket number,
+        /// order number, dollar amount, etc.
+        /// Section names are prefixed by "entities/".
+        Entities = 6,
+        /// Customer defined sections.
+        CustomerDefined = 7,
+        /// Concise version of the situation section. This type is only available if
+        /// type SITUATION is not selected.
+        SituationConcise = 9,
+        /// Concise version of the action section. This type is only available if
+        /// type ACTION is not selected.
+        ActionConcise = 10,
+    }
+    impl Type {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "TYPE_UNSPECIFIED",
+                Self::Situation => "SITUATION",
+                Self::Action => "ACTION",
+                Self::Resolution => "RESOLUTION",
+                Self::ReasonForCancellation => "REASON_FOR_CANCELLATION",
+                Self::CustomerSatisfaction => "CUSTOMER_SATISFACTION",
+                Self::Entities => "ENTITIES",
+                Self::CustomerDefined => "CUSTOMER_DEFINED",
+                Self::SituationConcise => "SITUATION_CONCISE",
+                Self::ActionConcise => "ACTION_CONCISE",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+                "SITUATION" => Some(Self::Situation),
+                "ACTION" => Some(Self::Action),
+                "RESOLUTION" => Some(Self::Resolution),
+                "REASON_FOR_CANCELLATION" => Some(Self::ReasonForCancellation),
+                "CUSTOMER_SATISFACTION" => Some(Self::CustomerSatisfaction),
+                "ENTITIES" => Some(Self::Entities),
+                "CUSTOMER_DEFINED" => Some(Self::CustomerDefined),
+                "SITUATION_CONCISE" => Some(Self::SituationConcise),
+                "ACTION_CONCISE" => Some(Self::ActionConcise),
+                _ => None,
+            }
+        }
+    }
+}
+/// Summarization context that customer can configure.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SummarizationContext {
+    /// Optional. List of sections. Note it contains both predefined section sand
+    /// customer defined sections.
+    #[prost(message, repeated, tag = "1")]
+    pub summarization_sections: ::prost::alloc::vec::Vec<SummarizationSection>,
+    /// Optional. List of few shot examples.
+    #[prost(message, repeated, tag = "2")]
+    pub few_shot_examples: ::prost::alloc::vec::Vec<FewShotExample>,
+    /// Optional. Version of the feature. If not set, default to latest version.
+    /// Current candidates are \["1.0"\].
+    #[prost(string, tag = "3")]
+    pub version: ::prost::alloc::string::String,
+    /// Optional. The target language of the generated summary. The language code
+    /// for conversation will be used if this field is empty. Supported 2.0 and
+    /// later versions.
+    #[prost(string, tag = "6")]
+    pub output_language_code: ::prost::alloc::string::String,
+}
+/// Free form generator context that customer can configure.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FreeFormContext {
+    /// Optional. Free form text input to LLM.
+    #[prost(string, tag = "1")]
+    pub text: ::prost::alloc::string::String,
+}
+/// LLM generator.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Generator {
+    /// Output only. Identifier. The resource name of the generator. Format:
+    /// `projects/<Project ID>/locations/<Location ID>/generators/<Generator ID>`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Optional. Human readable description of the generator.
+    #[prost(string, tag = "2")]
+    pub description: ::prost::alloc::string::String,
+    /// Optional. Inference parameters for this generator.
+    #[prost(message, optional, tag = "4")]
+    pub inference_parameter: ::core::option::Option<InferenceParameter>,
+    /// Optional. The trigger event of the generator. It defines when the generator
+    /// is triggered in a conversation.
+    #[prost(enumeration = "TriggerEvent", tag = "5")]
+    pub trigger_event: i32,
+    /// Output only. Creation time of this generator.
+    #[prost(message, optional, tag = "8")]
+    pub create_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. Update time of this generator.
+    #[prost(message, optional, tag = "9")]
+    pub update_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Optional. Resource names of the tools that the generator can choose from.
+    /// Format: `projects/<Project ID>/locations/<Location ID>/tools/<tool ID>`.
+    #[prost(string, repeated, tag = "14")]
+    pub tools: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Optional. Configuration for suggestion deduping. This is only applicable to
+    /// AI Coach feature.
+    #[prost(message, optional, tag = "23")]
+    pub suggestion_deduping_config: ::core::option::Option<SuggestionDedupingConfig>,
+    /// Required. Input context of the generator.
+    #[prost(oneof = "generator::Context", tags = "11, 12, 13")]
+    pub context: ::core::option::Option<generator::Context>,
+    /// The foundation model to use for generating suggestions. If a foundation
+    /// model isn't specified here, a model specifically tuned for the feature
+    /// type (and version when applicable) will be used.
+    #[prost(oneof = "generator::FoundationModel", tags = "15")]
+    pub foundation_model: ::core::option::Option<generator::FoundationModel>,
+}
+/// Nested message and enum types in `Generator`.
+pub mod generator {
+    /// Required. Input context of the generator.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Context {
+        /// Input of free from generator to LLM.
+        #[prost(message, tag = "11")]
+        FreeFormContext(super::FreeFormContext),
+        /// Input of prebuilt Agent Coaching feature.
+        #[prost(message, tag = "12")]
+        AgentCoachingContext(super::AgentCoachingContext),
+        /// Input of prebuilt Summarization feature.
+        #[prost(message, tag = "13")]
+        SummarizationContext(super::SummarizationContext),
+    }
+    /// The foundation model to use for generating suggestions. If a foundation
+    /// model isn't specified here, a model specifically tuned for the feature
+    /// type (and version when applicable) will be used.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum FoundationModel {
+        /// Optional. The published Large Language Model name.
+        /// * To use the latest model version, specify the model name without version
+        ///    number. Example: `text-bison`
+        /// * To use a stable model version, specify the version number as well.
+        ///    Example: `text-bison@002`.
+        #[prost(string, tag = "15")]
+        PublishedModel(::prost::alloc::string::String),
+    }
+}
+/// Suggestion generated using free form generator.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FreeFormSuggestion {
+    /// Required. Free form suggestion.
+    #[prost(string, tag = "1")]
+    pub response: ::prost::alloc::string::String,
+}
+/// Suggested summary of the conversation.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SummarySuggestion {
+    /// Required. All the parts of generated summary.
+    #[prost(message, repeated, tag = "1")]
+    pub summary_sections: ::prost::alloc::vec::Vec<summary_suggestion::SummarySection>,
+}
+/// Nested message and enum types in `SummarySuggestion`.
+pub mod summary_suggestion {
+    /// A component of the generated summary.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct SummarySection {
+        /// Required. Name of the section.
+        #[prost(string, tag = "1")]
+        pub section: ::prost::alloc::string::String,
+        /// Required. Summary text for the section.
+        #[prost(string, tag = "2")]
+        pub summary: ::prost::alloc::string::String,
+    }
+}
+/// Suggestion for coaching agents.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AgentCoachingSuggestion {
+    /// Optional. Instructions applicable based on the current context.
+    #[prost(message, repeated, tag = "1")]
+    pub applicable_instructions: ::prost::alloc::vec::Vec<AgentCoachingInstruction>,
+    /// Optional. Suggested actions for the agent to take.
+    #[prost(message, repeated, tag = "2")]
+    pub agent_action_suggestions: ::prost::alloc::vec::Vec<
+        agent_coaching_suggestion::AgentActionSuggestion,
+    >,
+    /// Optional. Sample response for the Agent.
+    #[prost(message, repeated, tag = "3")]
+    pub sample_responses: ::prost::alloc::vec::Vec<
+        agent_coaching_suggestion::SampleResponse,
+    >,
+}
+/// Nested message and enum types in `AgentCoachingSuggestion`.
+pub mod agent_coaching_suggestion {
+    /// Sources for the suggestion.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Sources {
+        /// Output only. Source instruction indexes for the suggestion. This is the
+        /// index of the applicable_instructions field.
+        #[prost(int32, repeated, packed = "false", tag = "2")]
+        pub instruction_indexes: ::prost::alloc::vec::Vec<i32>,
+    }
+    /// Duplication check for the suggestion.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct DuplicateCheckResult {
+        /// Output only. The duplicate suggestions.
+        #[prost(message, repeated, tag = "1")]
+        pub duplicate_suggestions: ::prost::alloc::vec::Vec<
+            duplicate_check_result::DuplicateSuggestion,
+        >,
+    }
+    /// Nested message and enum types in `DuplicateCheckResult`.
+    pub mod duplicate_check_result {
+        /// The duplicate suggestion details.
+        /// Keeping answer_record and sources together as they are identifiers for
+        /// duplicate suggestions.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct DuplicateSuggestion {
+            /// Output only. The answer record id of the past duplicate suggestion.
+            #[prost(string, tag = "1")]
+            pub answer_record: ::prost::alloc::string::String,
+            /// Output only. Sources for the suggestion.
+            #[prost(message, optional, tag = "2")]
+            pub sources: ::core::option::Option<super::Sources>,
+            /// Output only. The index of the duplicate suggestion in the past
+            /// suggestion list.
+            #[prost(int32, tag = "3")]
+            pub suggestion_index: i32,
+            /// Output only. The similarity score of between the past and current
+            /// suggestion.
+            #[prost(float, tag = "4")]
+            pub similarity_score: f32,
+        }
+    }
+    /// Actions suggested for the agent. This is based on applicable instructions.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct AgentActionSuggestion {
+        /// Optional. The suggested action for the agent.
+        #[prost(string, tag = "1")]
+        pub agent_action: ::prost::alloc::string::String,
+        /// Output only. Sources for the agent action suggestion.
+        #[prost(message, optional, tag = "2")]
+        pub sources: ::core::option::Option<Sources>,
+        /// Output only. Duplicate check result for the agent action suggestion.
+        #[prost(message, optional, tag = "3")]
+        pub duplicate_check_result: ::core::option::Option<DuplicateCheckResult>,
+    }
+    /// Sample response that the agent can use. This could be based on applicable
+    /// instructions and ingested data from other systems.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct SampleResponse {
+        /// Optional. Sample response for Agent in text.
+        #[prost(string, tag = "1")]
+        pub response_text: ::prost::alloc::string::String,
+        /// Output only. Sources for the Sample Response.
+        #[prost(message, optional, tag = "2")]
+        pub sources: ::core::option::Option<Sources>,
+        /// Output only. Duplicate check result for the sample response.
+        #[prost(message, optional, tag = "3")]
+        pub duplicate_check_result: ::core::option::Option<DuplicateCheckResult>,
+    }
+}
+/// Suggestion generated using a Generator.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GeneratorSuggestion {
+    /// Optional. List of request and response for tool calls executed.
+    #[prost(message, repeated, tag = "9")]
+    pub tool_call_info: ::prost::alloc::vec::Vec<generator_suggestion::ToolCallInfo>,
+    /// The suggestion could be one of the many types
+    #[prost(oneof = "generator_suggestion::Suggestion", tags = "1, 2, 3")]
+    pub suggestion: ::core::option::Option<generator_suggestion::Suggestion>,
+}
+/// Nested message and enum types in `GeneratorSuggestion`.
+pub mod generator_suggestion {
+    /// Request and response for a tool call.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct ToolCallInfo {
+        /// Required. Request for a tool call.
+        #[prost(message, optional, tag = "1")]
+        pub tool_call: ::core::option::Option<super::ToolCall>,
+        /// Required. Response for a tool call.
+        #[prost(message, optional, tag = "2")]
+        pub tool_call_result: ::core::option::Option<super::ToolCallResult>,
+    }
+    /// The suggestion could be one of the many types
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Suggestion {
+        /// Optional. Free form suggestion.
+        #[prost(message, tag = "1")]
+        FreeFormSuggestion(super::FreeFormSuggestion),
+        /// Optional. Suggested summary.
+        #[prost(message, tag = "2")]
+        SummarySuggestion(super::SummarySuggestion),
+        /// Optional. Suggestion to coach the agent.
+        #[prost(message, tag = "3")]
+        AgentCoachingSuggestion(super::AgentCoachingSuggestion),
+    }
+}
+/// Config for suggestion deduping.
+/// NEXT_ID: 3
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct SuggestionDedupingConfig {
+    /// Optional. Whether to enable suggestion deduping.
+    #[prost(bool, tag = "1")]
+    pub enable_deduping: bool,
+    /// Optional. The threshold for similarity between two suggestions.
+    /// Acceptable value is \[0.0, 1.0\], default to 0.8
+    #[prost(float, tag = "2")]
+    pub similarity_threshold: f32,
+}
+/// Settings for Responsible AI checks.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RaiSettings {
+    /// Configuration for a set of RAI categories.
+    #[prost(message, repeated, tag = "1")]
+    pub rai_category_configs: ::prost::alloc::vec::Vec<rai_settings::RaiCategoryConfig>,
+}
+/// Nested message and enum types in `RaiSettings`.
+pub mod rai_settings {
+    /// Configuration for a specific RAI category.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct RaiCategoryConfig {
+        /// Optional. The RAI category.
+        #[prost(enumeration = "rai_category_config::RaiCategory", tag = "1")]
+        pub category: i32,
+        /// Optional. The sensitivity level for this category.
+        #[prost(enumeration = "rai_category_config::SensitivityLevel", tag = "2")]
+        pub sensitivity_level: i32,
+    }
+    /// Nested message and enum types in `RaiCategoryConfig`.
+    pub mod rai_category_config {
+        /// Enum for RAI category.
+        #[derive(
+            Clone,
+            Copy,
+            Debug,
+            PartialEq,
+            Eq,
+            Hash,
+            PartialOrd,
+            Ord,
+            ::prost::Enumeration
+        )]
+        #[repr(i32)]
+        pub enum RaiCategory {
+            /// Default value.
+            Unspecified = 0,
+            /// Dangerous content.
+            DangerousContent = 1,
+            /// Sexually explicit content.
+            SexuallyExplicit = 2,
+            /// Harassment content.
+            Harassment = 3,
+            /// Hate speech content.
+            HateSpeech = 4,
+        }
+        impl RaiCategory {
+            /// String value of the enum field names used in the ProtoBuf definition.
+            ///
+            /// The values are not transformed in any way and thus are considered stable
+            /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+            pub fn as_str_name(&self) -> &'static str {
+                match self {
+                    Self::Unspecified => "RAI_CATEGORY_UNSPECIFIED",
+                    Self::DangerousContent => "DANGEROUS_CONTENT",
+                    Self::SexuallyExplicit => "SEXUALLY_EXPLICIT",
+                    Self::Harassment => "HARASSMENT",
+                    Self::HateSpeech => "HATE_SPEECH",
+                }
+            }
+            /// Creates an enum from field names used in the ProtoBuf definition.
+            pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+                match value {
+                    "RAI_CATEGORY_UNSPECIFIED" => Some(Self::Unspecified),
+                    "DANGEROUS_CONTENT" => Some(Self::DangerousContent),
+                    "SEXUALLY_EXPLICIT" => Some(Self::SexuallyExplicit),
+                    "HARASSMENT" => Some(Self::Harassment),
+                    "HATE_SPEECH" => Some(Self::HateSpeech),
+                    _ => None,
+                }
+            }
+        }
+        /// Enum for user-configurable sensitivity levels.
+        #[derive(
+            Clone,
+            Copy,
+            Debug,
+            PartialEq,
+            Eq,
+            Hash,
+            PartialOrd,
+            Ord,
+            ::prost::Enumeration
+        )]
+        #[repr(i32)]
+        pub enum SensitivityLevel {
+            /// Default value.
+            /// If unspecified, the default behavior is:
+            /// - DANGEROUS_CONTENT: BLOCK_FEW
+            /// - SEXUALLY_EXPLICIT: BLOCK_SOME
+            /// - HARASSMENT: BLOCK_SOME
+            /// - HATE_SPEECH: BLOCK_SOME
+            Unspecified = 0,
+            /// Block most potentially sensitive responses.
+            BlockMost = 1,
+            /// Block some potentially sensitive responses.
+            BlockSome = 2,
+            /// Block a few potentially sensitive responses.
+            BlockFew = 3,
+            /// No filtering for this category.
+            BlockNone = 4,
+        }
+        impl SensitivityLevel {
+            /// String value of the enum field names used in the ProtoBuf definition.
+            ///
+            /// The values are not transformed in any way and thus are considered stable
+            /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+            pub fn as_str_name(&self) -> &'static str {
+                match self {
+                    Self::Unspecified => "SENSITIVITY_LEVEL_UNSPECIFIED",
+                    Self::BlockMost => "BLOCK_MOST",
+                    Self::BlockSome => "BLOCK_SOME",
+                    Self::BlockFew => "BLOCK_FEW",
+                    Self::BlockNone => "BLOCK_NONE",
+                }
+            }
+            /// Creates an enum from field names used in the ProtoBuf definition.
+            pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+                match value {
+                    "SENSITIVITY_LEVEL_UNSPECIFIED" => Some(Self::Unspecified),
+                    "BLOCK_MOST" => Some(Self::BlockMost),
+                    "BLOCK_SOME" => Some(Self::BlockSome),
+                    "BLOCK_FEW" => Some(Self::BlockFew),
+                    "BLOCK_NONE" => Some(Self::BlockNone),
+                    _ => None,
+                }
+            }
+        }
+    }
+}
+/// The event that triggers the generator and LLM execution.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum TriggerEvent {
+    /// Default value for TriggerEvent.
+    Unspecified = 0,
+    /// Triggers when each chat message or voice utterance ends.
+    EndOfUtterance = 1,
+    /// Triggers on the conversation manually by API calls, such as
+    /// Conversations.GenerateStatelessSuggestion and
+    /// Conversations.GenerateSuggestions.
+    ManualCall = 2,
+    /// Triggers after each customer message only.
+    CustomerMessage = 3,
+    /// Triggers after each agent message only.
+    AgentMessage = 4,
+}
+impl TriggerEvent {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "TRIGGER_EVENT_UNSPECIFIED",
+            Self::EndOfUtterance => "END_OF_UTTERANCE",
+            Self::ManualCall => "MANUAL_CALL",
+            Self::CustomerMessage => "CUSTOMER_MESSAGE",
+            Self::AgentMessage => "AGENT_MESSAGE",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "TRIGGER_EVENT_UNSPECIFIED" => Some(Self::Unspecified),
+            "END_OF_UTTERANCE" => Some(Self::EndOfUtterance),
+            "MANUAL_CALL" => Some(Self::ManualCall),
+            "CUSTOMER_MESSAGE" => Some(Self::CustomerMessage),
+            "AGENT_MESSAGE" => Some(Self::AgentMessage),
+            _ => None,
+        }
+    }
+}
+/// Generated client implementations.
+pub mod generators_client {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value,
+    )]
+    use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
+    /// Generator Service for LLM powered Agent Assist. This service manages the
+    /// configurations of user owned Generators, such as description, context and
+    /// instruction, input/output format, etc. The generator resources will be used
+    /// inside a conversation and will be triggered by TriggerEvent to query LLM for
+    /// answers.
+    #[derive(Debug, Clone)]
+    pub struct GeneratorsClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl GeneratorsClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> GeneratorsClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> GeneratorsClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+        {
+            GeneratorsClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        /// Creates a generator.
+        pub async fn create_generator(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateGeneratorRequest>,
+        ) -> std::result::Result<tonic::Response<super::Generator>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.dialogflow.v2.Generators/CreateGenerator",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.dialogflow.v2.Generators",
+                        "CreateGenerator",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Retrieves a generator.
+        pub async fn get_generator(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetGeneratorRequest>,
+        ) -> std::result::Result<tonic::Response<super::Generator>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.dialogflow.v2.Generators/GetGenerator",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.dialogflow.v2.Generators",
+                        "GetGenerator",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Lists generators.
+        pub async fn list_generators(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListGeneratorsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListGeneratorsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.dialogflow.v2.Generators/ListGenerators",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.dialogflow.v2.Generators",
+                        "ListGenerators",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Deletes a generator.
+        pub async fn delete_generator(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteGeneratorRequest>,
+        ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.dialogflow.v2.Generators/DeleteGenerator",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.dialogflow.v2.Generators",
+                        "DeleteGenerator",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Updates a generator.
+        pub async fn update_generator(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateGeneratorRequest>,
+        ) -> std::result::Result<tonic::Response<super::Generator>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.dialogflow.v2.Generators/UpdateGenerator",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.dialogflow.v2.Generators",
+                        "UpdateGenerator",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+    }
+}
 /// Hints for the speech recognizer to help with recognition in a specific
 /// conversation state.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -981,6 +2246,8 @@ pub struct InputAudioConfig {
     /// Support](<https://cloud.google.com/dialogflow/docs/reference/language>)
     /// for a list of the currently supported language codes. Note that queries in
     /// the same session do not necessarily need to specify the same language.
+    /// If not set, the language is inferred from the
+    /// [ConversationProfile.stt_config][google.cloud.dialogflow.v2.ConversationProfile.stt_config].
     #[prost(string, tag = "3")]
     pub language_code: ::prost::alloc::string::String,
     /// If `true`, Dialogflow returns
@@ -1102,6 +2369,73 @@ pub struct SynthesizeSpeechConfig {
     /// Optional. The desired voice of the synthesized audio.
     #[prost(message, optional, tag = "4")]
     pub voice: ::core::option::Option<VoiceSelectionParams>,
+    /// Optional. The custom pronunciations for the synthesized audio.
+    #[prost(message, repeated, tag = "6")]
+    pub pronunciations: ::prost::alloc::vec::Vec<CustomPronunciationParams>,
+}
+/// Pronunciation customization for a phrase.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CustomPronunciationParams {
+    /// The phrase to which the customization is applied.
+    /// The phrase can be multiple words, such as proper nouns, but shouldn't span
+    /// the length of the sentence.
+    #[prost(string, tag = "1")]
+    pub phrase: ::prost::alloc::string::String,
+    /// The phonetic encoding of the phrase.
+    #[prost(enumeration = "custom_pronunciation_params::PhoneticEncoding", tag = "2")]
+    pub phonetic_encoding: i32,
+    /// The pronunciation of the phrase. This must be in the phonetic encoding
+    /// specified above.
+    #[prost(string, tag = "3")]
+    pub pronunciation: ::prost::alloc::string::String,
+}
+/// Nested message and enum types in `CustomPronunciationParams`.
+pub mod custom_pronunciation_params {
+    /// The phonetic encoding of the phrase.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum PhoneticEncoding {
+        /// Not specified.
+        Unspecified = 0,
+        /// IPA, such as apple -> ˈæpəl.
+        /// <https://en.wikipedia.org/wiki/International_Phonetic_Alphabet>
+        Ipa = 1,
+        /// X-SAMPA, such as apple -> "{p@l".
+        /// <https://en.wikipedia.org/wiki/X-SAMPA>
+        XSampa = 2,
+    }
+    impl PhoneticEncoding {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "PHONETIC_ENCODING_UNSPECIFIED",
+                Self::Ipa => "PHONETIC_ENCODING_IPA",
+                Self::XSampa => "PHONETIC_ENCODING_X_SAMPA",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "PHONETIC_ENCODING_UNSPECIFIED" => Some(Self::Unspecified),
+                "PHONETIC_ENCODING_IPA" => Some(Self::Ipa),
+                "PHONETIC_ENCODING_X_SAMPA" => Some(Self::XSampa),
+                _ => None,
+            }
+        }
+    }
 }
 /// Instructs the speech synthesizer on how to generate the output audio content.
 /// If this audio config is supplied in a request, it overrides all existing
@@ -1169,6 +2503,8 @@ pub struct SpeechToTextConfig {
     #[prost(string, tag = "2")]
     pub model: ::prost::alloc::string::String,
     /// List of names of Cloud Speech phrase sets that are used for transcription.
+    /// For phrase set limitations, please refer to [Cloud Speech API quotas and
+    /// limits](<https://cloud.google.com/speech-to-text/quotas#content>).
     #[prost(string, repeated, tag = "4")]
     pub phrase_sets: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
     /// Audio encoding of the audio content to process.
@@ -1185,6 +2521,9 @@ pub struct SpeechToTextConfig {
     /// Support](<https://cloud.google.com/dialogflow/docs/reference/language>)
     /// for a list of the currently supported language codes. Note that queries in
     /// the same session do not necessarily need to specify the same language.
+    /// If not specified, the default language configured at
+    /// [ConversationProfile][google.cloud.dialogflow.v2.ConversationProfile] is
+    /// used.
     #[prost(string, tag = "8")]
     pub language_code: ::prost::alloc::string::String,
     /// If `true`, Dialogflow returns
@@ -1195,7 +2534,7 @@ pub struct SpeechToTextConfig {
     /// information.
     #[prost(bool, tag = "9")]
     pub enable_word_info: bool,
-    /// Use timeout based endpointing, interpreting endpointer sensitivy as
+    /// Use timeout based endpointing, interpreting endpointer sensitivity as
     /// seconds of timeout value.
     #[prost(bool, tag = "11")]
     pub use_timeout_based_endpointing: bool,
@@ -1383,8 +2722,8 @@ pub enum SpeechModelVariant {
     /// No model variant specified. In this case Dialogflow defaults to
     /// USE_BEST_AVAILABLE.
     Unspecified = 0,
-    /// Use the best available variant of the [Speech
-    /// model][InputAudioConfig.model] that the caller is eligible for.
+    /// Use the best available variant of the [Speech model][model] that the caller
+    /// is eligible for.
     ///
     /// Please see the [Dialogflow
     /// docs](<https://cloud.google.com/dialogflow/docs/data-logging>) for
@@ -4891,7 +6230,7 @@ pub struct DetectIntentRequest {
     #[prost(bytes = "vec", tag = "5")]
     pub input_audio: ::prost::alloc::vec::Vec<u8>,
 }
-/// The message returned from the DetectIntent method.
+/// The message returned from the [DetectIntent][] method.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DetectIntentResponse {
     /// The unique identifier of the response. It can be used to
@@ -5038,8 +6377,8 @@ pub struct QueryResult {
     /// was not set.
     ///
     /// This field is not guaranteed to be accurate or set. In particular this
-    /// field isn't set for StreamingDetectIntent since the streaming endpoint has
-    /// separate confidence estimates per portion of the audio in
+    /// field isn't set for [StreamingDetectIntent][] since the streaming endpoint
+    /// has separate confidence estimates per portion of the audio in
     /// StreamingRecognitionResult.
     #[prost(float, tag = "2")]
     pub speech_recognition_confidence: f32,
@@ -5126,8 +6465,7 @@ pub struct QueryResult {
     pub sentiment_analysis_result: ::core::option::Option<SentimentAnalysisResult>,
 }
 /// The top-level message sent by the client to the
-/// [Sessions.StreamingDetectIntent][google.cloud.dialogflow.v2.Sessions.StreamingDetectIntent]
-/// method.
+/// [StreamingDetectIntent][] method.
 ///
 /// Multiple request messages should be sent in order:
 ///
@@ -5307,11 +6645,13 @@ pub struct CloudConversationDebuggingInfo {
     >,
 }
 /// The top-level message returned from the
-/// `StreamingDetectIntent` method.
+/// [StreamingDetectIntent][] method.
 ///
 /// Multiple response messages can be returned in order:
 ///
-/// 1.  If the `StreamingDetectIntentRequest.input_audio` field was
+/// 1.  If the
+/// [StreamingDetectIntentRequest.input_audio][google.cloud.dialogflow.v2.StreamingDetectIntentRequest.input_audio]
+/// field was
 ///      set, the `recognition_result` field is populated for one
 ///      or more messages.
 ///      See the
@@ -5351,7 +6691,8 @@ pub struct StreamingDetectIntentResponse {
     #[prost(message, optional, tag = "6")]
     pub output_audio_config: ::core::option::Option<OutputAudioConfig>,
     /// Debugging info that would get populated when
-    /// `StreamingDetectIntentRequest.enable_debugging_info` is set to true.
+    /// [StreamingDetectIntentRequest.enable_debugging_info][google.cloud.dialogflow.v2.StreamingDetectIntentRequest.enable_debugging_info]
+    /// is set to true.
     #[prost(message, optional, tag = "8")]
     pub debugging_info: ::core::option::Option<CloudConversationDebuggingInfo>,
 }
@@ -5549,9 +6890,9 @@ pub struct SentimentAnalysisRequestConfig {
 /// The result of sentiment analysis. Sentiment analysis inspects user input
 /// and identifies the prevailing subjective opinion, especially to determine a
 /// user's attitude as positive, negative, or neutral.
-/// For [Participants.DetectIntent][], it needs to be configured in
+/// For [DetectIntent][], it needs to be configured in
 /// [DetectIntentRequest.query_params][google.cloud.dialogflow.v2.DetectIntentRequest.query_params].
-/// For [Participants.StreamingDetectIntent][], it needs to be configured in
+/// For [StreamingDetectIntent][], it needs to be configured in
 /// [StreamingDetectIntentRequest.query_params][google.cloud.dialogflow.v2.StreamingDetectIntentRequest.query_params].
 /// And for
 /// [Participants.AnalyzeContent][google.cloud.dialogflow.v2.Participants.AnalyzeContent]
@@ -5797,9 +7138,9 @@ pub struct Participant {
     ///     Dialogflow adds the obfuscated user id with the participant.
     ///
     /// 2. If you set this field in
-    ///     [AnalyzeContent][google.cloud.dialogflow.v2.AnalyzeContentRequest.obfuscated_external_user_id]
+    ///     [AnalyzeContent][google.cloud.dialogflow.v2.AnalyzeContentRequest.participant]
     ///     or
-    ///     [StreamingAnalyzeContent][google.cloud.dialogflow.v2.StreamingAnalyzeContentRequest.obfuscated_external_user_id],
+    ///     [StreamingAnalyzeContent][google.cloud.dialogflow.v2.StreamingAnalyzeContentRequest.participant],
     ///     Dialogflow will update
     ///     [Participant.obfuscated_external_user_id][google.cloud.dialogflow.v2.Participant.obfuscated_external_user_id].
     ///
@@ -5842,6 +7183,18 @@ pub struct Participant {
         ::prost::alloc::string::String,
         ::prost::alloc::string::String,
     >,
+    /// Optional. For tracking the utilization of prebuilt Agent Assist integration
+    /// modules. This field is only inscope for Integration type that include UI
+    /// Modules, Backend Modules, and Agent Desktop connector, it is out of scope
+    /// for CCaaS and Direct Integration.
+    /// For each human agent, prebuilt UI Modules needs to trigger the
+    /// UpdateParticipant API to update this field. Both
+    /// [CreateParticipantRequest][google.cloud.dialogflow.v2.CreateParticipantRequest.participant]
+    /// and
+    /// [UpdateParticipantRequest][google.cloud.dialogflow.v2.UpdateParticipantRequest.participant]
+    /// will be supported.
+    #[prost(enumeration = "participant::AgentDesktopSource", tag = "10")]
+    pub agent_desktop_source: i32,
 }
 /// Nested message and enum types in `Participant`.
 pub mod participant {
@@ -5893,6 +7246,63 @@ pub mod participant {
             }
         }
     }
+    /// Enumeration of the Agent Desktop Source when using prebuilt Agent
+    /// Assist integration modules.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum AgentDesktopSource {
+        /// Agent Desktop Source is not specified.
+        Unspecified = 0,
+        /// Agent Desktop Source is Live Person.
+        LivePerson = 1,
+        /// Agent Desktop Source is Genesys Cloud.
+        GenesysCloud = 2,
+        /// Agent Desktop Source is Twilio.
+        Twilio = 3,
+        /// Agent Desktop Source is Salesforce.
+        Salesforce = 4,
+        /// UI Modules are in use but the desktop is either not currently released or
+        /// setting this field to the applicable desktop.
+        Other = 8,
+    }
+    impl AgentDesktopSource {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "AGENT_DESKTOP_SOURCE_UNSPECIFIED",
+                Self::LivePerson => "LIVE_PERSON",
+                Self::GenesysCloud => "GENESYS_CLOUD",
+                Self::Twilio => "TWILIO",
+                Self::Salesforce => "SALESFORCE",
+                Self::Other => "OTHER",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "AGENT_DESKTOP_SOURCE_UNSPECIFIED" => Some(Self::Unspecified),
+                "LIVE_PERSON" => Some(Self::LivePerson),
+                "GENESYS_CLOUD" => Some(Self::GenesysCloud),
+                "TWILIO" => Some(Self::Twilio),
+                "SALESFORCE" => Some(Self::Salesforce),
+                "OTHER" => Some(Self::Other),
+                _ => None,
+            }
+        }
+    }
 }
 /// Represents a message posted into a conversation.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -5919,7 +7329,8 @@ pub struct Message {
     /// Output only. The time when the message was created in Contact Center AI.
     #[prost(message, optional, tag = "6")]
     pub create_time: ::core::option::Option<::prost_types::Timestamp>,
-    /// Optional. The time when the message was sent.
+    /// Optional. The time when the message was sent. For voice messages, this is
+    /// the time when an utterance started.
     #[prost(message, optional, tag = "9")]
     pub send_time: ::core::option::Option<::prost_types::Timestamp>,
     /// Output only. The annotation for the message.
@@ -6029,7 +7440,7 @@ pub struct AnalyzeContentRequest {
     #[prost(string, tag = "11")]
     pub request_id: ::prost::alloc::string::String,
     /// Required. The input content.
-    #[prost(oneof = "analyze_content_request::Input", tags = "6, 8, 12")]
+    #[prost(oneof = "analyze_content_request::Input", tags = "6, 7, 8, 12")]
     pub input: ::core::option::Option<analyze_content_request::Input>,
 }
 /// Nested message and enum types in `AnalyzeContentRequest`.
@@ -6040,6 +7451,9 @@ pub mod analyze_content_request {
         /// The natural language text to be processed.
         #[prost(message, tag = "6")]
         TextInput(super::TextInput),
+        /// The natural language speech audio to be processed.
+        #[prost(message, tag = "7")]
+        AudioInput(super::AudioInput),
         /// An input event to send to Dialogflow.
         #[prost(message, tag = "8")]
         EventInput(super::EventInput),
@@ -6078,8 +7492,9 @@ pub struct AnalyzeContentResponse {
     #[prost(message, optional, tag = "2")]
     pub reply_audio: ::core::option::Option<OutputAudio>,
     /// Only set if a Dialogflow automated agent has responded.
-    /// Note that: [AutomatedAgentReply.detect_intent_response.output_audio][]
-    /// and [AutomatedAgentReply.detect_intent_response.output_audio_config][]
+    /// Note that in [AutomatedAgentReply.DetectIntentResponse][],
+    /// [Sessions.DetectIntentResponse.output_audio][]
+    /// and [Sessions.DetectIntentResponse.output_audio_config][]
     /// are always empty, use
     /// [reply_audio][google.cloud.dialogflow.v2.AnalyzeContentResponse.reply_audio]
     /// instead.
@@ -6193,7 +7608,8 @@ pub struct StreamingAnalyzeContentRequest {
     /// and
     /// [AudioEncoding.AUDIO_ENCODING_MULAW][google.cloud.dialogflow.v2.AudioEncoding.AUDIO_ENCODING_MULAW]
     /// - Lifecycle: conversation should be in `Assist Stage`, go to
-    ///    [Conversation.CreateConversation][] for more information.
+    ///    [Conversations.CreateConversation][google.cloud.dialogflow.v2.Conversations.CreateConversation]
+    ///    for more information.
     ///
     /// InvalidArgument Error will be returned if the one of restriction checks
     /// failed.
@@ -6202,10 +7618,10 @@ pub struct StreamingAnalyzeContentRequest {
     /// <https://cloud.google.com/agent-assist/docs/extended-streaming>
     #[prost(bool, tag = "11")]
     pub enable_extended_streaming: bool,
-    /// Enable partial virtual agent responses. If this flag is not enabled,
-    /// response stream still contains only one final response even if some
-    /// `Fulfillment`s in Dialogflow virtual agent have been configured to return
-    /// partial responses.
+    /// Optional. Enable partial responses from Dialogflow CX agent. If this flag
+    /// is not enabled, response stream still contains only one final response even
+    /// if some `Fulfillment`s in Dialogflow CX agent have been configured to
+    /// return partial responses.
     #[prost(bool, tag = "12")]
     pub enable_partial_automated_agent_reply: bool,
     /// If true, `StreamingAnalyzeContentResponse.debugging_info` will get
@@ -6297,9 +7713,9 @@ pub struct StreamingAnalyzeContentResponse {
     /// has content.
     #[prost(message, optional, tag = "3")]
     pub reply_audio: ::core::option::Option<OutputAudio>,
-    /// Only set if a Dialogflow automated agent has responded.
-    /// Note that: [AutomatedAgentReply.detect_intent_response.output_audio][]
-    /// and [AutomatedAgentReply.detect_intent_response.output_audio_config][]
+    /// Note that in [AutomatedAgentReply.DetectIntentResponse][],
+    /// [Sessions.DetectIntentResponse.output_audio][]
+    /// and [Sessions.DetectIntentResponse.output_audio_config][]
     /// are always empty, use
     /// [reply_audio][google.cloud.dialogflow.v2.StreamingAnalyzeContentResponse.reply_audio]
     /// instead.
@@ -6327,6 +7743,9 @@ pub struct StreamingAnalyzeContentResponse {
     /// `StreamingAnalyzeContentRequest.enable_debugging_info` is set to true.
     #[prost(message, optional, tag = "11")]
     pub debugging_info: ::core::option::Option<CloudConversationDebuggingInfo>,
+    /// The name of the actual Cloud speech model used for speech recognition.
+    #[prost(string, tag = "13")]
+    pub speech_model: ::prost::alloc::string::String,
 }
 /// The request message for
 /// [Participants.SuggestArticles][google.cloud.dialogflow.v2.Participants.SuggestArticles].
@@ -6425,6 +7844,42 @@ pub struct SuggestFaqAnswersResponse {
     #[prost(int32, tag = "3")]
     pub context_size: i32,
 }
+/// The response message for
+/// [Conversations.GenerateSuggestions][google.cloud.dialogflow.v2.Conversations.GenerateSuggestions].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GenerateSuggestionsResponse {
+    /// The answers generated for the conversation based on context.
+    #[prost(message, repeated, tag = "1")]
+    pub generator_suggestion_answers: ::prost::alloc::vec::Vec<
+        generate_suggestions_response::GeneratorSuggestionAnswer,
+    >,
+    /// The name of the latest conversation message used as context for
+    /// compiling suggestion.
+    ///
+    /// Format: `projects/<Project ID>/locations/<Location
+    /// ID>/conversations/<Conversation ID>/messages/<Message ID>`.
+    #[prost(string, tag = "2")]
+    pub latest_message: ::prost::alloc::string::String,
+}
+/// Nested message and enum types in `GenerateSuggestionsResponse`.
+pub mod generate_suggestions_response {
+    /// A GeneratorSuggestion answer.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct GeneratorSuggestionAnswer {
+        /// Suggestion details.
+        #[prost(message, optional, tag = "1")]
+        pub generator_suggestion: ::core::option::Option<super::GeneratorSuggestion>,
+        /// The name of the generator used to generate this suggestion. Format:
+        /// `projects/<Project ID>/locations/<Location ID>/generators/<Generator
+        /// ID>`.
+        #[prost(string, tag = "2")]
+        pub source_generator: ::prost::alloc::string::String,
+        /// Answer record that uniquely identifies the suggestion. This can be used
+        /// to provide suggestion feedback.
+        #[prost(string, tag = "3")]
+        pub answer_record: ::prost::alloc::string::String,
+    }
+}
 /// The request message for
 /// [Participants.SuggestSmartReplies][google.cloud.dialogflow.v2.Participants.SuggestSmartReplies].
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -6476,6 +7931,19 @@ pub struct SuggestSmartRepliesResponse {
     /// conversation.
     #[prost(int32, tag = "3")]
     pub context_size: i32,
+}
+/// Represents the natural language speech audio to be processed.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AudioInput {
+    /// Required. Instructs the speech recognizer how to process the speech audio.
+    #[prost(message, optional, tag = "1")]
+    pub config: ::core::option::Option<InputAudioConfig>,
+    /// Required. The natural language speech audio to be processed.
+    /// A single request can contain up to 2 minutes of speech audio data.
+    /// The transcribed text cannot contain more than 256 bytes for virtual agent
+    /// interactions.
+    #[prost(bytes = "vec", tag = "2")]
+    pub audio: ::prost::alloc::vec::Vec<u8>,
 }
 /// Represents the natural language speech audio to be played to the end user.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -6701,7 +8169,7 @@ pub mod dialogflow_assist_answer {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SuggestionResult {
     /// Different type of suggestion response.
-    #[prost(oneof = "suggestion_result::SuggestionResponse", tags = "1, 2, 8, 3, 4")]
+    #[prost(oneof = "suggestion_result::SuggestionResponse", tags = "1, 2, 8, 3, 4, 9")]
     pub suggestion_response: ::core::option::Option<
         suggestion_result::SuggestionResponse,
     >,
@@ -6726,6 +8194,10 @@ pub mod suggestion_result {
         /// SuggestSmartRepliesResponse if request is for SMART_REPLY.
         #[prost(message, tag = "4")]
         SuggestSmartRepliesResponse(super::SuggestSmartRepliesResponse),
+        /// Suggestions generated using generators triggered by customer or agent
+        /// messages.
+        #[prost(message, tag = "9")]
+        GenerateSuggestionsResponse(super::GenerateSuggestionsResponse),
     }
 }
 /// Defines the language used in the input text.
@@ -6776,17 +8248,80 @@ pub struct MessageAnnotation {
     #[prost(bool, tag = "2")]
     pub contain_entities: bool,
 }
-/// Represents the selection of a suggestion.
+/// Represents the action to take for a tool call that requires confirmation.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SuggestionInput {
-    /// Required. The ID of a suggestion selected by the human agent.
-    /// The suggestion(s) were generated in a previous call to
-    /// request Dialogflow assist.
-    /// The format is:
-    /// `projects/<Project ID>/locations/<Location ID>/answerRecords/<Answer Record
-    /// ID>` where <Answer Record ID> is an alphanumeric string.
+    /// Required. Format: `projects/<Project ID>/locations/<Location
+    /// ID>/answerRecords/<Answer Record ID>`
+    /// The answer record associated with the tool call.
     #[prost(string, tag = "1")]
     pub answer_record: ::prost::alloc::string::String,
+    /// Optional. Parameters to be used for the tool call.  If not provided, the
+    /// tool will be called without any parameters.
+    #[prost(message, optional, tag = "4")]
+    pub parameters: ::core::option::Option<::prost_types::Struct>,
+    /// Optional. The type of action to take with the tool.
+    #[prost(enumeration = "suggestion_input::Action", tag = "5")]
+    pub action: i32,
+    /// Optional. Time when the current suggest input is sent. For tool calls, this
+    /// timestamp (along with the answer record) will be included in the
+    /// corresponding tool call result so that it can be identified.
+    #[prost(message, optional, tag = "7")]
+    pub send_time: ::core::option::Option<::prost_types::Timestamp>,
+}
+/// Nested message and enum types in `SuggestionInput`.
+pub mod suggestion_input {
+    /// Indicate what type of action to take with the tool call.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Action {
+        /// Action not specified.
+        Unspecified = 0,
+        /// Indicates the user chooses to not make the tool call. It
+        /// is only applicable to tool calls that are waiting for user
+        /// confirmation.
+        Cancel = 1,
+        /// Makes the tool call with provided parameters. This action is intended
+        /// for tool calls that only read but not write data.
+        Revise = 2,
+        /// Makes the tool call with provided parameters. This action is intended
+        /// for tool calls that may write data.
+        Confirm = 3,
+    }
+    impl Action {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "ACTION_UNSPECIFIED",
+                Self::Cancel => "CANCEL",
+                Self::Revise => "REVISE",
+                Self::Confirm => "CONFIRM",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "ACTION_UNSPECIFIED" => Some(Self::Unspecified),
+                "CANCEL" => Some(Self::Cancel),
+                "REVISE" => Some(Self::Revise),
+                "CONFIRM" => Some(Self::Confirm),
+                _ => None,
+            }
+        }
+    }
 }
 /// Represents the parameters of human assist query.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -6836,7 +8371,7 @@ pub struct SuggestKnowledgeAssistRequest {
     #[prost(int32, tag = "3")]
     pub context_size: i32,
     /// Optional. The previously suggested query for the given conversation. This
-    /// helps identify whether the next suggestion we generate is resonably
+    /// helps identify whether the next suggestion we generate is reasonably
     /// different from the previous one. This is useful to avoid similar
     /// suggestions within the conversation.
     #[prost(string, tag = "4")]
@@ -7386,8 +8921,9 @@ pub mod participants_client {
 ///     returned to the customers.
 /// 2. The customer uses the
 /// [AnswerRecord.name][google.cloud.dialogflow.v2.AnswerRecord.name] to call the
-///     [UpdateAnswerRecord][] method to send feedback about a specific answer
-///     that they believe is wrong.
+///     [AnswerRecords.UpdateAnswerRecord][google.cloud.dialogflow.v2.AnswerRecords.UpdateAnswerRecord]
+///     method to send feedback about a specific answer that they believe is
+///     wrong.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AnswerRecord {
     /// The unique identifier of this answer record.
@@ -7423,13 +8959,22 @@ pub struct ListAnswerRecordsRequest {
     /// ID>`.
     #[prost(string, tag = "1")]
     pub parent: ::prost::alloc::string::String,
-    /// Optional. Filters to restrict results to specific answer records.
+    /// Optional. Filters to restrict results to specific answer records. The
+    /// expression has the following syntax:
     ///
-    /// Marked deprecated as it hasn't been, and isn't currently, supported.
+    ///      <field> <operator> <value> \[AND <field> <operator> <value>\] ...
+    ///
+    /// The following fields and operators are supported:
+    /// * conversation_id with equals(=) operator
+    ///
+    /// Examples:
+    ///
+    /// * `conversation_id=bar` matches answer records in the
+    ///    `projects/foo/locations/global/conversations/bar` conversation
+    ///    (assuming the parent is `projects/foo/locations/global`).
     ///
     /// For more information about filtering, see
     /// [API Filtering](<https://aip.dev/160>).
-    #[deprecated]
     #[prost(string, tag = "2")]
     pub filter: ::prost::alloc::string::String,
     /// Optional. The maximum number of records to return in a single page.
@@ -7576,7 +9121,7 @@ pub struct AgentAssistantFeedback {
     /// * Suggested document says: "Items must be returned/exchanged within 60
     ///    days of the purchase date."
     /// * Ground truth: "No return or exchange is allowed."
-    /// * \[document_correctness\]: INCORRECT
+    /// * [document_correctness][google.cloud.dialogflow.v2.AgentAssistantFeedback.document_correctness]: [INCORRECT][google.cloud.dialogflow.v2.AgentAssistantFeedback.DocumentCorrectness.INCORRECT]
     #[prost(enumeration = "agent_assistant_feedback::DocumentCorrectness", tag = "2")]
     pub document_correctness: i32,
     /// Optional. Whether or not the suggested document is efficient. For example,
@@ -7792,7 +9337,7 @@ pub mod agent_assistant_feedback {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AgentAssistantRecord {
     /// Output only. The agent assist answer.
-    #[prost(oneof = "agent_assistant_record::Answer", tags = "5, 6, 7")]
+    #[prost(oneof = "agent_assistant_record::Answer", tags = "5, 6, 7, 8")]
     pub answer: ::core::option::Option<agent_assistant_record::Answer>,
 }
 /// Nested message and enum types in `AgentAssistantRecord`.
@@ -7809,6 +9354,9 @@ pub mod agent_assistant_record {
         /// Output only. Dialogflow assist answer.
         #[prost(message, tag = "7")]
         DialogflowAssistAnswer(super::DialogflowAssistAnswer),
+        /// Output only. The generator suggestion.
+        #[prost(message, tag = "8")]
+        GeneratorSuggestion(super::GeneratorSuggestion),
     }
 }
 /// Generated client implementations.
@@ -8003,6 +9551,19 @@ pub struct ConversationProfile {
     /// format of [ConversationEvent][google.cloud.dialogflow.v2.ConversationEvent]
     #[prost(message, optional, tag = "8")]
     pub new_message_event_notification_config: ::core::option::Option<
+        NotificationConfig,
+    >,
+    /// Optional. Configuration for publishing transcription intermediate results.
+    /// Event will be sent in format of
+    /// [ConversationEvent][google.cloud.dialogflow.v2.ConversationEvent]. If
+    /// configured, the following information will be populated as
+    /// [ConversationEvent][google.cloud.dialogflow.v2.ConversationEvent] Pub/Sub
+    /// message attributes:
+    /// - "participant_id"
+    /// - "participant_role"
+    /// - "message_id"
+    #[prost(message, optional, tag = "21")]
+    pub new_recognition_result_notification_config: ::core::option::Option<
         NotificationConfig,
     >,
     /// Settings for speech transcription.
@@ -8206,6 +9767,20 @@ pub mod human_agent_assistant_config {
         /// Supported features: KNOWLEDGE_ASSIST
         #[prost(bool, tag = "17")]
         pub enable_query_suggestion_only: bool,
+        /// Optional. Enable returning detailed reasons for suggestion results.
+        ///
+        /// For example, with this field disabled, Knowledge Search feature returns
+        /// NotFound error when no answer is found for the input query. Enabling this
+        /// field will change the behavior to return an OK response with
+        /// detailed information indicating the lack of results.
+        ///
+        /// Supported features: KNOWLEDGE_SEARCH, KNOWLEDGE_ASSIST
+        #[prost(bool, tag = "18")]
+        pub enable_response_debug_info: bool,
+        /// Optional. Settings for Responsible AI checks.
+        /// Supported features:  KNOWLEDGE_ASSIST
+        #[prost(message, optional, tag = "19")]
+        pub rai_settings: ::core::option::Option<super::RaiSettings>,
         /// Settings of suggestion trigger.
         ///
         /// Currently, only ARTICLE_SUGGESTION and FAQ will use this field.
@@ -8257,6 +9832,23 @@ pub mod human_agent_assistant_config {
         /// KNOWLEDGE_ASSIST
         #[prost(bool, tag = "5")]
         pub disable_high_latency_features_sync_delivery: bool,
+        /// Optional. Enable skipping event based suggestion if the suggestion is
+        /// empty.
+        ///
+        /// For example, with this field disabled, Knowledge Assist feature sends
+        /// a Pub/Sub message when there are no suggestions. Enabling this field
+        /// will change the behavior to skip the Pub/Sub message in this situation.
+        #[prost(bool, tag = "6")]
+        pub skip_empty_event_based_suggestion: bool,
+        /// Optional. If true,
+        /// use unredacted transcript data (Supported features: AI_COACH) and
+        /// use unredacted ingested context (Supported features: All Agent Assist
+        /// features)
+        #[prost(bool, tag = "8")]
+        pub use_unredacted_conversation_data: bool,
+        /// Optional. If true, enable asynchronous execution of tools.
+        #[prost(bool, tag = "9")]
+        pub enable_async_tool_call: bool,
     }
     /// Config for suggestion query.
     #[derive(Clone, PartialEq, ::prost::Message)]
@@ -8484,7 +10076,7 @@ pub mod human_agent_assistant_config {
     /// Custom conversation models used in agent assist feature.
     ///
     /// Supported feature: ARTICLE_SUGGESTION, SMART_COMPOSE, SMART_REPLY,
-    /// CONVERSATION_SUMMARIZATION.
+    /// CONVERSATION_SUMMARIZATION
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct ConversationModelConfig {
         /// Conversation model resource name. Format: `projects/<Project
@@ -8494,11 +10086,12 @@ pub mod human_agent_assistant_config {
         /// Version of current baseline model. It will be ignored if
         /// [model][google.cloud.dialogflow.v2.HumanAgentAssistantConfig.ConversationModelConfig.model]
         /// is set. Valid versions are:
-        ///    Article Suggestion baseline model:
-        ///      - 0.9
-        ///      - 1.0 (default)
-        ///    Summarization baseline model:
-        ///      - 1.0
+        ///
+        /// - Article Suggestion baseline model:
+        ///    - 0.9
+        ///    - 1.0 (default)
+        /// - Summarization baseline model:
+        ///    - 1.0
         #[prost(string, tag = "8")]
         pub baseline_model_version: ::prost::alloc::string::String,
     }
@@ -8710,6 +10303,8 @@ pub mod suggestion_feature {
         Faq = 2,
         /// Run smart reply model for chat.
         SmartReply = 3,
+        /// Run conversation summarization model for chat.
+        ConversationSummarization = 8,
         /// Run knowledge search with text input from agent or text generated query.
         KnowledgeSearch = 14,
         /// Run knowledge assist with automatic query generation.
@@ -8726,6 +10321,7 @@ pub mod suggestion_feature {
                 Self::ArticleSuggestion => "ARTICLE_SUGGESTION",
                 Self::Faq => "FAQ",
                 Self::SmartReply => "SMART_REPLY",
+                Self::ConversationSummarization => "CONVERSATION_SUMMARIZATION",
                 Self::KnowledgeSearch => "KNOWLEDGE_SEARCH",
                 Self::KnowledgeAssist => "KNOWLEDGE_ASSIST",
             }
@@ -8737,6 +10333,7 @@ pub mod suggestion_feature {
                 "ARTICLE_SUGGESTION" => Some(Self::ArticleSuggestion),
                 "FAQ" => Some(Self::Faq),
                 "SMART_REPLY" => Some(Self::SmartReply),
+                "CONVERSATION_SUMMARIZATION" => Some(Self::ConversationSummarization),
                 "KNOWLEDGE_SEARCH" => Some(Self::KnowledgeSearch),
                 "KNOWLEDGE_ASSIST" => Some(Self::KnowledgeAssist),
                 _ => None,
@@ -8745,7 +10342,7 @@ pub mod suggestion_feature {
     }
 }
 /// The request message for
-/// [ConversationProfiles.SetSuggestionFeature][].
+/// [ConversationProfiles.SetSuggestionFeatureConfig][google.cloud.dialogflow.v2.ConversationProfiles.SetSuggestionFeatureConfig].
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SetSuggestionFeatureConfigRequest {
     /// Required. The Conversation Profile to add or update the suggestion feature
@@ -8763,7 +10360,8 @@ pub struct SetSuggestionFeatureConfigRequest {
         human_agent_assistant_config::SuggestionFeatureConfig,
     >,
 }
-/// The request message for [ConversationProfiles.ClearFeature][].
+/// The request message for
+/// [ConversationProfiles.ClearSuggestionFeatureConfig][google.cloud.dialogflow.v2.ConversationProfiles.ClearSuggestionFeatureConfig].
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ClearSuggestionFeatureConfigRequest {
     /// Required. The Conversation Profile to add or update the suggestion feature
@@ -8779,7 +10377,8 @@ pub struct ClearSuggestionFeatureConfigRequest {
     #[prost(enumeration = "suggestion_feature::Type", tag = "3")]
     pub suggestion_feature_type: i32,
 }
-/// Metadata for a [ConversationProfile.SetSuggestionFeatureConfig][]
+/// Metadata for a
+/// [ConversationProfiles.SetSuggestionFeatureConfig][google.cloud.dialogflow.v2.ConversationProfiles.SetSuggestionFeatureConfig]
 /// operation.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SetSuggestionFeatureConfigOperationMetadata {
@@ -8799,7 +10398,8 @@ pub struct SetSuggestionFeatureConfigOperationMetadata {
     #[prost(message, optional, tag = "4")]
     pub create_time: ::core::option::Option<::prost_types::Timestamp>,
 }
-/// Metadata for a [ConversationProfile.ClearSuggestionFeatureConfig][]
+/// Metadata for a
+/// [ConversationProfiles.ClearSuggestionFeatureConfig][google.cloud.dialogflow.v2.ConversationProfiles.ClearSuggestionFeatureConfig]
 /// operation.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ClearSuggestionFeatureConfigOperationMetadata {
@@ -8974,7 +10574,9 @@ pub mod conversation_profiles_client {
         }
         /// Creates a conversation profile in the specified project.
         ///
-        /// [ConversationProfile.CreateTime][] and [ConversationProfile.UpdateTime][]
+        /// [ConversationProfile.create_time][google.cloud.dialogflow.v2.ConversationProfile.create_time]
+        /// and
+        /// [ConversationProfile.update_time][google.cloud.dialogflow.v2.ConversationProfile.update_time]
         /// aren't populated in the response. You can retrieve them via
         /// [GetConversationProfile][google.cloud.dialogflow.v2.ConversationProfiles.GetConversationProfile]
         /// API.
@@ -9009,7 +10611,9 @@ pub mod conversation_profiles_client {
         }
         /// Updates the specified conversation profile.
         ///
-        /// [ConversationProfile.CreateTime][] and [ConversationProfile.UpdateTime][]
+        /// [ConversationProfile.create_time][google.cloud.dialogflow.v2.ConversationProfile.create_time]
+        /// and
+        /// [ConversationProfile.update_time][google.cloud.dialogflow.v2.ConversationProfile.update_time]
         /// aren't populated in the response. You can retrieve them via
         /// [GetConversationProfile][google.cloud.dialogflow.v2.ConversationProfiles.GetConversationProfile]
         /// API.
@@ -9158,685 +10762,6 @@ pub mod conversation_profiles_client {
         }
     }
 }
-/// Request message of CreateGenerator.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CreateGeneratorRequest {
-    /// Required. The project/location to create generator for. Format:
-    /// `projects/<Project ID>/locations/<Location ID>`
-    #[prost(string, tag = "1")]
-    pub parent: ::prost::alloc::string::String,
-    /// Required. The generator to create.
-    #[prost(message, optional, tag = "2")]
-    pub generator: ::core::option::Option<Generator>,
-    /// Optional. The ID to use for the generator, which will become the final
-    /// component of the generator's resource name.
-    ///
-    /// The generator ID must be compliant with the regression formula
-    /// `[a-zA-Z][a-zA-Z0-9_-]*` with the characters length in range of \[3,64\].
-    /// If the field is not provided, an Id will be auto-generated.
-    /// If the field is provided, the caller is responsible for
-    /// 1. the uniqueness of the ID, otherwise the request will be rejected.
-    /// 2. the consistency for whether to use custom ID or not under a project to
-    /// better ensure uniqueness.
-    #[prost(string, tag = "3")]
-    pub generator_id: ::prost::alloc::string::String,
-}
-/// Request message of GetGenerator.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GetGeneratorRequest {
-    /// Required. The generator resource name to retrieve. Format:
-    /// `projects/<Project ID>/locations/<Location ID>/generators/<Generator ID>`
-    #[prost(string, tag = "1")]
-    pub name: ::prost::alloc::string::String,
-}
-/// Request message of ListGenerators.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ListGeneratorsRequest {
-    /// Required. The project/location to list generators for. Format:
-    /// `projects/<Project ID>/locations/<Location ID>`
-    #[prost(string, tag = "1")]
-    pub parent: ::prost::alloc::string::String,
-    /// Optional. Maximum number of conversation models to return in a single page.
-    /// Default to 10.
-    #[prost(int32, tag = "2")]
-    pub page_size: i32,
-    /// Optional. The next_page_token value returned from a previous list request.
-    #[prost(string, tag = "3")]
-    pub page_token: ::prost::alloc::string::String,
-}
-/// Response of ListGenerators.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ListGeneratorsResponse {
-    /// List of generators retrieved.
-    #[prost(message, repeated, tag = "1")]
-    pub generators: ::prost::alloc::vec::Vec<Generator>,
-    /// Token to retrieve the next page of results, or empty if there are no more
-    /// results in the list.
-    #[prost(string, tag = "2")]
-    pub next_page_token: ::prost::alloc::string::String,
-}
-/// Request of DeleteGenerator.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DeleteGeneratorRequest {
-    /// Required. The generator resource name to delete. Format:
-    /// `projects/<Project ID>/locations/<Location ID>/generators/<Generator ID>`
-    #[prost(string, tag = "1")]
-    pub name: ::prost::alloc::string::String,
-}
-/// Request of UpdateGenerator.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct UpdateGeneratorRequest {
-    /// Required. The generator to update.
-    /// The name field of generator is to identify the generator to update.
-    #[prost(message, optional, tag = "1")]
-    pub generator: ::core::option::Option<Generator>,
-    /// Optional. The list of fields to update.
-    #[prost(message, optional, tag = "2")]
-    pub update_mask: ::core::option::Option<::prost_types::FieldMask>,
-}
-/// Represents a message entry of a conversation.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct MessageEntry {
-    /// Optional. Participant role of the message.
-    #[prost(enumeration = "message_entry::Role", tag = "1")]
-    pub role: i32,
-    /// Optional. Transcript content of the message.
-    #[prost(string, tag = "2")]
-    pub text: ::prost::alloc::string::String,
-    /// Optional. The language of the text. See [Language
-    /// Support](<https://cloud.google.com/dialogflow/docs/reference/language>) for a
-    /// list of the currently supported language codes.
-    #[prost(string, tag = "3")]
-    pub language_code: ::prost::alloc::string::String,
-    /// Optional. Create time of the message entry.
-    #[prost(message, optional, tag = "4")]
-    pub create_time: ::core::option::Option<::prost_types::Timestamp>,
-}
-/// Nested message and enum types in `MessageEntry`.
-pub mod message_entry {
-    /// Enumeration of the roles a participant can play in a conversation.
-    #[derive(
-        Clone,
-        Copy,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash,
-        PartialOrd,
-        Ord,
-        ::prost::Enumeration
-    )]
-    #[repr(i32)]
-    pub enum Role {
-        /// Participant role not set.
-        Unspecified = 0,
-        /// Participant is a human agent.
-        HumanAgent = 1,
-        /// Participant is an automated agent, such as a Dialogflow agent.
-        AutomatedAgent = 2,
-        /// Participant is an end user that has called or chatted with
-        /// Dialogflow services.
-        EndUser = 3,
-    }
-    impl Role {
-        /// String value of the enum field names used in the ProtoBuf definition.
-        ///
-        /// The values are not transformed in any way and thus are considered stable
-        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-        pub fn as_str_name(&self) -> &'static str {
-            match self {
-                Self::Unspecified => "ROLE_UNSPECIFIED",
-                Self::HumanAgent => "HUMAN_AGENT",
-                Self::AutomatedAgent => "AUTOMATED_AGENT",
-                Self::EndUser => "END_USER",
-            }
-        }
-        /// Creates an enum from field names used in the ProtoBuf definition.
-        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-            match value {
-                "ROLE_UNSPECIFIED" => Some(Self::Unspecified),
-                "HUMAN_AGENT" => Some(Self::HumanAgent),
-                "AUTOMATED_AGENT" => Some(Self::AutomatedAgent),
-                "END_USER" => Some(Self::EndUser),
-                _ => None,
-            }
-        }
-    }
-}
-/// Context of the conversation, including transcripts.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ConversationContext {
-    /// Optional. List of message transcripts in the conversation.
-    #[prost(message, repeated, tag = "1")]
-    pub message_entries: ::prost::alloc::vec::Vec<MessageEntry>,
-}
-/// List of summarization sections.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SummarizationSectionList {
-    /// Optional. Summarization sections.
-    #[prost(message, repeated, tag = "1")]
-    pub summarization_sections: ::prost::alloc::vec::Vec<SummarizationSection>,
-}
-/// Providing examples in the generator (i.e. building a few-shot generator)
-/// helps convey the desired format of the LLM response.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct FewShotExample {
-    /// Optional. Conversation transcripts.
-    #[prost(message, optional, tag = "3")]
-    pub conversation_context: ::core::option::Option<ConversationContext>,
-    /// Optional. Key is the placeholder field name in input, value is the value of
-    /// the placeholder. E.g. instruction contains "@price", and ingested data has
-    /// <"price", "10">
-    #[prost(map = "string, string", tag = "4")]
-    pub extra_info: ::std::collections::HashMap<
-        ::prost::alloc::string::String,
-        ::prost::alloc::string::String,
-    >,
-    /// Required. Example output of the model.
-    #[prost(message, optional, tag = "7")]
-    pub output: ::core::option::Option<GeneratorSuggestion>,
-    /// Instruction list of this few_shot example.
-    #[prost(oneof = "few_shot_example::InstructionList", tags = "6")]
-    pub instruction_list: ::core::option::Option<few_shot_example::InstructionList>,
-}
-/// Nested message and enum types in `FewShotExample`.
-pub mod few_shot_example {
-    /// Instruction list of this few_shot example.
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum InstructionList {
-        /// Summarization sections.
-        #[prost(message, tag = "6")]
-        SummarizationSectionList(super::SummarizationSectionList),
-    }
-}
-/// The parameters of inference.
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct InferenceParameter {
-    /// Optional. Maximum number of the output tokens for the generator.
-    #[prost(int32, optional, tag = "1")]
-    pub max_output_tokens: ::core::option::Option<i32>,
-    /// Optional. Controls the randomness of LLM predictions.
-    /// Low temperature = less random. High temperature = more random.
-    /// If unset (or 0), uses a default value of 0.
-    #[prost(double, optional, tag = "2")]
-    pub temperature: ::core::option::Option<f64>,
-    /// Optional. Top-k changes how the model selects tokens for output. A top-k of
-    /// 1 means the selected token is the most probable among all tokens in the
-    /// model's vocabulary (also called greedy decoding), while a top-k of 3 means
-    /// that the next token is selected from among the 3 most probable tokens
-    /// (using temperature). For each token selection step, the top K tokens with
-    /// the highest probabilities are sampled. Then tokens are further filtered
-    /// based on topP with the final token selected using temperature sampling.
-    /// Specify a lower value for less random responses and a higher value for more
-    /// random responses. Acceptable value is \[1, 40\], default to 40.
-    #[prost(int32, optional, tag = "3")]
-    pub top_k: ::core::option::Option<i32>,
-    /// Optional. Top-p changes how the model selects tokens for output. Tokens are
-    /// selected from most K (see topK parameter) probable to least until the sum
-    /// of their probabilities equals the top-p value. For example, if tokens A, B,
-    /// and C have a probability of 0.3, 0.2, and 0.1 and the top-p value is 0.5,
-    /// then the model will select either A or B as the next token (using
-    /// temperature) and doesn't consider C. The default top-p value is 0.95.
-    /// Specify a lower value for less random responses and a higher value for more
-    /// random responses. Acceptable value is \[0.0, 1.0\], default to 0.95.
-    #[prost(double, optional, tag = "4")]
-    pub top_p: ::core::option::Option<f64>,
-}
-/// Represents the section of summarization.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SummarizationSection {
-    /// Optional. Name of the section, for example, "situation".
-    #[prost(string, tag = "1")]
-    pub key: ::prost::alloc::string::String,
-    /// Optional. Definition of the section, for example, "what the customer needs
-    /// help with or has question about."
-    #[prost(string, tag = "2")]
-    pub definition: ::prost::alloc::string::String,
-    /// Optional. Type of the summarization section.
-    #[prost(enumeration = "summarization_section::Type", tag = "3")]
-    pub r#type: i32,
-}
-/// Nested message and enum types in `SummarizationSection`.
-pub mod summarization_section {
-    /// Type enum of the summarization sections.
-    #[derive(
-        Clone,
-        Copy,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash,
-        PartialOrd,
-        Ord,
-        ::prost::Enumeration
-    )]
-    #[repr(i32)]
-    pub enum Type {
-        /// Undefined section type, does not return anything.
-        Unspecified = 0,
-        /// What the customer needs help with or has question about.
-        /// Section name: "situation".
-        Situation = 1,
-        /// What the agent does to help the customer.
-        /// Section name: "action".
-        Action = 2,
-        /// Result of the customer service. A single word describing the result
-        /// of the conversation.
-        /// Section name: "resolution".
-        Resolution = 3,
-        /// Reason for cancellation if the customer requests for a cancellation.
-        /// "N/A" otherwise.
-        /// Section name: "reason_for_cancellation".
-        ReasonForCancellation = 4,
-        /// "Unsatisfied" or "Satisfied" depending on the customer's feelings at
-        /// the end of the conversation.
-        /// Section name: "customer_satisfaction".
-        CustomerSatisfaction = 5,
-        /// Key entities extracted from the conversation, such as ticket number,
-        /// order number, dollar amount, etc.
-        /// Section names are prefixed by "entities/".
-        Entities = 6,
-        /// Customer defined sections.
-        CustomerDefined = 7,
-    }
-    impl Type {
-        /// String value of the enum field names used in the ProtoBuf definition.
-        ///
-        /// The values are not transformed in any way and thus are considered stable
-        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-        pub fn as_str_name(&self) -> &'static str {
-            match self {
-                Self::Unspecified => "TYPE_UNSPECIFIED",
-                Self::Situation => "SITUATION",
-                Self::Action => "ACTION",
-                Self::Resolution => "RESOLUTION",
-                Self::ReasonForCancellation => "REASON_FOR_CANCELLATION",
-                Self::CustomerSatisfaction => "CUSTOMER_SATISFACTION",
-                Self::Entities => "ENTITIES",
-                Self::CustomerDefined => "CUSTOMER_DEFINED",
-            }
-        }
-        /// Creates an enum from field names used in the ProtoBuf definition.
-        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-            match value {
-                "TYPE_UNSPECIFIED" => Some(Self::Unspecified),
-                "SITUATION" => Some(Self::Situation),
-                "ACTION" => Some(Self::Action),
-                "RESOLUTION" => Some(Self::Resolution),
-                "REASON_FOR_CANCELLATION" => Some(Self::ReasonForCancellation),
-                "CUSTOMER_SATISFACTION" => Some(Self::CustomerSatisfaction),
-                "ENTITIES" => Some(Self::Entities),
-                "CUSTOMER_DEFINED" => Some(Self::CustomerDefined),
-                _ => None,
-            }
-        }
-    }
-}
-/// Summarization context that customer can configure.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SummarizationContext {
-    /// Optional. List of sections. Note it contains both predefined section sand
-    /// customer defined sections.
-    #[prost(message, repeated, tag = "1")]
-    pub summarization_sections: ::prost::alloc::vec::Vec<SummarizationSection>,
-    /// Optional. List of few shot examples.
-    #[prost(message, repeated, tag = "2")]
-    pub few_shot_examples: ::prost::alloc::vec::Vec<FewShotExample>,
-    /// Optional. Version of the feature. If not set, default to latest version.
-    /// Current candidates are \["1.0"\].
-    #[prost(string, tag = "3")]
-    pub version: ::prost::alloc::string::String,
-    /// Optional. The target language of the generated summary. The language code
-    /// for conversation will be used if this field is empty. Supported 2.0 and
-    /// later versions.
-    #[prost(string, tag = "6")]
-    pub output_language_code: ::prost::alloc::string::String,
-}
-/// LLM generator.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Generator {
-    /// Output only. Identifier. The resource name of the generator. Format:
-    /// `projects/<Project ID>/locations/<Location ID>/generators/<Generator ID>`
-    #[prost(string, tag = "1")]
-    pub name: ::prost::alloc::string::String,
-    /// Optional. Human readable description of the generator.
-    #[prost(string, tag = "2")]
-    pub description: ::prost::alloc::string::String,
-    /// Optional. Inference parameters for this generator.
-    #[prost(message, optional, tag = "4")]
-    pub inference_parameter: ::core::option::Option<InferenceParameter>,
-    /// Optional. The trigger event of the generator. It defines when the generator
-    /// is triggered in a conversation.
-    #[prost(enumeration = "TriggerEvent", tag = "5")]
-    pub trigger_event: i32,
-    /// Output only. Creation time of this generator.
-    #[prost(message, optional, tag = "8")]
-    pub create_time: ::core::option::Option<::prost_types::Timestamp>,
-    /// Output only. Update time of this generator.
-    #[prost(message, optional, tag = "9")]
-    pub update_time: ::core::option::Option<::prost_types::Timestamp>,
-    /// Required. Input context of the generator.
-    #[prost(oneof = "generator::Context", tags = "13")]
-    pub context: ::core::option::Option<generator::Context>,
-}
-/// Nested message and enum types in `Generator`.
-pub mod generator {
-    /// Required. Input context of the generator.
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Context {
-        /// Input of prebuilt Summarization feature.
-        #[prost(message, tag = "13")]
-        SummarizationContext(super::SummarizationContext),
-    }
-}
-/// Suggested summary of the conversation.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SummarySuggestion {
-    /// Required. All the parts of generated summary.
-    #[prost(message, repeated, tag = "1")]
-    pub summary_sections: ::prost::alloc::vec::Vec<summary_suggestion::SummarySection>,
-}
-/// Nested message and enum types in `SummarySuggestion`.
-pub mod summary_suggestion {
-    /// A component of the generated summary.
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct SummarySection {
-        /// Required. Name of the section.
-        #[prost(string, tag = "1")]
-        pub section: ::prost::alloc::string::String,
-        /// Required. Summary text for the section.
-        #[prost(string, tag = "2")]
-        pub summary: ::prost::alloc::string::String,
-    }
-}
-/// Suggestion generated using a Generator.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GeneratorSuggestion {
-    /// The suggestion could be one of the many types
-    #[prost(oneof = "generator_suggestion::Suggestion", tags = "2")]
-    pub suggestion: ::core::option::Option<generator_suggestion::Suggestion>,
-}
-/// Nested message and enum types in `GeneratorSuggestion`.
-pub mod generator_suggestion {
-    /// The suggestion could be one of the many types
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Suggestion {
-        /// Optional. Suggested summary.
-        #[prost(message, tag = "2")]
-        SummarySuggestion(super::SummarySuggestion),
-    }
-}
-/// The event that triggers the generator and LLM execution.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
-#[repr(i32)]
-pub enum TriggerEvent {
-    /// Default value for TriggerEvent.
-    Unspecified = 0,
-    /// Triggers when each chat message or voice utterance ends.
-    EndOfUtterance = 1,
-    /// Triggers on the conversation manually by API calls, such as
-    /// Conversations.GenerateStatelessSuggestion and
-    /// Conversations.GenerateSuggestions.
-    ManualCall = 2,
-}
-impl TriggerEvent {
-    /// String value of the enum field names used in the ProtoBuf definition.
-    ///
-    /// The values are not transformed in any way and thus are considered stable
-    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-    pub fn as_str_name(&self) -> &'static str {
-        match self {
-            Self::Unspecified => "TRIGGER_EVENT_UNSPECIFIED",
-            Self::EndOfUtterance => "END_OF_UTTERANCE",
-            Self::ManualCall => "MANUAL_CALL",
-        }
-    }
-    /// Creates an enum from field names used in the ProtoBuf definition.
-    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-        match value {
-            "TRIGGER_EVENT_UNSPECIFIED" => Some(Self::Unspecified),
-            "END_OF_UTTERANCE" => Some(Self::EndOfUtterance),
-            "MANUAL_CALL" => Some(Self::ManualCall),
-            _ => None,
-        }
-    }
-}
-/// Generated client implementations.
-pub mod generators_client {
-    #![allow(
-        unused_variables,
-        dead_code,
-        missing_docs,
-        clippy::wildcard_imports,
-        clippy::let_unit_value,
-    )]
-    use tonic::codegen::*;
-    use tonic::codegen::http::Uri;
-    /// Generator Service for LLM powered Agent Assist. This service manages the
-    /// configurations of user owned Generators, such as description, context and
-    /// instruction, input/output format, etc. The generator resources will be used
-    /// inside a conversation and will be triggered by TriggerEvent to query LLM for
-    /// answers.
-    #[derive(Debug, Clone)]
-    pub struct GeneratorsClient<T> {
-        inner: tonic::client::Grpc<T>,
-    }
-    impl GeneratorsClient<tonic::transport::Channel> {
-        /// Attempt to create a new client by connecting to a given endpoint.
-        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
-        where
-            D: TryInto<tonic::transport::Endpoint>,
-            D::Error: Into<StdError>,
-        {
-            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
-            Ok(Self::new(conn))
-        }
-    }
-    impl<T> GeneratorsClient<T>
-    where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
-        T::Error: Into<StdError>,
-        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
-        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
-    {
-        pub fn new(inner: T) -> Self {
-            let inner = tonic::client::Grpc::new(inner);
-            Self { inner }
-        }
-        pub fn with_origin(inner: T, origin: Uri) -> Self {
-            let inner = tonic::client::Grpc::with_origin(inner, origin);
-            Self { inner }
-        }
-        pub fn with_interceptor<F>(
-            inner: T,
-            interceptor: F,
-        ) -> GeneratorsClient<InterceptedService<T, F>>
-        where
-            F: tonic::service::Interceptor,
-            T::ResponseBody: Default,
-            T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
-                Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
-                >,
-            >,
-            <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
-            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
-        {
-            GeneratorsClient::new(InterceptedService::new(inner, interceptor))
-        }
-        /// Compress requests with the given encoding.
-        ///
-        /// This requires the server to support it otherwise it might respond with an
-        /// error.
-        #[must_use]
-        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
-            self.inner = self.inner.send_compressed(encoding);
-            self
-        }
-        /// Enable decompressing responses.
-        #[must_use]
-        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
-            self.inner = self.inner.accept_compressed(encoding);
-            self
-        }
-        /// Limits the maximum size of a decoded message.
-        ///
-        /// Default: `4MB`
-        #[must_use]
-        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
-            self.inner = self.inner.max_decoding_message_size(limit);
-            self
-        }
-        /// Limits the maximum size of an encoded message.
-        ///
-        /// Default: `usize::MAX`
-        #[must_use]
-        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
-            self.inner = self.inner.max_encoding_message_size(limit);
-            self
-        }
-        /// Creates a generator.
-        pub async fn create_generator(
-            &mut self,
-            request: impl tonic::IntoRequest<super::CreateGeneratorRequest>,
-        ) -> std::result::Result<tonic::Response<super::Generator>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/google.cloud.dialogflow.v2.Generators/CreateGenerator",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "google.cloud.dialogflow.v2.Generators",
-                        "CreateGenerator",
-                    ),
-                );
-            self.inner.unary(req, path, codec).await
-        }
-        /// Retrieves a generator.
-        pub async fn get_generator(
-            &mut self,
-            request: impl tonic::IntoRequest<super::GetGeneratorRequest>,
-        ) -> std::result::Result<tonic::Response<super::Generator>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/google.cloud.dialogflow.v2.Generators/GetGenerator",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "google.cloud.dialogflow.v2.Generators",
-                        "GetGenerator",
-                    ),
-                );
-            self.inner.unary(req, path, codec).await
-        }
-        /// Lists generators.
-        pub async fn list_generators(
-            &mut self,
-            request: impl tonic::IntoRequest<super::ListGeneratorsRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::ListGeneratorsResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/google.cloud.dialogflow.v2.Generators/ListGenerators",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "google.cloud.dialogflow.v2.Generators",
-                        "ListGenerators",
-                    ),
-                );
-            self.inner.unary(req, path, codec).await
-        }
-        /// Deletes a generator.
-        pub async fn delete_generator(
-            &mut self,
-            request: impl tonic::IntoRequest<super::DeleteGeneratorRequest>,
-        ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/google.cloud.dialogflow.v2.Generators/DeleteGenerator",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "google.cloud.dialogflow.v2.Generators",
-                        "DeleteGenerator",
-                    ),
-                );
-            self.inner.unary(req, path, codec).await
-        }
-        /// Updates a generator.
-        pub async fn update_generator(
-            &mut self,
-            request: impl tonic::IntoRequest<super::UpdateGeneratorRequest>,
-        ) -> std::result::Result<tonic::Response<super::Generator>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/google.cloud.dialogflow.v2.Generators/UpdateGenerator",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "google.cloud.dialogflow.v2.Generators",
-                        "UpdateGenerator",
-                    ),
-                );
-            self.inner.unary(req, path, codec).await
-        }
-    }
-}
 /// Represents a conversation.
 /// A conversation is an interaction between an agent, including live agents
 /// and Dialogflow agents, and a support customer. Conversations can
@@ -9885,9 +10810,195 @@ pub struct Conversation {
     /// [ConversationStage.HUMAN_ASSIST_STAGE][google.cloud.dialogflow.v2.Conversation.ConversationStage.HUMAN_ASSIST_STAGE].
     #[prost(enumeration = "conversation::ConversationStage", tag = "7")]
     pub conversation_stage: i32,
+    /// Output only. The telephony connection information.
+    #[prost(message, optional, tag = "10")]
+    pub telephony_connection_info: ::core::option::Option<
+        conversation::TelephonyConnectionInfo,
+    >,
+    /// Output only. The context reference updates provided by external systems.
+    #[prost(map = "string, message", tag = "17")]
+    pub ingested_context_references: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        conversation::ContextReference,
+    >,
 }
 /// Nested message and enum types in `Conversation`.
 pub mod conversation {
+    /// The information about phone calls connected via phone gateway to the
+    /// conversation.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct TelephonyConnectionInfo {
+        /// Output only. The number dialed to connect this call in E.164 format.
+        #[prost(string, tag = "2")]
+        pub dialed_number: ::prost::alloc::string::String,
+        /// Optional. SDP of the call. It's initially the SDP answer to the incoming
+        /// call, but maybe later updated for the purpose of making the link active,
+        /// etc.
+        #[prost(string, tag = "5")]
+        pub sdp: ::prost::alloc::string::String,
+        /// Output only. The SIP headers from the initial SIP INVITE.
+        #[prost(message, repeated, tag = "12")]
+        pub sip_headers: ::prost::alloc::vec::Vec<telephony_connection_info::SipHeader>,
+        /// Output only. The mime content from the initial SIP INVITE.
+        #[prost(message, repeated, tag = "13")]
+        pub extra_mime_contents: ::prost::alloc::vec::Vec<
+            telephony_connection_info::MimeContent,
+        >,
+    }
+    /// Nested message and enum types in `TelephonyConnectionInfo`.
+    pub mod telephony_connection_info {
+        /// The SIP headers from the initial SIP INVITE.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct SipHeader {
+            /// Optional. The name of the header.
+            #[prost(string, tag = "1")]
+            pub name: ::prost::alloc::string::String,
+            /// Optional. The value of the header.
+            #[prost(string, tag = "2")]
+            pub value: ::prost::alloc::string::String,
+        }
+        /// The mime content from the initial SIP INVITE.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct MimeContent {
+            /// Optional. The mime type of the content.
+            #[prost(string, tag = "1")]
+            pub mime_type: ::prost::alloc::string::String,
+            /// Optional. The content payload.
+            #[prost(bytes = "vec", tag = "2")]
+            pub content: ::prost::alloc::vec::Vec<u8>,
+        }
+    }
+    /// Represents a section of ingested context information.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct ContextReference {
+        /// Required. The list of content updates for a context reference.
+        #[prost(message, repeated, tag = "1")]
+        pub context_contents: ::prost::alloc::vec::Vec<
+            context_reference::ContextContent,
+        >,
+        /// Required. The mode in which context reference contents are updated.
+        #[prost(enumeration = "context_reference::UpdateMode", tag = "2")]
+        pub update_mode: i32,
+        /// Optional. The language of the information ingested, defaults to "en-US"
+        /// if not set.
+        #[prost(string, tag = "3")]
+        pub language_code: ::prost::alloc::string::String,
+        /// Output only. The time the context reference was first created.
+        #[prost(message, optional, tag = "4")]
+        pub create_time: ::core::option::Option<::prost_types::Timestamp>,
+    }
+    /// Nested message and enum types in `ContextReference`.
+    pub mod context_reference {
+        /// Contents ingested.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct ContextContent {
+            /// Required. The information ingested in a single request.
+            #[prost(string, tag = "1")]
+            pub content: ::prost::alloc::string::String,
+            /// Required. The format of the ingested string.
+            #[prost(enumeration = "context_content::ContentFormat", tag = "2")]
+            pub content_format: i32,
+            /// Output only. The time when this information was incorporated into the
+            /// relevant context reference.
+            #[prost(message, optional, tag = "3")]
+            pub ingestion_time: ::core::option::Option<::prost_types::Timestamp>,
+            /// If the context content was generated from a tool call, specify the
+            /// answer record associated with the tool call.
+            /// Format: `projects/<Project ID>/locations/<Location
+            /// ID>/answerRecords/<Answer Record ID>`.
+            #[prost(string, tag = "4")]
+            pub answer_record: ::prost::alloc::string::String,
+        }
+        /// Nested message and enum types in `ContextContent`.
+        pub mod context_content {
+            /// Represents the format of the ingested string.
+            #[derive(
+                Clone,
+                Copy,
+                Debug,
+                PartialEq,
+                Eq,
+                Hash,
+                PartialOrd,
+                Ord,
+                ::prost::Enumeration
+            )]
+            #[repr(i32)]
+            pub enum ContentFormat {
+                /// Unspecified content format.
+                Unspecified = 0,
+                /// Content was provided in JSON format.
+                Json = 1,
+                /// Content was provided as plain text.
+                PlainText = 2,
+            }
+            impl ContentFormat {
+                /// String value of the enum field names used in the ProtoBuf definition.
+                ///
+                /// The values are not transformed in any way and thus are considered stable
+                /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+                pub fn as_str_name(&self) -> &'static str {
+                    match self {
+                        Self::Unspecified => "CONTENT_FORMAT_UNSPECIFIED",
+                        Self::Json => "JSON",
+                        Self::PlainText => "PLAIN_TEXT",
+                    }
+                }
+                /// Creates an enum from field names used in the ProtoBuf definition.
+                pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+                    match value {
+                        "CONTENT_FORMAT_UNSPECIFIED" => Some(Self::Unspecified),
+                        "JSON" => Some(Self::Json),
+                        "PLAIN_TEXT" => Some(Self::PlainText),
+                        _ => None,
+                    }
+                }
+            }
+        }
+        /// Represents the mode in which context reference contents are updated.
+        #[derive(
+            Clone,
+            Copy,
+            Debug,
+            PartialEq,
+            Eq,
+            Hash,
+            PartialOrd,
+            Ord,
+            ::prost::Enumeration
+        )]
+        #[repr(i32)]
+        pub enum UpdateMode {
+            /// Unspecified update mode.
+            Unspecified = 0,
+            /// Context content updates are applied in append mode.
+            Append = 1,
+            /// Context content updates are applied in overwrite mode.
+            Overwrite = 2,
+        }
+        impl UpdateMode {
+            /// String value of the enum field names used in the ProtoBuf definition.
+            ///
+            /// The values are not transformed in any way and thus are considered stable
+            /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+            pub fn as_str_name(&self) -> &'static str {
+                match self {
+                    Self::Unspecified => "UPDATE_MODE_UNSPECIFIED",
+                    Self::Append => "APPEND",
+                    Self::Overwrite => "OVERWRITE",
+                }
+            }
+            /// Creates an enum from field names used in the ProtoBuf definition.
+            pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+                match value {
+                    "UPDATE_MODE_UNSPECIFIED" => Some(Self::Unspecified),
+                    "APPEND" => Some(Self::Append),
+                    "OVERWRITE" => Some(Self::Overwrite),
+                    _ => None,
+                }
+            }
+        }
+    }
     /// Enumeration of the completion status of the conversation.
     #[derive(
         Clone,
@@ -9933,7 +11044,7 @@ pub mod conversation {
     }
     /// Enumeration of the different conversation stages a conversation can be in.
     /// Reference:
-    /// <https://cloud.google.com/dialogflow/priv/docs/contact-center/basics#stages>
+    /// <https://cloud.google.com/agent-assist/docs/basics#conversation_stages>
     #[derive(
         Clone,
         Copy,
@@ -10108,9 +11219,40 @@ pub struct ListMessagesResponse {
 /// a particular conversation over telephony.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ConversationPhoneNumber {
+    /// Output only. Desired country code for the phone number.
+    #[prost(int32, tag = "2")]
+    pub country_code: i32,
     /// Output only. The phone number to connect to this conversation.
     #[prost(string, tag = "3")]
     pub phone_number: ::prost::alloc::string::String,
+}
+/// The request message for [ConversationsService.IngestContextReferences][].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct IngestContextReferencesRequest {
+    /// Required. Resource identifier of the conversation to ingest context
+    /// information for. Format: `projects/<Project ID>/locations/<Location
+    /// ID>/conversations/<Conversation ID>`.
+    #[prost(string, tag = "1")]
+    pub conversation: ::prost::alloc::string::String,
+    /// Required. The context references to ingest. The key is the name of the
+    /// context reference and the value contains the contents of the context
+    /// reference. The key is used to incorporate ingested context references to
+    /// enhance the generator.
+    #[prost(map = "string, message", tag = "2")]
+    pub context_references: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        conversation::ContextReference,
+    >,
+}
+/// The response message for [ConversationsService.IngestContextReferences][].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct IngestContextReferencesResponse {
+    /// All context references ingested.
+    #[prost(map = "string, message", tag = "1")]
+    pub ingested_context_references: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        conversation::ContextReference,
+    >,
 }
 /// The request message for
 /// [Conversations.SuggestConversationSummary][google.cloud.dialogflow.v2.Conversations.SuggestConversationSummary].
@@ -10154,9 +11296,11 @@ pub struct SuggestConversationSummaryResponse {
     #[prost(string, tag = "2")]
     pub latest_message: ::prost::alloc::string::String,
     /// Number of messages prior to and including
-    /// [last_conversation_message][] used to compile the suggestion. It may be
-    /// smaller than the [SuggestSummaryRequest.context_size][] field in the
-    /// request if there weren't that many messages in the conversation.
+    /// [latest_message][google.cloud.dialogflow.v2.SuggestConversationSummaryResponse.latest_message]
+    /// used to compile the suggestion. It may be smaller than the
+    /// [SuggestConversationSummaryRequest.context_size][google.cloud.dialogflow.v2.SuggestConversationSummaryRequest.context_size]
+    /// field in the request if there weren't that many messages in the
+    /// conversation.
     #[prost(int32, tag = "3")]
     pub context_size: i32,
 }
@@ -10245,9 +11389,11 @@ pub struct GenerateStatelessSummaryResponse {
     #[prost(string, tag = "2")]
     pub latest_message: ::prost::alloc::string::String,
     /// Number of messages prior to and including
-    /// [last_conversation_message][] used to compile the suggestion. It may be
-    /// smaller than the [GenerateStatelessSummaryRequest.context_size][] field in
-    /// the request if there weren't that many messages in the conversation.
+    /// [latest_message][google.cloud.dialogflow.v2.GenerateStatelessSummaryResponse.latest_message]
+    /// used to compile the suggestion. It may be smaller than the
+    /// [GenerateStatelessSummaryRequest.max_context_size][google.cloud.dialogflow.v2.GenerateStatelessSummaryRequest.max_context_size]
+    /// field in the request if there weren't that many messages in the
+    /// conversation.
     #[prost(int32, tag = "3")]
     pub context_size: i32,
 }
@@ -10281,6 +11427,15 @@ pub struct GenerateStatelessSuggestionRequest {
     /// Format: `projects/<Project ID>/locations/<Location ID>`.
     #[prost(string, tag = "1")]
     pub parent: ::prost::alloc::string::String,
+    /// Optional. A section of ingested context information. The key is the name of
+    /// the context reference and the value contains the contents of the context
+    /// reference. The key is used to incorporate ingested context references to
+    /// enhance the generator.
+    #[prost(map = "string, message", tag = "4")]
+    pub context_references: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        conversation::ContextReference,
+    >,
     /// Optional. Context of the conversation, including transcripts.
     #[prost(message, optional, tag = "5")]
     pub conversation_context: ::core::option::Option<ConversationContext>,
@@ -10288,6 +11443,16 @@ pub struct GenerateStatelessSuggestionRequest {
     /// it's trigger event is included here.
     #[prost(enumeration = "TriggerEvent", repeated, packed = "false", tag = "6")]
     pub trigger_events: ::prost::alloc::vec::Vec<i32>,
+    /// Optional. Name of the CX SecuritySettings which is used to redact generated
+    /// response. If this field is empty, try to fetch v2 security_settings, which
+    /// is a project level setting. If this field is empty and no v2
+    /// security_settings set up in this project, no redaction will be done.
+    ///
+    /// Format:
+    /// `projects/<Project ID>/locations/<Location ID>/securitySettings/<Security
+    /// Settings ID>`.
+    #[prost(string, tag = "8")]
+    pub security_settings: ::prost::alloc::string::String,
     /// Generator.
     #[prost(
         oneof = "generate_stateless_suggestion_request::GeneratorResource",
@@ -10392,9 +11557,18 @@ pub mod search_knowledge_request {
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct SearchConfig {
         /// Optional. Boost specifications for data stores.
+        ///
+        /// Maps from datastore name to their boost configuration. Do not specify
+        /// more than one BoostSpecs for each datastore name. If multiple BoostSpecs
+        /// are provided for the same datastore name, the behavior is undefined.
         #[prost(message, repeated, tag = "1")]
         pub boost_specs: ::prost::alloc::vec::Vec<search_config::BoostSpecs>,
         /// Optional. Filter specification for data store queries.
+        ///
+        /// TMaps from datastore name to the filter expression for that datastore. Do
+        /// not specify more than one FilterSpecs for each datastore name. If
+        /// multiple FilterSpecs are provided for the same datastore name, the
+        /// behavior is undefined.
         #[prost(message, repeated, tag = "2")]
         pub filter_specs: ::prost::alloc::vec::Vec<search_config::FilterSpecs>,
     }
@@ -10422,7 +11596,7 @@ pub mod search_knowledge_request {
             #[derive(Clone, PartialEq, ::prost::Message)]
             pub struct BoostSpec {
                 /// Optional. Condition boost specifications. If a document matches
-                /// multiple conditions in the specifictions, boost scores from these
+                /// multiple conditions in the specifications, boost scores from these
                 /// specifications are all applied and combined in a non-linear way.
                 /// Maximum number of specifications is 20.
                 #[prost(message, repeated, tag = "1")]
@@ -10515,8 +11689,21 @@ pub mod search_knowledge_request {
                         /// The control points used to define the curve. The curve defined
                         /// through these control points can only be monotonically increasing
                         /// or decreasing(constant values are acceptable).
-                        #[derive(Clone, Copy, PartialEq, ::prost::Message)]
-                        pub struct ControlPoint {}
+                        #[derive(Clone, PartialEq, ::prost::Message)]
+                        pub struct ControlPoint {
+                            /// Optional. Can be one of:
+                            /// 1. The numerical field value.
+                            /// 2. The duration spec for freshness:
+                            /// The value must be formatted as an XSD `dayTimeDuration` value
+                            /// (a restricted subset of an ISO 8601 duration value). The
+                            /// pattern for this is: `[nD][T[nH][nM][nS]]`.
+                            #[prost(string, tag = "1")]
+                            pub attribute_value: ::prost::alloc::string::String,
+                            /// Optional. The value between -1 to 1 by which to boost the score
+                            /// if the attribute_value evaluates to the value specified above.
+                            #[prost(float, tag = "2")]
+                            pub boost_amount: f32,
+                        }
                         /// The attribute(or function) for which the custom ranking is to be
                         /// applied.
                         #[derive(
@@ -10780,6 +11967,28 @@ pub mod search_knowledge_answer {
         }
     }
 }
+/// The request message for
+/// [Conversations.GenerateSuggestions][google.cloud.dialogflow.v2.Conversations.GenerateSuggestions].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GenerateSuggestionsRequest {
+    /// Required. The conversation for which the suggestions are generated. Format:
+    /// `projects/<Project ID>/locations/<Location
+    /// ID>/conversations/<Conversation ID>`.
+    ///
+    /// The conversation must be created with a conversation profile which has
+    /// generators configured in it to be able to get suggestions.
+    #[prost(string, tag = "1")]
+    pub conversation: ::prost::alloc::string::String,
+    /// Optional. The name of the latest conversation message for which the request
+    /// is triggered. Format: `projects/<Project ID>/locations/<Location
+    /// ID>/conversations/<Conversation ID>/messages/<Message ID>`.
+    #[prost(string, tag = "2")]
+    pub latest_message: ::prost::alloc::string::String,
+    /// Optional. A list of trigger events. Only generators configured in the
+    /// conversation_profile whose trigger_event is listed here will be triggered.
+    #[prost(enumeration = "TriggerEvent", repeated, packed = "false", tag = "3")]
+    pub trigger_events: ::prost::alloc::vec::Vec<i32>,
+}
 /// Generated client implementations.
 pub mod conversations_client {
     #![allow(
@@ -11005,6 +12214,37 @@ pub mod conversations_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        /// Data ingestion API.
+        /// Ingests context references for an existing conversation.
+        pub async fn ingest_context_references(
+            &mut self,
+            request: impl tonic::IntoRequest<super::IngestContextReferencesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::IngestContextReferencesResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.dialogflow.v2.Conversations/IngestContextReferences",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.dialogflow.v2.Conversations",
+                        "IngestContextReferences",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
         /// Lists messages that belong to a given conversation.
         /// `messages` are ordered by `create_time` in descending order. To fetch
         /// updates without duplication, send request with filter
@@ -11159,6 +12399,38 @@ pub mod conversations_client {
                     GrpcMethod::new(
                         "google.cloud.dialogflow.v2.Conversations",
                         "SearchKnowledge",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Generates all the suggestions using generators configured in the
+        /// conversation profile. A generator is used only if its trigger event is
+        /// matched.
+        pub async fn generate_suggestions(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GenerateSuggestionsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GenerateSuggestionsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.dialogflow.v2.Conversations/GenerateSuggestions",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.dialogflow.v2.Conversations",
+                        "GenerateSuggestions",
                     ),
                 );
             self.inner.unary(req, path, codec).await
@@ -11359,7 +12631,7 @@ pub struct ImportConversationDataOperationResponse {
     #[prost(int32, tag = "3")]
     pub import_count: i32,
 }
-/// Metadata for [ConversationDatasets][CreateConversationDataset].
+/// Metadata for [CreateConversationDataset][].
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateConversationDatasetOperationMetadata {
     /// The resource name of the conversation dataset that will be created. Format:
@@ -11368,7 +12640,7 @@ pub struct CreateConversationDatasetOperationMetadata {
     #[prost(string, tag = "1")]
     pub conversation_dataset: ::prost::alloc::string::String,
 }
-/// Metadata for [ConversationDatasets][DeleteConversationDataset].
+/// Metadata for [DeleteConversationDataset][].
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct DeleteConversationDatasetOperationMetadata {}
 /// Generated client implementations.
@@ -11665,7 +12937,7 @@ pub struct ConversationEvent {
     #[prost(message, optional, tag = "3")]
     pub error_status: ::core::option::Option<super::super::super::rpc::Status>,
     /// Payload of conversation event.
-    #[prost(oneof = "conversation_event::Payload", tags = "4")]
+    #[prost(oneof = "conversation_event::Payload", tags = "4, 5")]
     pub payload: ::core::option::Option<conversation_event::Payload>,
 }
 /// Nested message and enum types in `ConversationEvent`.
@@ -11691,6 +12963,8 @@ pub mod conversation_event {
         ConversationStarted = 1,
         /// An existing conversation has closed. This is fired when a telephone call
         /// is terminated, or a conversation is closed via the API.
+        /// The event is fired for every CompleteConversation call, even if the
+        /// conversation is already closed.
         ConversationFinished = 2,
         /// An existing conversation has received notification from Dialogflow that
         /// human intervention is required.
@@ -11699,6 +12973,11 @@ pub mod conversation_event {
         /// telephony. It is configured in
         /// [ConversationProfile.new_message_event_notification_config][google.cloud.dialogflow.v2.ConversationProfile.new_message_event_notification_config]
         NewMessage = 5,
+        /// An existing conversation has received a new speech recognition result.
+        /// This is mainly for delivering intermediate transcripts. The notification
+        /// is configured in
+        /// [ConversationProfile.new_recognition_event_notification_config][].
+        NewRecognitionResult = 7,
         /// Unrecoverable error during a telephone call.
         ///
         /// In general non-recoverable errors only occur if something was
@@ -11723,6 +13002,7 @@ pub mod conversation_event {
                 Self::ConversationFinished => "CONVERSATION_FINISHED",
                 Self::HumanInterventionNeeded => "HUMAN_INTERVENTION_NEEDED",
                 Self::NewMessage => "NEW_MESSAGE",
+                Self::NewRecognitionResult => "NEW_RECOGNITION_RESULT",
                 Self::UnrecoverableError => "UNRECOVERABLE_ERROR",
             }
         }
@@ -11734,6 +13014,7 @@ pub mod conversation_event {
                 "CONVERSATION_FINISHED" => Some(Self::ConversationFinished),
                 "HUMAN_INTERVENTION_NEEDED" => Some(Self::HumanInterventionNeeded),
                 "NEW_MESSAGE" => Some(Self::NewMessage),
+                "NEW_RECOGNITION_RESULT" => Some(Self::NewRecognitionResult),
                 "UNRECOVERABLE_ERROR" => Some(Self::UnrecoverableError),
                 _ => None,
             }
@@ -11745,6 +13026,9 @@ pub mod conversation_event {
         /// Payload of NEW_MESSAGE event.
         #[prost(message, tag = "4")]
         NewMessagePayload(super::Message),
+        /// Payload of NEW_RECOGNITION_RESULT event.
+        #[prost(message, tag = "5")]
+        NewRecognitionResultPayload(super::StreamingRecognitionResult),
     }
 }
 /// Represents a conversation model.
@@ -11935,7 +13219,7 @@ pub struct ConversationModelEvaluation {
     #[prost(message, optional, tag = "3")]
     pub create_time: ::core::option::Option<::prost_types::Timestamp>,
     /// Output only. Human eval template in csv format.
-    /// It tooks real-world conversations provided through input dataset, generates
+    /// It takes real-world conversations provided through input dataset, generates
     /// example suggestions for customer to verify quality of the model.
     /// For Smart Reply, the generated csv file contains columns of
     /// Context, (Suggestions,Q1,Q2)*3, Actual reply.
@@ -12012,10 +13296,10 @@ pub mod evaluation_config {
     /// Specific configurations for different models in order to do evaluation.
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum ModelSpecificConfig {
-        /// Configuration for smart reply model evalution.
+        /// Configuration for smart reply model evaluation.
         #[prost(message, tag = "2")]
         SmartReplyConfig(SmartReplyConfig),
-        /// Configuration for smart compose model evalution.
+        /// Configuration for smart compose model evaluation.
         #[prost(message, tag = "4")]
         SmartComposeConfig(SmartComposeConfig),
     }
@@ -12229,6 +13513,9 @@ pub struct CreateConversationModelOperationMetadata {
     /// time is measured on server side.
     #[prost(message, optional, tag = "3")]
     pub create_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// The time when the operation finished.
+    #[prost(message, optional, tag = "7")]
+    pub done_time: ::core::option::Option<::prost_types::Timestamp>,
 }
 /// Nested message and enum types in `CreateConversationModelOperationMetadata`.
 pub mod create_conversation_model_operation_metadata {
@@ -12307,6 +13594,9 @@ pub struct DeployConversationModelOperationMetadata {
     /// is measured on server side.
     #[prost(message, optional, tag = "3")]
     pub create_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// The time when the operation finished.
+    #[prost(message, optional, tag = "4")]
+    pub done_time: ::core::option::Option<::prost_types::Timestamp>,
 }
 /// Metadata for a
 /// [ConversationModels.UndeployConversationModel][google.cloud.dialogflow.v2.ConversationModels.UndeployConversationModel]
@@ -12321,6 +13611,9 @@ pub struct UndeployConversationModelOperationMetadata {
     /// The time is measured on server side.
     #[prost(message, optional, tag = "3")]
     pub create_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// The time when the operation finished.
+    #[prost(message, optional, tag = "4")]
+    pub done_time: ::core::option::Option<::prost_types::Timestamp>,
 }
 /// Metadata for a
 /// [ConversationModels.DeleteConversationModel][google.cloud.dialogflow.v2.ConversationModels.DeleteConversationModel]
@@ -12335,6 +13628,9 @@ pub struct DeleteConversationModelOperationMetadata {
     /// measured on server side.
     #[prost(message, optional, tag = "3")]
     pub create_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// The time when the operation finished.
+    #[prost(message, optional, tag = "4")]
+    pub done_time: ::core::option::Option<::prost_types::Timestamp>,
 }
 /// Metadata for a
 /// [ConversationModels.CreateConversationModelEvaluation][google.cloud.dialogflow.v2.ConversationModels.CreateConversationModelEvaluation]
@@ -13325,6 +14621,9 @@ pub struct KnowledgeOperationMetadata {
     /// The name of the knowledge base interacted with during the operation.
     #[prost(string, tag = "3")]
     pub knowledge_base: ::prost::alloc::string::String,
+    /// The time when the operation finished.
+    #[prost(message, optional, tag = "5")]
+    pub done_time: ::core::option::Option<::prost_types::Timestamp>,
     /// Additional metadata for the Knowledge operation.
     #[prost(oneof = "knowledge_operation_metadata::OperationMetadata", tags = "4")]
     pub operation_metadata: ::core::option::Option<
@@ -14848,6 +16147,815 @@ pub mod environments_client {
         }
     }
 }
+/// Metadata for a
+/// [GeneratorEvaluations.CreateGeneratorEvaluation][google.cloud.dialogflow.v2.GeneratorEvaluations.CreateGeneratorEvaluation]
+/// operation.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GeneratorEvaluationOperationMetadata {
+    /// Output only. The resource name of the generator evaluation. Format:
+    /// `projects/<Project ID>/locations/<Location
+    /// ID>/generators/<Generator ID>/evaluations/<Evaluation ID>`
+    #[prost(string, tag = "1")]
+    pub generator_evaluation: ::prost::alloc::string::String,
+}
+/// Request of CreateGeneratorEvaluation.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateGeneratorEvaluationRequest {
+    /// Required. The generator resource name. Format:
+    /// `projects/<Project ID>/locations/<Location ID>/generators/<Generator ID>`
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Required. The generator evaluation to be created.
+    #[prost(message, optional, tag = "2")]
+    pub generator_evaluation: ::core::option::Option<GeneratorEvaluation>,
+}
+/// Request of GetGeneratorEvaluation.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetGeneratorEvaluationRequest {
+    /// Required. The generator evaluation resource name. Format:
+    /// `projects/<Project ID>/locations/<Location ID>/generators/<Generator
+    /// ID>/evaluations/<Evaluation ID>`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Request of ListGeneratorEvaluations.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListGeneratorEvaluationsRequest {
+    /// Required. The generator resource name. Format:
+    /// `projects/<Project ID>/locations/<Location ID>/generators/<Generator ID>`
+    /// Wildcard value `-` is supported on generator_id to list evaluations across
+    /// all generators under same project.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Optional. Maximum number of evaluations to return in a
+    /// single page. By default 100 and at most 1000.
+    #[prost(int32, tag = "2")]
+    pub page_size: i32,
+    /// Optional. The next_page_token value returned from a previous list request.
+    #[prost(string, tag = "3")]
+    pub page_token: ::prost::alloc::string::String,
+}
+/// Response of ListGeneratorEvaluations.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListGeneratorEvaluationsResponse {
+    /// The list of evaluations to return.
+    #[prost(message, repeated, tag = "1")]
+    pub generator_evaluations: ::prost::alloc::vec::Vec<GeneratorEvaluation>,
+    /// Token to retrieve the next page of results, or empty if there are no more
+    /// results in the list.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
+/// Request of DeleteGeneratorEvaluation.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteGeneratorEvaluationRequest {
+    /// Required. The generator evaluation resource name. Format:
+    /// `projects/<Project ID>/locations/<Location ID>/generators/<Generator ID>/
+    /// evaluations/<Evaluation ID>`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Represents evaluation result of a generator.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GeneratorEvaluation {
+    /// Output only. Identifier. The resource name of the evaluation. Format:
+    /// `projects/<Project ID>/locations/<Location ID>/generators/<Generator ID>/
+    /// evaluations/<Evaluation ID>`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Optional. The display name of the generator evaluation. At most 64 bytes
+    /// long.
+    #[prost(string, tag = "2")]
+    pub display_name: ::prost::alloc::string::String,
+    /// Required. The configuration of the evaluation task.
+    #[prost(message, optional, tag = "3")]
+    pub generator_evaluation_config: ::core::option::Option<GeneratorEvaluationConfig>,
+    /// Output only. Creation time of this generator evaluation.
+    #[prost(message, optional, tag = "4")]
+    pub create_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. Completion time of this generator evaluation.
+    #[prost(message, optional, tag = "8")]
+    pub complete_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Required. The initial generator that was used when creating this
+    /// evaluation. This is a copy of the generator read from storage when creating
+    /// the evaluation.
+    #[prost(message, optional, tag = "5")]
+    pub initial_generator: ::core::option::Option<Generator>,
+    /// Output only. The result status of the evaluation pipeline. Provides the
+    /// status information including if the evaluation is still in progress,
+    /// completed or failed with certain error and user actionable message.
+    #[prost(message, optional, tag = "10")]
+    pub evaluation_status: ::core::option::Option<EvaluationStatus>,
+    /// Output only. A read only boolean field reflecting Zone Separation
+    /// status of the model. The field is an aggregated
+    /// value of ZS status of its underlying dependencies. See more details in
+    /// go/zicy-resource-placement#resource-status
+    #[prost(bool, optional, tag = "11")]
+    pub satisfies_pzs: ::core::option::Option<bool>,
+    /// Output only. A read only boolean field reflecting Zone Isolation status
+    /// of the model. The field is an aggregated value of
+    /// ZI status of its underlying dependencies. See more details in
+    /// go/zicy-resource-placement#resource-status
+    #[prost(bool, optional, tag = "12")]
+    pub satisfies_pzi: ::core::option::Option<bool>,
+    /// Metrics details.
+    #[prost(oneof = "generator_evaluation::Metrics", tags = "6")]
+    pub metrics: ::core::option::Option<generator_evaluation::Metrics>,
+}
+/// Nested message and enum types in `GeneratorEvaluation`.
+pub mod generator_evaluation {
+    /// Metrics details.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Metrics {
+        /// Output only. Only available when the summarization generator is provided.
+        #[prost(message, tag = "6")]
+        SummarizationMetrics(super::SummarizationEvaluationMetrics),
+    }
+}
+/// Evaluation metrics for summarization generator.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SummarizationEvaluationMetrics {
+    /// Output only. A list of evaluation results per conversation(&summary),
+    /// metric and section.
+    #[prost(message, repeated, tag = "4")]
+    pub summarization_evaluation_results: ::prost::alloc::vec::Vec<
+        summarization_evaluation_metrics::SummarizationEvaluationResult,
+    >,
+    /// Output only. User bucket uri for merged evaluation score and aggregation
+    /// score csv.
+    #[prost(string, tag = "5")]
+    pub summarization_evaluation_merged_results_uri: ::prost::alloc::string::String,
+    /// Output only. A list of aggregated(average) scores per metric section.
+    #[prost(message, repeated, tag = "6")]
+    pub overall_metrics: ::prost::alloc::vec::Vec<
+        summarization_evaluation_metrics::OverallScoresByMetric,
+    >,
+    /// Output only. Overall token per section. This is an aggregated(sum) result
+    /// of input token of summary acorss all conversations that are selected for
+    /// summarization evaluation.
+    #[prost(message, repeated, tag = "7")]
+    pub overall_section_tokens: ::prost::alloc::vec::Vec<
+        summarization_evaluation_metrics::SectionToken,
+    >,
+    /// Output only. List of conversation details.
+    #[prost(message, repeated, tag = "8")]
+    pub conversation_details: ::prost::alloc::vec::Vec<
+        summarization_evaluation_metrics::ConversationDetail,
+    >,
+}
+/// Nested message and enum types in `SummarizationEvaluationMetrics`.
+pub mod summarization_evaluation_metrics {
+    /// Decomposition details for accuracy.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct AccuracyDecomposition {
+        /// Output only. The breakdown point of the summary.
+        #[prost(string, tag = "1")]
+        pub point: ::prost::alloc::string::String,
+        /// Output only. The accuracy reasoning of the breakdown point.
+        #[prost(string, tag = "2")]
+        pub accuracy_reasoning: ::prost::alloc::string::String,
+        /// Output only. Whether the breakdown point is accurate or not.
+        #[prost(bool, optional, tag = "3")]
+        pub is_accurate: ::core::option::Option<bool>,
+    }
+    /// Decomposition details for adherence.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct AdherenceDecomposition {
+        /// Output only. The breakdown point of the given instructions.
+        #[prost(string, tag = "1")]
+        pub point: ::prost::alloc::string::String,
+        /// Output only. The adherence reasoning of the breakdown point.
+        #[prost(string, tag = "2")]
+        pub adherence_reasoning: ::prost::alloc::string::String,
+        /// Output only. Whether the breakdown point is adherent or not.
+        #[prost(bool, tag = "3")]
+        pub is_adherent: bool,
+    }
+    /// Rubric result of the adherence evaluation. A rubric is ued to determine
+    /// if the summary adheres to all aspects of the given instructions.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct AdherenceRubric {
+        /// Output only. The question generated from instruction that used to
+        /// evaluate summary.
+        #[prost(string, tag = "1")]
+        pub question: ::prost::alloc::string::String,
+        /// Output only. The reasoning of the rubric question is addressed or not.
+        #[prost(string, tag = "2")]
+        pub reasoning: ::prost::alloc::string::String,
+        /// Output only. A boolean that indicates whether the rubric question is
+        /// addressed or not.
+        #[prost(bool, optional, tag = "3")]
+        pub is_addressed: ::core::option::Option<bool>,
+    }
+    /// Rubric details of the completeness evaluation result.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct CompletenessRubric {
+        /// Output only. The question generated from instruction that used to
+        /// evaluate summary.
+        #[prost(string, tag = "1")]
+        pub question: ::prost::alloc::string::String,
+        /// Output only. A boolean that indicates whether the rubric question is
+        /// addressed or not.
+        #[prost(bool, optional, tag = "2")]
+        pub is_addressed: ::core::option::Option<bool>,
+    }
+    /// Decomposition details
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Decomposition {
+        /// One of decomposition details.
+        #[prost(oneof = "decomposition::Decomposition", tags = "1, 2")]
+        pub decomposition: ::core::option::Option<decomposition::Decomposition>,
+    }
+    /// Nested message and enum types in `Decomposition`.
+    pub mod decomposition {
+        /// One of decomposition details.
+        #[derive(Clone, PartialEq, ::prost::Oneof)]
+        pub enum Decomposition {
+            /// only available for accuracy metric.
+            #[prost(message, tag = "1")]
+            AccuracyDecomposition(super::AccuracyDecomposition),
+            /// only available for adherence metric.
+            #[prost(message, tag = "2")]
+            AdherenceDecomposition(super::AdherenceDecomposition),
+        }
+    }
+    /// Evaluation result that contains one of accuracy, adherence or completeness
+    /// evaluation result.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct EvaluationResult {
+        /// One of evaluation result details.
+        #[prost(oneof = "evaluation_result::Result", tags = "1, 2, 3")]
+        pub result: ::core::option::Option<evaluation_result::Result>,
+    }
+    /// Nested message and enum types in `EvaluationResult`.
+    pub mod evaluation_result {
+        /// One of evaluation result details.
+        #[derive(Clone, PartialEq, ::prost::Oneof)]
+        pub enum Result {
+            /// Only available for accuracy metric.
+            #[prost(message, tag = "1")]
+            AccuracyDecomposition(super::AccuracyDecomposition),
+            /// Only available for adherence metric.
+            #[prost(message, tag = "2")]
+            AdherenceRubric(super::AdherenceRubric),
+            /// Only available for completeness metric.
+            #[prost(message, tag = "3")]
+            CompletenessRubric(super::CompletenessRubric),
+        }
+    }
+    /// Evaluation result per conversation(&summary), metric and section.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct SummarizationEvaluationResult {
+        /// Output only. conversation session id
+        #[deprecated]
+        #[prost(string, tag = "1")]
+        pub session_id: ::prost::alloc::string::String,
+        /// Output only. metric name, e.g. accuracy, completeness, adherence, etc.
+        #[prost(string, tag = "2")]
+        pub metric: ::prost::alloc::string::String,
+        /// Output only. section/task name, e.g. action, situation, etc
+        #[prost(string, tag = "3")]
+        pub section: ::prost::alloc::string::String,
+        /// Output only. score calculated from decompositions
+        #[prost(float, tag = "4")]
+        pub score: f32,
+        /// Output only. Summary of this section
+        #[prost(string, tag = "6")]
+        pub section_summary: ::prost::alloc::string::String,
+        /// Output only. List of decompostion details
+        #[deprecated]
+        #[prost(message, repeated, tag = "7")]
+        pub decompositions: ::prost::alloc::vec::Vec<Decomposition>,
+        /// Output only. List of evaluation results.
+        #[prost(message, repeated, tag = "8")]
+        pub evaluation_results: ::prost::alloc::vec::Vec<EvaluationResult>,
+    }
+    /// Overall performance per metric. This is the aggregated score for each
+    /// metric across all conversations that are selected for summarization
+    /// evaluation.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct OverallScoresByMetric {
+        /// Output only. Metric name. e.g. accuracy, adherence, completeness.
+        #[prost(string, tag = "1")]
+        pub metric: ::prost::alloc::string::String,
+    }
+    /// A pair of section name and input token count of the input summary section.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct SectionToken {
+        /// Output only. The name of the summary instruction.
+        #[prost(string, tag = "1")]
+        pub section: ::prost::alloc::string::String,
+        /// Output only. Token count.
+        #[prost(int64, optional, tag = "2")]
+        pub token_count: ::core::option::Option<i64>,
+    }
+    /// Aggregated evaluation result on conversation level. This conatins
+    /// evaluation results of all the metrics and sections.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct ConversationDetail {
+        /// Output only. Conversation transcript that used for summarization
+        /// evaluation as a reference.
+        #[prost(message, repeated, tag = "1")]
+        pub message_entries: ::prost::alloc::vec::Vec<super::MessageEntry>,
+        /// Output only. Summary sections that used for summarization evaluation as a
+        /// reference.
+        #[prost(message, repeated, tag = "4")]
+        pub summary_sections: ::prost::alloc::vec::Vec<
+            super::summary_suggestion::SummarySection,
+        >,
+        /// Output only. List of metric details.
+        #[prost(message, repeated, tag = "2")]
+        pub metric_details: ::prost::alloc::vec::Vec<conversation_detail::MetricDetail>,
+        /// Output only. Conversation level token count per section. This is an
+        /// aggregated(sum) result of input token of summary acorss all metrics for a
+        /// single conversation.
+        #[prost(message, repeated, tag = "3")]
+        pub section_tokens: ::prost::alloc::vec::Vec<SectionToken>,
+    }
+    /// Nested message and enum types in `ConversationDetail`.
+    pub mod conversation_detail {
+        /// Aggregated result on metric level. This conatins the evaluation results
+        /// of all the sections.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct MetricDetail {
+            /// Output only. Metrics name. e.g. accuracy, adherence, completeness.
+            #[prost(string, tag = "1")]
+            pub metric: ::prost::alloc::string::String,
+            /// Output only. Aggregated(average) score on this metric across all
+            /// sections.
+            #[prost(float, optional, tag = "2")]
+            pub score: ::core::option::Option<f32>,
+            /// Output only. List of section details.
+            #[prost(message, repeated, tag = "4")]
+            pub section_details: ::prost::alloc::vec::Vec<metric_detail::SectionDetail>,
+        }
+        /// Nested message and enum types in `MetricDetail`.
+        pub mod metric_detail {
+            /// Section level result.
+            #[derive(Clone, PartialEq, ::prost::Message)]
+            pub struct SectionDetail {
+                /// Output only. The name of the summary instruction.
+                #[prost(string, tag = "1")]
+                pub section: ::prost::alloc::string::String,
+                /// Output only. Aggregated(average) score on this section across all
+                /// evaluation results. Either decompositions or rubrics.
+                #[prost(float, optional, tag = "2")]
+                pub score: ::core::option::Option<f32>,
+                /// Output only. Summary for this section
+                #[prost(string, tag = "4")]
+                pub section_summary: ::prost::alloc::string::String,
+                /// Output only. List of evaluation result. The list only contains one
+                /// kind of the evaluation result.
+                #[prost(message, repeated, tag = "5")]
+                pub evaluation_results: ::prost::alloc::vec::Vec<
+                    super::super::EvaluationResult,
+                >,
+            }
+        }
+    }
+}
+/// Generator evaluation input config.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GeneratorEvaluationConfig {
+    /// Required. The config/source of input data.
+    #[prost(message, optional, tag = "1")]
+    pub input_data_config: ::core::option::Option<
+        generator_evaluation_config::InputDataConfig,
+    >,
+    /// Required. The output Cloud Storage bucket path to store eval files, e.g.
+    /// per_summary_accuracy_score report. This path is provided by customer and
+    /// files stored in it are visible to customer, no internal data should be
+    /// stored in this path.
+    #[prost(string, tag = "2")]
+    pub output_gcs_bucket_path: ::prost::alloc::string::String,
+    /// Feature used for evaluation.
+    #[prost(oneof = "generator_evaluation_config::EvaluationFeatureConfig", tags = "3")]
+    pub evaluation_feature_config: ::core::option::Option<
+        generator_evaluation_config::EvaluationFeatureConfig,
+    >,
+}
+/// Nested message and enum types in `GeneratorEvaluationConfig`.
+pub mod generator_evaluation_config {
+    /// The distinctive configs for Agent Assist conversations as the conversation
+    /// source.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct AgentAssistInputDataConfig {
+        /// Required. The start of the time range for conversations to be evaluated.
+        /// Only conversations created at or after this timestamp will be sampled.
+        #[prost(message, optional, tag = "1")]
+        pub start_time: ::core::option::Option<::prost_types::Timestamp>,
+        /// Required. The end of the time range for conversations to be evaluated.
+        /// Only conversations ended at or before this timestamp will be sampled.
+        #[prost(message, optional, tag = "2")]
+        pub end_time: ::core::option::Option<::prost_types::Timestamp>,
+    }
+    /// The distinctive configs for dataset as the conversation source.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct DatasetInputDataConfig {
+        /// Required. The identifier of the dataset to be evaluated.
+        /// Format:
+        /// `projects/<ProjectId>/locations/<LocationID>/datasets/<DatasetID>`.
+        #[prost(string, tag = "1")]
+        pub dataset: ::prost::alloc::string::String,
+    }
+    /// Input data config details
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct InputDataConfig {
+        /// Required. The source type of input data.
+        #[deprecated]
+        #[prost(enumeration = "InputDataSourceType", tag = "1")]
+        pub input_data_source_type: i32,
+        /// Optional. The start timestamp to fetch conversation data.
+        #[deprecated]
+        #[prost(message, optional, tag = "2")]
+        pub start_time: ::core::option::Option<::prost_types::Timestamp>,
+        /// Optional. The end timestamp to fetch conversation data.
+        #[deprecated]
+        #[prost(message, optional, tag = "3")]
+        pub end_time: ::core::option::Option<::prost_types::Timestamp>,
+        /// Optional. Desired number of conversation-summary pairs to be evaluated.
+        #[prost(int32, tag = "4")]
+        pub sample_size: i32,
+        /// Optional. Whether the summary generation is allowed when the pre-existing
+        /// qualified summaries are insufficient to cover the sample size.
+        #[deprecated]
+        #[prost(bool, tag = "5")]
+        pub is_summary_generation_allowed: bool,
+        /// Optional. Option to control whether summaries are generated during
+        /// evaluation.
+        #[prost(enumeration = "input_data_config::SummaryGenerationOption", tag = "8")]
+        pub summary_generation_option: i32,
+        /// The source specific config for the input data.
+        #[prost(oneof = "input_data_config::SourceSpecificConfig", tags = "6, 7")]
+        pub source_specific_config: ::core::option::Option<
+            input_data_config::SourceSpecificConfig,
+        >,
+    }
+    /// Nested message and enum types in `InputDataConfig`.
+    pub mod input_data_config {
+        /// Summary generation options.
+        #[derive(
+            Clone,
+            Copy,
+            Debug,
+            PartialEq,
+            Eq,
+            Hash,
+            PartialOrd,
+            Ord,
+            ::prost::Enumeration
+        )]
+        #[repr(i32)]
+        pub enum SummaryGenerationOption {
+            /// Default option will not be used
+            Unspecified = 0,
+            /// Always Generate summary for all conversations.
+            AlwaysGenerate = 1,
+            /// Gnerate only missing summaries.
+            GenerateIfMissing = 2,
+            /// Do not generate new summaries. Only use existing summaries found.
+            DoNotGenerate = 3,
+        }
+        impl SummaryGenerationOption {
+            /// String value of the enum field names used in the ProtoBuf definition.
+            ///
+            /// The values are not transformed in any way and thus are considered stable
+            /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+            pub fn as_str_name(&self) -> &'static str {
+                match self {
+                    Self::Unspecified => "SUMMARY_GENERATION_OPTION_UNSPECIFIED",
+                    Self::AlwaysGenerate => "ALWAYS_GENERATE",
+                    Self::GenerateIfMissing => "GENERATE_IF_MISSING",
+                    Self::DoNotGenerate => "DO_NOT_GENERATE",
+                }
+            }
+            /// Creates an enum from field names used in the ProtoBuf definition.
+            pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+                match value {
+                    "SUMMARY_GENERATION_OPTION_UNSPECIFIED" => Some(Self::Unspecified),
+                    "ALWAYS_GENERATE" => Some(Self::AlwaysGenerate),
+                    "GENERATE_IF_MISSING" => Some(Self::GenerateIfMissing),
+                    "DO_NOT_GENERATE" => Some(Self::DoNotGenerate),
+                    _ => None,
+                }
+            }
+        }
+        /// The source specific config for the input data.
+        #[derive(Clone, PartialEq, ::prost::Oneof)]
+        pub enum SourceSpecificConfig {
+            /// The distinctive configs for Agent Assist conversations as the
+            /// conversation source.
+            #[prost(message, tag = "6")]
+            AgentAssistInputDataConfig(super::AgentAssistInputDataConfig),
+            /// The distinctive configs for dataset as the conversation source.
+            #[prost(message, tag = "7")]
+            DatasetInputDataConfig(super::DatasetInputDataConfig),
+        }
+    }
+    /// Evaluation configs for summarization generator.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct SummarizationConfig {
+        /// Optional. Enable accuracy evaluation.
+        #[deprecated]
+        #[prost(bool, tag = "1")]
+        pub enable_accuracy_evaluation: bool,
+        /// Optional. Version for summarization accuracy. This will determine the
+        /// prompt and model used at backend.
+        #[deprecated]
+        #[prost(string, tag = "2")]
+        pub accuracy_evaluation_version: ::prost::alloc::string::String,
+        /// Optional. Enable completeness evaluation.
+        #[deprecated]
+        #[prost(bool, tag = "3")]
+        pub enable_completeness_evaluation: bool,
+        /// Optional. Version for summarization completeness. This will determine the
+        /// prompt and model used at backend.
+        #[deprecated]
+        #[prost(string, tag = "4")]
+        pub completeness_evaluation_version: ::prost::alloc::string::String,
+        /// Optional. Version for summarization evaluation.
+        #[prost(string, optional, tag = "5")]
+        pub evaluator_version: ::core::option::Option<::prost::alloc::string::String>,
+    }
+    /// Enumeration of input data source type.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum InputDataSourceType {
+        /// Unspecified InputDataSourceType. Should not be used.
+        Unspecified = 0,
+        /// Fetch data from Agent Assist storage. If this source type is chosen,
+        /// input_data_config.start_time and input_data_config.end_timestamp must be
+        /// provided.
+        AgentAssistConversations = 1,
+        /// Fetch data from Insights storage. If this source type is chosen,
+        /// input_data_config.start_time and input_data_config.end_timestamp must be
+        /// provided.
+        InsightsConversations = 2,
+    }
+    impl InputDataSourceType {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "INPUT_DATA_SOURCE_TYPE_UNSPECIFIED",
+                Self::AgentAssistConversations => "AGENT_ASSIST_CONVERSATIONS",
+                Self::InsightsConversations => "INSIGHTS_CONVERSATIONS",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "INPUT_DATA_SOURCE_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+                "AGENT_ASSIST_CONVERSATIONS" => Some(Self::AgentAssistConversations),
+                "INSIGHTS_CONVERSATIONS" => Some(Self::InsightsConversations),
+                _ => None,
+            }
+        }
+    }
+    /// Feature used for evaluation.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum EvaluationFeatureConfig {
+        /// Evaluation configs for summarization generator.
+        #[prost(message, tag = "3")]
+        SummarizationConfig(SummarizationConfig),
+    }
+}
+/// A common evalaution pipeline status.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EvaluationStatus {
+    /// Output only. If the value is `false`, it means the evaluation is still in
+    /// progress. If `true`, the operation is completed, and either `error` or
+    /// `response` is available.
+    #[prost(bool, optional, tag = "1")]
+    pub done: ::core::option::Option<bool>,
+    /// Output only. The error result of the evaluation in case of failure in
+    /// evaluation pipeline.
+    #[prost(message, optional, tag = "2")]
+    pub pipeline_status: ::core::option::Option<super::super::super::rpc::Status>,
+}
+/// Generated client implementations.
+pub mod generator_evaluations_client {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value,
+    )]
+    use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
+    /// Service for managing generator evaluations.
+    #[derive(Debug, Clone)]
+    pub struct GeneratorEvaluationsClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl GeneratorEvaluationsClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> GeneratorEvaluationsClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> GeneratorEvaluationsClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+        {
+            GeneratorEvaluationsClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        /// Creates evaluation of a generator.
+        pub async fn create_generator_evaluation(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateGeneratorEvaluationRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.dialogflow.v2.GeneratorEvaluations/CreateGeneratorEvaluation",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.dialogflow.v2.GeneratorEvaluations",
+                        "CreateGeneratorEvaluation",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Gets an evaluation of generator.
+        pub async fn get_generator_evaluation(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetGeneratorEvaluationRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GeneratorEvaluation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.dialogflow.v2.GeneratorEvaluations/GetGeneratorEvaluation",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.dialogflow.v2.GeneratorEvaluations",
+                        "GetGeneratorEvaluation",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Lists evaluations of generator.
+        pub async fn list_generator_evaluations(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListGeneratorEvaluationsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListGeneratorEvaluationsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.dialogflow.v2.GeneratorEvaluations/ListGeneratorEvaluations",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.dialogflow.v2.GeneratorEvaluations",
+                        "ListGeneratorEvaluations",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Deletes an evaluation of generator.
+        pub async fn delete_generator_evaluation(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteGeneratorEvaluationRequest>,
+        ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.dialogflow.v2.GeneratorEvaluations/DeleteGeneratorEvaluation",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.dialogflow.v2.GeneratorEvaluations",
+                        "DeleteGeneratorEvaluation",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+    }
+}
 /// Represents a notification sent to Cloud Pub/Sub subscribers for
 /// human agent assistant events in a specific conversation.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -15226,6 +17334,1411 @@ pub mod knowledge_bases_client {
                         "google.cloud.dialogflow.v2.KnowledgeBases",
                         "UpdateKnowledgeBase",
                     ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+    }
+}
+/// The request message for
+/// [SipTrunks.CreateSipTrunk][google.cloud.dialogflow.v2.SipTrunks.CreateSipTrunk].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateSipTrunkRequest {
+    /// Required. The location to create a SIP trunk for.
+    /// Format: `projects/<Project ID>/locations/<Location ID>`.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Required. The SIP trunk to create.
+    #[prost(message, optional, tag = "2")]
+    pub sip_trunk: ::core::option::Option<SipTrunk>,
+}
+/// The request message for
+/// [SipTrunks.DeleteSipTrunk][google.cloud.dialogflow.v2.SipTrunks.DeleteSipTrunk].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteSipTrunkRequest {
+    /// Required. The name of the SIP trunk to delete.
+    /// Format: `projects/<Project ID>/locations/<Location ID>/sipTrunks/<SipTrunk
+    /// ID>`.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// The request message for
+/// [SipTrunks.ListSipTrunks][google.cloud.dialogflow.v2.SipTrunks.ListSipTrunks].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListSipTrunksRequest {
+    /// Required. The location to list SIP trunks from.
+    /// Format: `projects/<Project ID>/locations/<Location ID>`.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Optional. The maximum number of items to return in a single page. By
+    /// default 100 and at most 1000.
+    #[prost(int32, tag = "2")]
+    pub page_size: i32,
+    /// Optional. The next_page_token value returned from a previous list request.
+    #[prost(string, tag = "3")]
+    pub page_token: ::prost::alloc::string::String,
+}
+/// The response message for
+/// [SipTrunks.ListSipTrunks][google.cloud.dialogflow.v2.SipTrunks.ListSipTrunks].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListSipTrunksResponse {
+    /// The list of SIP trunks.
+    #[prost(message, repeated, tag = "1")]
+    pub sip_trunks: ::prost::alloc::vec::Vec<SipTrunk>,
+    /// Token to retrieve the next page of results, or empty if there are no
+    /// more results in the list.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
+/// The request message for
+/// [SipTrunks.GetSipTrunk][google.cloud.dialogflow.v2.SipTrunks.GetSipTrunk].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetSipTrunkRequest {
+    /// Required. The name of the SIP trunk to delete.
+    /// Format: `projects/<Project ID>/locations/<Location ID>/sipTrunks/<SipTrunk
+    /// ID>`.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// The request message for
+/// [SipTrunks.UpdateSipTrunk][google.cloud.dialogflow.v2.SipTrunks.UpdateSipTrunk].
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateSipTrunkRequest {
+    /// Required. The SipTrunk to update.
+    #[prost(message, optional, tag = "1")]
+    pub sip_trunk: ::core::option::Option<SipTrunk>,
+    /// Optional. The mask to control which fields get updated. If the mask is not
+    /// present, all fields will be updated.
+    #[prost(message, optional, tag = "2")]
+    pub update_mask: ::core::option::Option<::prost_types::FieldMask>,
+}
+/// SipTrunk is the resource that represents a SIP trunk to connect to Google
+/// Telephony platform SIP trunking service.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SipTrunk {
+    /// Identifier. The unique identifier of the SIP trunk.
+    /// Format: `projects/<Project ID>/locations/<Location ID>/sipTrunks/<SipTrunk
+    /// ID>`.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Required. The expected hostnames in the peer certificate from partner that
+    /// is used for TLS authentication.
+    #[prost(string, repeated, tag = "2")]
+    pub expected_hostname: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Output only. Connections of the SIP trunk.
+    #[prost(message, repeated, tag = "3")]
+    pub connections: ::prost::alloc::vec::Vec<Connection>,
+    /// Optional. Human readable alias for this trunk.
+    #[prost(string, tag = "4")]
+    pub display_name: ::prost::alloc::string::String,
+}
+/// Represents a connection for SIP Trunk.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Connection {
+    /// Output only. The unique identifier of the SIP Trunk connection.
+    #[prost(string, tag = "1")]
+    pub connection_id: ::prost::alloc::string::String,
+    /// Output only. State of the connection.
+    #[prost(enumeration = "connection::State", tag = "2")]
+    pub state: i32,
+    /// Output only. When the connection status changed.
+    #[prost(message, optional, tag = "3")]
+    pub update_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. The error details for the connection. Only populated when
+    /// authentication errors occur.
+    #[prost(message, optional, tag = "4")]
+    pub error_details: ::core::option::Option<connection::ErrorDetails>,
+}
+/// Nested message and enum types in `Connection`.
+pub mod connection {
+    /// The error details of Sip Trunk connection authentication.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct ErrorDetails {
+        /// Output only. The status of the certificate authentication.
+        #[prost(enumeration = "CertificateState", optional, tag = "1")]
+        pub certificate_state: ::core::option::Option<i32>,
+        /// The error message provided from SIP trunking auth service
+        #[prost(string, optional, tag = "2")]
+        pub error_message: ::core::option::Option<::prost::alloc::string::String>,
+    }
+    /// The state of Sip Trunk connection.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum State {
+        /// SIP Trunk connection state is Not specified.
+        Unspecified = 0,
+        /// SIP Trunk connection is connected.
+        Connected = 1,
+        /// SIP Trunk connection is disconnected.
+        Disconnected = 2,
+        /// SIP Trunk connection has authentication error.
+        AuthenticationFailed = 3,
+        /// SIP Trunk connection is keepalive.
+        Keepalive = 4,
+    }
+    impl State {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "STATE_UNSPECIFIED",
+                Self::Connected => "CONNECTED",
+                Self::Disconnected => "DISCONNECTED",
+                Self::AuthenticationFailed => "AUTHENTICATION_FAILED",
+                Self::Keepalive => "KEEPALIVE",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "STATE_UNSPECIFIED" => Some(Self::Unspecified),
+                "CONNECTED" => Some(Self::Connected),
+                "DISCONNECTED" => Some(Self::Disconnected),
+                "AUTHENTICATION_FAILED" => Some(Self::AuthenticationFailed),
+                "KEEPALIVE" => Some(Self::Keepalive),
+                _ => None,
+            }
+        }
+    }
+    /// The state of Sip Trunk certificate authentication.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum CertificateState {
+        /// Certificate state is not specified.
+        Unspecified = 0,
+        /// Certificate is valid.
+        CertificateValid = 1,
+        /// Catch all for any error not specified.
+        CertificateInvalid = 2,
+        /// Certificate leaf node has expired.
+        CertificateExpired = 3,
+        /// There is no hostname defined to authenticate in SipTrunkingServer.
+        CertificateHostnameNotFound = 4,
+        /// No path found from the leaf certificate to any root.
+        CertificateUnauthenticated = 5,
+        /// Trust store does not exist.
+        CertificateTrustStoreNotFound = 6,
+        /// Hostname has invalid format.
+        CertificateHostnameInvalidFormat = 7,
+        /// Certificate has exhausted its quota.
+        CertificateQuotaExceeded = 8,
+    }
+    impl CertificateState {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "CERTIFICATE_STATE_UNSPECIFIED",
+                Self::CertificateValid => "CERTIFICATE_VALID",
+                Self::CertificateInvalid => "CERTIFICATE_INVALID",
+                Self::CertificateExpired => "CERTIFICATE_EXPIRED",
+                Self::CertificateHostnameNotFound => "CERTIFICATE_HOSTNAME_NOT_FOUND",
+                Self::CertificateUnauthenticated => "CERTIFICATE_UNAUTHENTICATED",
+                Self::CertificateTrustStoreNotFound => {
+                    "CERTIFICATE_TRUST_STORE_NOT_FOUND"
+                }
+                Self::CertificateHostnameInvalidFormat => {
+                    "CERTIFICATE_HOSTNAME_INVALID_FORMAT"
+                }
+                Self::CertificateQuotaExceeded => "CERTIFICATE_QUOTA_EXCEEDED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "CERTIFICATE_STATE_UNSPECIFIED" => Some(Self::Unspecified),
+                "CERTIFICATE_VALID" => Some(Self::CertificateValid),
+                "CERTIFICATE_INVALID" => Some(Self::CertificateInvalid),
+                "CERTIFICATE_EXPIRED" => Some(Self::CertificateExpired),
+                "CERTIFICATE_HOSTNAME_NOT_FOUND" => {
+                    Some(Self::CertificateHostnameNotFound)
+                }
+                "CERTIFICATE_UNAUTHENTICATED" => Some(Self::CertificateUnauthenticated),
+                "CERTIFICATE_TRUST_STORE_NOT_FOUND" => {
+                    Some(Self::CertificateTrustStoreNotFound)
+                }
+                "CERTIFICATE_HOSTNAME_INVALID_FORMAT" => {
+                    Some(Self::CertificateHostnameInvalidFormat)
+                }
+                "CERTIFICATE_QUOTA_EXCEEDED" => Some(Self::CertificateQuotaExceeded),
+                _ => None,
+            }
+        }
+    }
+}
+/// Generated client implementations.
+pub mod sip_trunks_client {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value,
+    )]
+    use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
+    /// Service for managing [SipTrunks][google.cloud.dialogflow.v2.SipTrunk].
+    #[derive(Debug, Clone)]
+    pub struct SipTrunksClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl SipTrunksClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> SipTrunksClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> SipTrunksClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+        {
+            SipTrunksClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        /// Creates a SipTrunk for a specified location.
+        pub async fn create_sip_trunk(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateSipTrunkRequest>,
+        ) -> std::result::Result<tonic::Response<super::SipTrunk>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.dialogflow.v2.SipTrunks/CreateSipTrunk",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.dialogflow.v2.SipTrunks",
+                        "CreateSipTrunk",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Deletes a specified SipTrunk.
+        pub async fn delete_sip_trunk(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteSipTrunkRequest>,
+        ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.dialogflow.v2.SipTrunks/DeleteSipTrunk",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.dialogflow.v2.SipTrunks",
+                        "DeleteSipTrunk",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Returns a list of SipTrunks in the specified location.
+        pub async fn list_sip_trunks(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListSipTrunksRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListSipTrunksResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.dialogflow.v2.SipTrunks/ListSipTrunks",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.dialogflow.v2.SipTrunks",
+                        "ListSipTrunks",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Retrieves the specified SipTrunk.
+        pub async fn get_sip_trunk(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetSipTrunkRequest>,
+        ) -> std::result::Result<tonic::Response<super::SipTrunk>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.dialogflow.v2.SipTrunks/GetSipTrunk",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.dialogflow.v2.SipTrunks",
+                        "GetSipTrunk",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Updates the specified SipTrunk.
+        pub async fn update_sip_trunk(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateSipTrunkRequest>,
+        ) -> std::result::Result<tonic::Response<super::SipTrunk>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.dialogflow.v2.SipTrunks/UpdateSipTrunk",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.dialogflow.v2.SipTrunks",
+                        "UpdateSipTrunk",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+    }
+}
+/// Request message of CreateTool.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateToolRequest {
+    /// Required. The project/location to create tool for. Format:
+    /// `projects/<Project ID>/locations/<Location ID>`
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Required. The tool to create.
+    #[prost(message, optional, tag = "2")]
+    pub tool: ::core::option::Option<Tool>,
+    /// Optional. The ID to use for the tool, which will become the final
+    /// component of the tool's resource name.
+    ///
+    /// The tool ID must be compliant with the regression formula
+    /// `[a-zA-Z][a-zA-Z0-9_-]*` with the characters length in range of \[3,64\].
+    /// If the field is not provide, an Id will be auto-generated.
+    /// If the field is provided, the caller is responsible for
+    /// 1. the uniqueness of the ID, otherwise the request will be rejected.
+    /// 2. the consistency for whether to use custom ID or not under a project to
+    /// better ensure uniqueness.
+    #[prost(string, tag = "3")]
+    pub tool_id: ::prost::alloc::string::String,
+}
+/// Request message of GetTool.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetToolRequest {
+    /// Required. The tool resource name to retrieve. Format:
+    /// `projects/<Project ID>/locations/<Location ID>/tools/<Tool ID>`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Request message of ListTools.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListToolsRequest {
+    /// Required. The project/location to list tools for. Format:
+    /// `projects/<Project ID>/locations/<Location ID>`
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Optional. Maximum number of conversation models to return in a single page.
+    /// Default to 10.
+    #[prost(int32, tag = "2")]
+    pub page_size: i32,
+    /// Optional. The next_page_token value returned from a previous list request.
+    #[prost(string, tag = "3")]
+    pub page_token: ::prost::alloc::string::String,
+}
+/// Response of ListTools.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListToolsResponse {
+    /// List of tools retrieved.
+    #[prost(message, repeated, tag = "1")]
+    pub tools: ::prost::alloc::vec::Vec<Tool>,
+    /// Token to retrieve the next page of results, or empty if there are no more
+    /// results in the list.
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
+/// Request of DeleteTool.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteToolRequest {
+    /// Required. The tool resource name to delete. Format:
+    /// `projects/<Project ID>/locations/<Location ID>/tools/<Tool ID>`
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Request of UpdateTool.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateToolRequest {
+    /// Required. The tool to update.
+    /// The name field of tool is to identify the tool to
+    /// update.
+    #[prost(message, optional, tag = "1")]
+    pub tool: ::core::option::Option<Tool>,
+    /// Optional. The list of fields to update.
+    #[prost(message, optional, tag = "2")]
+    pub update_mask: ::core::option::Option<::prost_types::FieldMask>,
+}
+/// Represents a tool.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Tool {
+    /// Output only. Identifier. The resource name of the tool. Format:
+    /// `projects/<Project ID>/locations/<Location ID>/tools/<Tool ID>`.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Required. A human readable short name of the tool, which should be unique
+    /// within the project. It should only contain letters, numbers, and
+    /// underscores, and it will be used by LLM to identify the tool.
+    #[prost(string, tag = "2")]
+    pub tool_key: ::prost::alloc::string::String,
+    /// Optional. A human readable short name of the tool, to be shown on the UI.
+    #[prost(string, tag = "19")]
+    pub display_name: ::prost::alloc::string::String,
+    /// Optional. A human readable description of the tool.
+    #[prost(string, tag = "3")]
+    pub description: ::prost::alloc::string::String,
+    /// Optional. Confirmation requirement for the actions. Each key is an action
+    /// name in the action_schemas. If an action's confirmation requirement is
+    /// unspecified (either the key is not present, or its value is
+    /// CONFIRMATION_REQUIREMENT_UNSPECIFIED), the requirement is inferred from the
+    /// action's method_type - confirmation is not required if and only if
+    /// method_type is GET.
+    #[prost(map = "string, enumeration(tool::ConfirmationRequirement)", tag = "17")]
+    pub action_confirmation_requirement: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        i32,
+    >,
+    /// Output only. Creation time of this tool.
+    #[prost(message, optional, tag = "5")]
+    pub create_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. Update time of this tool.
+    #[prost(message, optional, tag = "6")]
+    pub update_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. A read only boolean field reflecting Zone Separation
+    /// status of the tool. If the field is absent, it means the status is unknown.
+    #[prost(bool, optional, tag = "14")]
+    pub satisfies_pzs: ::core::option::Option<bool>,
+    /// Output only. A read only boolean field reflecting Zone Isolation status
+    /// of the tool. If the field is absent, it means the status is unknown.
+    #[prost(bool, optional, tag = "15")]
+    pub satisfies_pzi: ::core::option::Option<bool>,
+    /// Specification of the Tool.
+    #[prost(oneof = "tool::Specification", tags = "4, 13, 18, 20")]
+    pub specification: ::core::option::Option<tool::Specification>,
+}
+/// Nested message and enum types in `Tool`.
+pub mod tool {
+    /// An ExtensionTool is a way to use Vertex Extensions as a tool.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct ExtensionTool {
+        /// Required. The full name of the referenced vertex extension.
+        /// Format:
+        /// `projects/{project}/locations/{location}/extensions/{extension}`
+        #[prost(string, tag = "1")]
+        pub name: ::prost::alloc::string::String,
+    }
+    /// A Function tool describes the functions to be invoked on the client side.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct FunctionTool {
+        /// Optional. The JSON schema is encapsulated in a
+        /// [google.protobuf.Struct][google.protobuf.Struct] to describe the input of
+        /// the function. This input is a JSON object that contains the function's
+        /// parameters as properties of the object.
+        #[prost(message, optional, tag = "1")]
+        pub input_schema: ::core::option::Option<::prost_types::Struct>,
+        /// Optional. The JSON schema is encapsulated in a
+        /// [google.protobuf.Struct][google.protobuf.Struct] to describe the output
+        /// of the function. This output is a JSON object that contains the
+        /// function's parameters as properties of the object.
+        #[prost(message, optional, tag = "2")]
+        pub output_schema: ::core::option::Option<::prost_types::Struct>,
+        /// Optional. The method type of the function. If not specified, the default
+        /// value is GET.
+        #[prost(enumeration = "MethodType", tag = "4")]
+        pub method_type: i32,
+    }
+    /// An OpenAPI tool is a way to provide the Tool specifications in the Open API
+    /// schema format.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct OpenApiTool {
+        /// Optional. Authentication information required by the API.
+        #[prost(message, optional, tag = "2")]
+        pub authentication: ::core::option::Option<Authentication>,
+        /// Optional. TLS configuration for the HTTPS verification.
+        #[prost(message, optional, tag = "3")]
+        pub tls_config: ::core::option::Option<TlsConfig>,
+        /// Optional. Service Directory configuration.
+        #[prost(message, optional, tag = "4")]
+        pub service_directory_config: ::core::option::Option<ServiceDirectoryConfig>,
+        /// Schema representation.
+        #[prost(oneof = "open_api_tool::Schema", tags = "1")]
+        pub schema: ::core::option::Option<open_api_tool::Schema>,
+    }
+    /// Nested message and enum types in `OpenApiTool`.
+    pub mod open_api_tool {
+        /// Schema representation.
+        #[derive(Clone, PartialEq, ::prost::Oneof)]
+        pub enum Schema {
+            /// Required. The OpenAPI schema specified as a text.
+            #[prost(string, tag = "1")]
+            TextSchema(::prost::alloc::string::String),
+        }
+    }
+    /// A ConnectorTool enabling using Integration Connectors Connections as tools.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct ConnectorTool {
+        /// Required. The full resource name of the referenced Integration Connectors
+        /// Connection. Format: 'projects/*/locations/*/connections/*'
+        #[prost(string, tag = "1")]
+        pub name: ::prost::alloc::string::String,
+        /// Required. Actions for the tool to use.
+        #[prost(message, repeated, tag = "2")]
+        pub actions: ::prost::alloc::vec::Vec<connector_tool::Action>,
+    }
+    /// Nested message and enum types in `ConnectorTool`.
+    pub mod connector_tool {
+        /// Configuration of a Connection operation for the tool to use.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct Action {
+            /// Optional. Entity fields to use as inputs for the operation.
+            /// If no fields are specified, all fields of the Entity will be used.
+            #[prost(string, repeated, tag = "2")]
+            pub input_fields: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+            /// Optional. Entity fields to return from the operation.
+            /// If no fields are specified, all fields of the Entity will be returned.
+            #[prost(string, repeated, tag = "3")]
+            pub output_fields: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+            /// Required. Specification for an action to configure for the tool to use.
+            #[prost(oneof = "action::ActionSpec", tags = "4, 5")]
+            pub action_spec: ::core::option::Option<action::ActionSpec>,
+        }
+        /// Nested message and enum types in `Action`.
+        pub mod action {
+            /// Entity CRUD operation specification.
+            #[derive(Clone, PartialEq, ::prost::Message)]
+            pub struct EntityOperation {
+                /// Required. ID of the entity.
+                #[prost(string, tag = "1")]
+                pub entity_id: ::prost::alloc::string::String,
+                /// Required. Operation to perform on the entity.
+                #[prost(enumeration = "entity_operation::OperationType", tag = "2")]
+                pub operation: i32,
+            }
+            /// Nested message and enum types in `EntityOperation`.
+            pub mod entity_operation {
+                /// The operation to perform on the entity.
+                #[derive(
+                    Clone,
+                    Copy,
+                    Debug,
+                    PartialEq,
+                    Eq,
+                    Hash,
+                    PartialOrd,
+                    Ord,
+                    ::prost::Enumeration
+                )]
+                #[repr(i32)]
+                pub enum OperationType {
+                    /// Operation type unspecified. Invalid, ConnectorTool create/update
+                    /// will fail.
+                    Unspecified = 0,
+                    /// List operation.
+                    List = 1,
+                    /// Get operation.
+                    Get = 2,
+                    /// Create operation.
+                    Create = 3,
+                    /// Update operation.
+                    Update = 4,
+                    /// Delete operation.
+                    Delete = 5,
+                }
+                impl OperationType {
+                    /// String value of the enum field names used in the ProtoBuf definition.
+                    ///
+                    /// The values are not transformed in any way and thus are considered stable
+                    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+                    pub fn as_str_name(&self) -> &'static str {
+                        match self {
+                            Self::Unspecified => "OPERATION_TYPE_UNSPECIFIED",
+                            Self::List => "LIST",
+                            Self::Get => "GET",
+                            Self::Create => "CREATE",
+                            Self::Update => "UPDATE",
+                            Self::Delete => "DELETE",
+                        }
+                    }
+                    /// Creates an enum from field names used in the ProtoBuf definition.
+                    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+                        match value {
+                            "OPERATION_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+                            "LIST" => Some(Self::List),
+                            "GET" => Some(Self::Get),
+                            "CREATE" => Some(Self::Create),
+                            "UPDATE" => Some(Self::Update),
+                            "DELETE" => Some(Self::Delete),
+                            _ => None,
+                        }
+                    }
+                }
+            }
+            /// Required. Specification for an action to configure for the tool to use.
+            #[derive(Clone, PartialEq, ::prost::Oneof)]
+            pub enum ActionSpec {
+                /// ID of a Connection action for the tool to use.
+                #[prost(string, tag = "4")]
+                ConnectionActionId(::prost::alloc::string::String),
+                /// Entity operation configuration for the tool to use.
+                #[prost(message, tag = "5")]
+                EntityOperation(EntityOperation),
+            }
+        }
+    }
+    /// Authentication information required for API calls
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Authentication {
+        /// The auth configuration.
+        #[prost(oneof = "authentication::AuthConfig", tags = "1, 2, 3, 4")]
+        pub auth_config: ::core::option::Option<authentication::AuthConfig>,
+    }
+    /// Nested message and enum types in `Authentication`.
+    pub mod authentication {
+        /// Config for authentication with API key.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct ApiKeyConfig {
+            /// Required. The parameter name or the header name of the API key.
+            /// E.g., If the API request is "<https://example.com/act?X-Api-Key=<API>
+            /// KEY>", "X-Api-Key" would be the parameter name.
+            #[prost(string, tag = "1")]
+            pub key_name: ::prost::alloc::string::String,
+            /// Optional. The API key. If the `secret_version_for_api_key` field is
+            /// set, this field will be ignored.
+            #[prost(string, tag = "2")]
+            pub api_key: ::prost::alloc::string::String,
+            /// Optional. The name of the SecretManager secret version resource storing
+            /// the API key. If this field is set, the `api_key` field will be ignored.
+            /// Format: `projects/{project}/secrets/{secret}/versions/{version}`
+            #[prost(string, tag = "4")]
+            pub secret_version_for_api_key: ::prost::alloc::string::String,
+            /// Required. Key location in the request.
+            #[prost(enumeration = "RequestLocation", tag = "3")]
+            pub request_location: i32,
+        }
+        /// Config for authentication with OAuth.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct OAuthConfig {
+            /// Required. OAuth grant types.
+            #[prost(enumeration = "o_auth_config::OauthGrantType", tag = "1")]
+            pub oauth_grant_type: i32,
+            /// Required. The client ID from the OAuth provider.
+            #[prost(string, tag = "2")]
+            pub client_id: ::prost::alloc::string::String,
+            /// Optional. The client secret from the OAuth provider. If the
+            /// `secret_version_for_client_secret` field is set, this field will be
+            /// ignored.
+            #[prost(string, tag = "3")]
+            pub client_secret: ::prost::alloc::string::String,
+            /// Optional. The name of the SecretManager secret version resource storing
+            /// the client secret. If this field is set, the `client_secret` field will
+            /// be ignored. Format:
+            /// `projects/{project}/secrets/{secret}/versions/{version}`
+            #[prost(string, tag = "6")]
+            pub secret_version_for_client_secret: ::prost::alloc::string::String,
+            /// Required. The token endpoint in the OAuth provider to exchange for an
+            /// access token.
+            #[prost(string, tag = "4")]
+            pub token_endpoint: ::prost::alloc::string::String,
+            /// Optional. The OAuth scopes to grant.
+            #[prost(string, repeated, tag = "5")]
+            pub scopes: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+        }
+        /// Nested message and enum types in `OAuthConfig`.
+        pub mod o_auth_config {
+            /// OAuth grant types. Only [client credential
+            /// grant](<https://oauth.net/2/grant-types/client-credentials>) is
+            /// supported.
+            #[derive(
+                Clone,
+                Copy,
+                Debug,
+                PartialEq,
+                Eq,
+                Hash,
+                PartialOrd,
+                Ord,
+                ::prost::Enumeration
+            )]
+            #[repr(i32)]
+            pub enum OauthGrantType {
+                /// Default value. This value is unused.
+                Unspecified = 0,
+                /// Represents the [client credential
+                /// flow](<https://oauth.net/2/grant-types/client-credentials>).
+                ClientCredential = 1,
+            }
+            impl OauthGrantType {
+                /// String value of the enum field names used in the ProtoBuf definition.
+                ///
+                /// The values are not transformed in any way and thus are considered stable
+                /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+                pub fn as_str_name(&self) -> &'static str {
+                    match self {
+                        Self::Unspecified => "OAUTH_GRANT_TYPE_UNSPECIFIED",
+                        Self::ClientCredential => "CLIENT_CREDENTIAL",
+                    }
+                }
+                /// Creates an enum from field names used in the ProtoBuf definition.
+                pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+                    match value {
+                        "OAUTH_GRANT_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+                        "CLIENT_CREDENTIAL" => Some(Self::ClientCredential),
+                        _ => None,
+                    }
+                }
+            }
+        }
+        /// Config for auth using [Dialogflow service
+        /// agent](<https://cloud.google.com/iam/docs/service-agents#dialogflow-service-agent>).
+        #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+        pub struct ServiceAgentAuthConfig {
+            /// Optional. Indicate the auth token type generated from the [Diglogflow
+            /// service
+            /// agent](<https://cloud.google.com/iam/docs/service-agents#dialogflow-service-agent>).
+            /// The generated token is sent in the Authorization header.
+            #[prost(
+                enumeration = "service_agent_auth_config::ServiceAgentAuth",
+                tag = "1"
+            )]
+            pub service_agent_auth: i32,
+        }
+        /// Nested message and enum types in `ServiceAgentAuthConfig`.
+        pub mod service_agent_auth_config {
+            /// Indicate the auth token type generated from the [Diaglogflow service
+            /// agent](<https://cloud.google.com/iam/docs/service-agents#dialogflow-service-agent>).
+            #[derive(
+                Clone,
+                Copy,
+                Debug,
+                PartialEq,
+                Eq,
+                Hash,
+                PartialOrd,
+                Ord,
+                ::prost::Enumeration
+            )]
+            #[repr(i32)]
+            pub enum ServiceAgentAuth {
+                /// Service agent auth type unspecified. Default to ID_TOKEN.
+                Unspecified = 0,
+                /// Use [ID
+                /// token](<https://cloud.google.com/docs/authentication/token-types#id>)
+                /// generated from service agent. This can be used to access Cloud
+                /// Function and Cloud Run after you grant Invoker role to
+                /// `service-<PROJECT-NUMBER>@gcp-sa-dialogflow.iam.gserviceaccount.com`.
+                IdToken = 1,
+                /// Use [access
+                /// token](<https://cloud.google.com/docs/authentication/token-types#access>)
+                /// generated from service agent. This can be used to access other Google
+                /// Cloud APIs after you grant required roles to
+                /// `service-<PROJECT-NUMBER>@gcp-sa-dialogflow.iam.gserviceaccount.com`.
+                AccessToken = 2,
+            }
+            impl ServiceAgentAuth {
+                /// String value of the enum field names used in the ProtoBuf definition.
+                ///
+                /// The values are not transformed in any way and thus are considered stable
+                /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+                pub fn as_str_name(&self) -> &'static str {
+                    match self {
+                        Self::Unspecified => "SERVICE_AGENT_AUTH_UNSPECIFIED",
+                        Self::IdToken => "ID_TOKEN",
+                        Self::AccessToken => "ACCESS_TOKEN",
+                    }
+                }
+                /// Creates an enum from field names used in the ProtoBuf definition.
+                pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+                    match value {
+                        "SERVICE_AGENT_AUTH_UNSPECIFIED" => Some(Self::Unspecified),
+                        "ID_TOKEN" => Some(Self::IdToken),
+                        "ACCESS_TOKEN" => Some(Self::AccessToken),
+                        _ => None,
+                    }
+                }
+            }
+        }
+        /// Config for authentication using bearer token.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct BearerTokenConfig {
+            /// Optional. The text token appended to the text `Bearer` to the request
+            /// Authorization header.
+            /// [Session parameters
+            /// reference](<https://cloud.google.com/dialogflow/cx/docs/concept/parameter#session-ref>)
+            /// can be used to pass the token dynamically, e.g.
+            /// `$session.params.parameter-id`.
+            #[prost(string, tag = "1")]
+            pub token: ::prost::alloc::string::String,
+            /// Optional. The name of the SecretManager secret version resource storing
+            /// the Bearer token. If this field is set, the `token` field will be
+            /// ignored. Format:
+            /// `projects/{project}/secrets/{secret}/versions/{version}`
+            #[prost(string, tag = "2")]
+            pub secret_version_for_token: ::prost::alloc::string::String,
+        }
+        /// The location of the API key in the request.
+        #[derive(
+            Clone,
+            Copy,
+            Debug,
+            PartialEq,
+            Eq,
+            Hash,
+            PartialOrd,
+            Ord,
+            ::prost::Enumeration
+        )]
+        #[repr(i32)]
+        pub enum RequestLocation {
+            /// Default value. This value is unused.
+            Unspecified = 0,
+            /// Represents the key in http header.
+            Header = 1,
+            /// Represents the key in query string.
+            QueryString = 2,
+        }
+        impl RequestLocation {
+            /// String value of the enum field names used in the ProtoBuf definition.
+            ///
+            /// The values are not transformed in any way and thus are considered stable
+            /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+            pub fn as_str_name(&self) -> &'static str {
+                match self {
+                    Self::Unspecified => "REQUEST_LOCATION_UNSPECIFIED",
+                    Self::Header => "HEADER",
+                    Self::QueryString => "QUERY_STRING",
+                }
+            }
+            /// Creates an enum from field names used in the ProtoBuf definition.
+            pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+                match value {
+                    "REQUEST_LOCATION_UNSPECIFIED" => Some(Self::Unspecified),
+                    "HEADER" => Some(Self::Header),
+                    "QUERY_STRING" => Some(Self::QueryString),
+                    _ => None,
+                }
+            }
+        }
+        /// The auth configuration.
+        #[derive(Clone, PartialEq, ::prost::Oneof)]
+        pub enum AuthConfig {
+            /// Config for API key auth.
+            #[prost(message, tag = "1")]
+            ApiKeyConfig(ApiKeyConfig),
+            /// Config for OAuth.
+            #[prost(message, tag = "2")]
+            OauthConfig(OAuthConfig),
+            /// Config for [Diglogflow service
+            /// agent](<https://cloud.google.com/iam/docs/service-agents#dialogflow-service-agent>)
+            /// auth.
+            #[prost(message, tag = "3")]
+            ServiceAgentAuthConfig(ServiceAgentAuthConfig),
+            /// Config for bearer token auth.
+            #[prost(message, tag = "4")]
+            BearerTokenConfig(BearerTokenConfig),
+        }
+    }
+    /// The TLS configuration.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct TlsConfig {
+        /// Required. Specifies a list of allowed custom CA certificates for HTTPS
+        /// verification.
+        #[prost(message, repeated, tag = "1")]
+        pub ca_certs: ::prost::alloc::vec::Vec<tls_config::CaCert>,
+    }
+    /// Nested message and enum types in `TLSConfig`.
+    pub mod tls_config {
+        /// The CA certificate.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct CaCert {
+            /// Required. The name of the allowed custom CA certificates. This
+            /// can be used to disambiguate the custom CA certificates.
+            #[prost(string, tag = "1")]
+            pub display_name: ::prost::alloc::string::String,
+            /// Required. The allowed custom CA certificates (in DER format) for
+            /// HTTPS verification. This overrides the default SSL trust store. If this
+            /// is empty or unspecified, Dialogflow will use Google's default trust
+            /// store to verify certificates. N.B. Make sure the HTTPS server
+            /// certificates are signed with "subject alt name". For instance a
+            /// certificate can be self-signed using the following command,
+            /// ```
+            ///     openssl x509 -req -days 200 -in example.com.csr \
+            ///       -signkey example.com.key \
+            ///       -out example.com.crt \
+            ///       -extfile <(printf "\nsubjectAltName='DNS:www.example.com'")
+            /// ```
+            #[prost(bytes = "vec", tag = "2")]
+            pub cert: ::prost::alloc::vec::Vec<u8>,
+        }
+    }
+    /// Configuration for tools using Service Directory.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct ServiceDirectoryConfig {
+        /// Required. The name of [Service
+        /// Directory](<https://cloud.google.com/service-directory>) service.
+        /// Format:
+        /// `projects/<ProjectID>/locations/<LocationID>/namespaces/<NamespaceID>/services/<ServiceID>`.
+        /// `LocationID` of the service directory must be the same as the location
+        /// of the tool.
+        #[prost(string, tag = "1")]
+        pub service: ::prost::alloc::string::String,
+    }
+    /// Types of confirmation requirement.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum ConfirmationRequirement {
+        /// Unspecified. Whether the action requires confirmation is inferred from
+        /// method_type.
+        Unspecified = 0,
+        /// Conformation is required.
+        Required = 1,
+        /// Conformation is not required.
+        NotRequired = 2,
+    }
+    impl ConfirmationRequirement {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "CONFIRMATION_REQUIREMENT_UNSPECIFIED",
+                Self::Required => "REQUIRED",
+                Self::NotRequired => "NOT_REQUIRED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "CONFIRMATION_REQUIREMENT_UNSPECIFIED" => Some(Self::Unspecified),
+                "REQUIRED" => Some(Self::Required),
+                "NOT_REQUIRED" => Some(Self::NotRequired),
+                _ => None,
+            }
+        }
+    }
+    /// The method type of the tool.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum MethodType {
+        /// Unspecified.
+        Unspecified = 0,
+        /// GET method.
+        Get = 1,
+        /// POST method.
+        Post = 2,
+        /// PUT method.
+        Put = 3,
+        /// DELETE method.
+        Delete = 4,
+        /// PATCH method.
+        Patch = 5,
+    }
+    impl MethodType {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "METHOD_TYPE_UNSPECIFIED",
+                Self::Get => "GET",
+                Self::Post => "POST",
+                Self::Put => "PUT",
+                Self::Delete => "DELETE",
+                Self::Patch => "PATCH",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "METHOD_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+                "GET" => Some(Self::Get),
+                "POST" => Some(Self::Post),
+                "PUT" => Some(Self::Put),
+                "DELETE" => Some(Self::Delete),
+                "PATCH" => Some(Self::Patch),
+                _ => None,
+            }
+        }
+    }
+    /// Specification of the Tool.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Specification {
+        /// Vertex extension tool specification.
+        #[prost(message, tag = "4")]
+        ExtensionSpec(ExtensionTool),
+        /// Client side executed function specification.
+        #[prost(message, tag = "13")]
+        FunctionSpec(FunctionTool),
+        /// Integration connectors tool specification.
+        #[prost(message, tag = "18")]
+        ConnectorSpec(ConnectorTool),
+        /// OpenAPI tool.
+        #[prost(message, tag = "20")]
+        OpenApiSpec(OpenApiTool),
+    }
+}
+/// Generated client implementations.
+pub mod tools_client {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value,
+    )]
+    use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
+    /// Tool Service for LLM powered Agent Assist. Tools can be used to interact with
+    /// remote APIs (e.g. fetching orders) to retrieve additional information as
+    /// input to LLM.
+    #[derive(Debug, Clone)]
+    pub struct ToolsClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl ToolsClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> ToolsClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> ToolsClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+        {
+            ToolsClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        /// Creates a tool.
+        pub async fn create_tool(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateToolRequest>,
+        ) -> std::result::Result<tonic::Response<super::Tool>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.dialogflow.v2.Tools/CreateTool",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("google.cloud.dialogflow.v2.Tools", "CreateTool"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Retrieves a tool.
+        pub async fn get_tool(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetToolRequest>,
+        ) -> std::result::Result<tonic::Response<super::Tool>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.dialogflow.v2.Tools/GetTool",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("google.cloud.dialogflow.v2.Tools", "GetTool"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Lists tools.
+        pub async fn list_tools(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListToolsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListToolsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.dialogflow.v2.Tools/ListTools",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("google.cloud.dialogflow.v2.Tools", "ListTools"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Deletes a tool.
+        pub async fn delete_tool(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteToolRequest>,
+        ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.dialogflow.v2.Tools/DeleteTool",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("google.cloud.dialogflow.v2.Tools", "DeleteTool"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Updates a tool.
+        pub async fn update_tool(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateToolRequest>,
+        ) -> std::result::Result<tonic::Response<super::Tool>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.dialogflow.v2.Tools/UpdateTool",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("google.cloud.dialogflow.v2.Tools", "UpdateTool"),
                 );
             self.inner.unary(req, path, codec).await
         }

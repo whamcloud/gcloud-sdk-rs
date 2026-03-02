@@ -409,27 +409,17 @@ pub struct ExplicitDecodingConfig {
     /// Required. Encoding of the audio data sent for recognition.
     #[prost(enumeration = "explicit_decoding_config::AudioEncoding", tag = "1")]
     pub encoding: i32,
-    /// Sample rate in Hertz of the audio data sent for recognition. Valid
-    /// values are: 8000-48000. 16000 is optimal. For best results, set the
-    /// sampling rate of the audio source to 16000 Hz. If that's not possible, use
-    /// the native sample rate of the audio source (instead of re-sampling).
-    /// Supported for the following encodings:
-    ///
-    /// * LINEAR16: Headerless 16-bit signed little-endian PCM samples.
-    ///
-    /// * MULAW: Headerless 8-bit companded mulaw samples.
-    ///
-    /// * ALAW: Headerless 8-bit companded alaw samples.
+    /// Optional. Sample rate in Hertz of the audio data sent for recognition.
+    /// Valid values are: 8000-48000, and 16000 is optimal. For best results, set
+    /// the sampling rate of the audio source to 16000 Hz. If that's not possible,
+    /// use the native sample rate of the audio source (instead of resampling).
+    /// Note that this field is marked as OPTIONAL for backward compatibility
+    /// reasons. It is (and has always been) effectively REQUIRED.
     #[prost(int32, tag = "2")]
     pub sample_rate_hertz: i32,
-    /// Number of channels present in the audio data sent for recognition.
-    /// Supported for the following encodings:
-    ///
-    /// * LINEAR16: Headerless 16-bit signed little-endian PCM samples.
-    ///
-    /// * MULAW: Headerless 8-bit companded mulaw samples.
-    ///
-    /// * ALAW: Headerless 8-bit companded alaw samples.
+    /// Optional. Number of channels present in the audio data sent for
+    /// recognition. Note that this field is marked as OPTIONAL for backward
+    /// compatibility reasons. It is (and has always been) effectively REQUIRED.
     ///
     /// The maximum allowed value is 8.
     #[prost(int32, tag = "3")]
@@ -459,6 +449,24 @@ pub mod explicit_decoding_config {
         Mulaw = 2,
         /// Headerless 8-bit companded alaw samples.
         Alaw = 3,
+        /// AMR frames with an rfc4867.5 header.
+        Amr = 4,
+        /// AMR-WB frames with an rfc4867.5 header.
+        AmrWb = 5,
+        /// FLAC frames in the "native FLAC" container format.
+        Flac = 6,
+        /// MPEG audio frames with optional (ignored) ID3 metadata.
+        Mp3 = 7,
+        /// Opus audio frames in an Ogg container.
+        OggOpus = 8,
+        /// Opus audio frames in a WebM container.
+        WebmOpus = 9,
+        /// AAC audio frames in an MP4 container.
+        Mp4Aac = 10,
+        /// AAC audio frames in an M4A container.
+        M4aAac = 11,
+        /// AAC audio frames in an MOV container.
+        MovAac = 12,
     }
     impl AudioEncoding {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -471,6 +479,15 @@ pub mod explicit_decoding_config {
                 Self::Linear16 => "LINEAR16",
                 Self::Mulaw => "MULAW",
                 Self::Alaw => "ALAW",
+                Self::Amr => "AMR",
+                Self::AmrWb => "AMR_WB",
+                Self::Flac => "FLAC",
+                Self::Mp3 => "MP3",
+                Self::OggOpus => "OGG_OPUS",
+                Self::WebmOpus => "WEBM_OPUS",
+                Self::Mp4Aac => "MP4_AAC",
+                Self::M4aAac => "M4A_AAC",
+                Self::MovAac => "MOV_AAC",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -480,6 +497,15 @@ pub mod explicit_decoding_config {
                 "LINEAR16" => Some(Self::Linear16),
                 "MULAW" => Some(Self::Mulaw),
                 "ALAW" => Some(Self::Alaw),
+                "AMR" => Some(Self::Amr),
+                "AMR_WB" => Some(Self::AmrWb),
+                "FLAC" => Some(Self::Flac),
+                "MP3" => Some(Self::Mp3),
+                "OGG_OPUS" => Some(Self::OggOpus),
+                "WEBM_OPUS" => Some(Self::WebmOpus),
+                "MP4_AAC" => Some(Self::Mp4Aac),
+                "M4A_AAC" => Some(Self::M4aAac),
+                "MOV_AAC" => Some(Self::MovAac),
                 _ => None,
             }
         }
@@ -488,23 +514,25 @@ pub mod explicit_decoding_config {
 /// Configuration to enable speaker diarization.
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct SpeakerDiarizationConfig {
-    /// Required. Minimum number of speakers in the conversation. This range gives
-    /// you more flexibility by allowing the system to automatically determine the
-    /// correct number of speakers.
-    ///
-    /// To fix the number of speakers detected in the audio, set
-    /// `min_speaker_count` = `max_speaker_count`.
+    /// Optional. The system automatically determines the number of speakers. This
+    /// value is not currently used.
     #[prost(int32, tag = "2")]
     pub min_speaker_count: i32,
-    /// Required. Maximum number of speakers in the conversation. Valid values are:
-    /// 1-6. Must be >= `min_speaker_count`. This range gives you more flexibility
-    /// by allowing the system to automatically determine the correct number of
-    /// speakers.
+    /// Optional. The system automatically determines the number of speakers. This
+    /// value is not currently used.
     #[prost(int32, tag = "3")]
     pub max_speaker_count: i32,
 }
+/// Configuration to enable custom prompt in chirp3.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CustomPromptConfig {
+    /// Optional. The custom instructions to override the existing instructions for
+    /// chirp3.
+    #[prost(string, tag = "1")]
+    pub custom_prompt: ::prost::alloc::string::String,
+}
 /// Available recognition features.
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RecognitionFeatures {
     /// If set to `true`, the server will attempt to filter out profanities,
     /// replacing all but the initial character in each filtered word with
@@ -543,14 +571,8 @@ pub struct RecognitionFeatures {
     /// Mode for recognizing multi-channel audio.
     #[prost(enumeration = "recognition_features::MultiChannelMode", tag = "17")]
     pub multi_channel_mode: i32,
-    /// Configuration to enable speaker diarization and set additional
-    /// parameters to make diarization better suited for your application.
-    /// When this is enabled, we send all the words from the beginning of the
-    /// audio for the top alternative in every consecutive STREAMING responses.
-    /// This is done in order to improve our speaker tags as our models learn to
-    /// identify the speakers in the conversation over time.
-    /// For non-streaming requests, the diarization results will be provided only
-    /// in the top alternative of the FINAL SpeechRecognitionResult.
+    /// Configuration to enable speaker diarization. To enable diarization, set
+    /// this field to an empty SpeakerDiarizationConfig message.
     #[prost(message, optional, tag = "9")]
     pub diarization_config: ::core::option::Option<SpeakerDiarizationConfig>,
     /// Maximum number of recognition hypotheses to be returned.
@@ -559,6 +581,9 @@ pub struct RecognitionFeatures {
     /// one. If omitted, will return a maximum of one.
     #[prost(int32, tag = "16")]
     pub max_alternatives: i32,
+    /// Optional. Configuration to enable custom prompt for chirp3.
+    #[prost(message, optional, tag = "18")]
+    pub custom_prompt_config: ::core::option::Option<CustomPromptConfig>,
 }
 /// Nested message and enum types in `RecognitionFeatures`.
 pub mod recognition_features {
@@ -681,6 +706,22 @@ pub mod speech_adaptation {
         }
     }
 }
+/// Denoiser config. May not be supported for all models and may
+/// have no effect.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct DenoiserConfig {
+    /// Denoise audio before sending to the transcription model.
+    #[prost(bool, tag = "1")]
+    pub denoise_audio: bool,
+    /// Signal-to-Noise Ratio (SNR) threshold for the denoiser. Here SNR means the
+    /// loudness of the speech signal. Audio with an SNR below this threshold,
+    /// meaning the speech is too quiet, will be prevented from being sent to the
+    /// transcription model.
+    ///
+    /// If snr_threshold=0, no filtering will be applied.
+    #[prost(float, tag = "2")]
+    pub snr_threshold: f32,
+}
 /// Provides information to the Recognizer that specifies how to process the
 /// recognition request.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -726,6 +767,10 @@ pub struct RecognitionConfig {
     /// the given audio to the desired language for supported models.
     #[prost(message, optional, tag = "15")]
     pub translation_config: ::core::option::Option<TranslationConfig>,
+    /// Optional. Optional denoiser config. May not be supported for all models
+    /// and may have no effect.
+    #[prost(message, optional, tag = "16")]
+    pub denoiser_config: ::core::option::Option<DenoiserConfig>,
     /// Decoding parameters for audio being sent for recognition.
     #[prost(oneof = "recognition_config::DecodingConfig", tags = "7, 8")]
     pub decoding_config: ::core::option::Option<recognition_config::DecodingConfig>,
@@ -819,6 +864,10 @@ pub struct RecognitionResponseMetadata {
     /// When available, billed audio seconds for the corresponding request.
     #[prost(message, optional, tag = "6")]
     pub total_billed_duration: ::core::option::Option<::prost_types::Duration>,
+    /// Optional. Output only. Provides the prompt used for the recognition
+    /// request.
+    #[prost(string, optional, tag = "10")]
+    pub prompt: ::core::option::Option<::prost::alloc::string::String>,
 }
 /// Alternative hypotheses (a.k.a. n-best list).
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -938,6 +987,12 @@ pub struct StreamingRecognitionFeatures {
     pub voice_activity_timeout: ::core::option::Option<
         streaming_recognition_features::VoiceActivityTimeout,
     >,
+    /// Optional. Endpointing sensitivity for this stream.
+    #[prost(
+        enumeration = "streaming_recognition_features::EndpointingSensitivity",
+        tag = "8"
+    )]
+    pub endpointing_sensitivity: i32,
 }
 /// Nested message and enum types in `StreamingRecognitionFeatures`.
 pub mod streaming_recognition_features {
@@ -954,6 +1009,60 @@ pub mod streaming_recognition_features {
         /// will close the stream.
         #[prost(message, optional, tag = "2")]
         pub speech_end_timeout: ::core::option::Option<::prost_types::Duration>,
+    }
+    /// Endpointing sensitivity is intended for applications that want to minimize
+    /// result latency, possibly at the expense of quality. Some utterances may be
+    /// broken up into multiple fragments.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum EndpointingSensitivity {
+        /// If no value is specified, the values for
+        /// ENDPOINTING_SENSITIVITY_STANDARD will be used.
+        Unspecified = 0,
+        /// Standard sensitivity, no optimization for latency.
+        Standard = 1,
+        /// Super short sensitivity, optimized for super short utterances like single
+        /// words ("Yes", "No", "Hello", etc.) or a single phrase, command or short
+        /// query (e.g. "check balance", "five dollars", "call Mom").
+        Supershort = 2,
+        /// Short sensitivity, optimized for short utterances like single sentences.
+        /// (e.g. "Remind me to call the dentist tomorrow morning at nine",
+        /// "Navigate to the nearest coffee shop that is currently open")
+        Short = 3,
+    }
+    impl EndpointingSensitivity {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "ENDPOINTING_SENSITIVITY_UNSPECIFIED",
+                Self::Standard => "ENDPOINTING_SENSITIVITY_STANDARD",
+                Self::Supershort => "ENDPOINTING_SENSITIVITY_SUPERSHORT",
+                Self::Short => "ENDPOINTING_SENSITIVITY_SHORT",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "ENDPOINTING_SENSITIVITY_UNSPECIFIED" => Some(Self::Unspecified),
+                "ENDPOINTING_SENSITIVITY_STANDARD" => Some(Self::Standard),
+                "ENDPOINTING_SENSITIVITY_SUPERSHORT" => Some(Self::Supershort),
+                "ENDPOINTING_SENSITIVITY_SHORT" => Some(Self::Short),
+                _ => None,
+            }
+        }
     }
 }
 /// Provides configuration information for the StreamingRecognize request.
@@ -1151,16 +1260,16 @@ pub struct SrtOutputFileFormatConfig {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct OutputFormatConfig {
     /// Configuration for the native output format. If this field is set or if no
-    /// other output format field is set then transcripts will be written to the
+    /// other output format field is set, then transcripts will be written to the
     /// sink in the native format.
     #[prost(message, optional, tag = "1")]
     pub native: ::core::option::Option<NativeOutputFileFormatConfig>,
-    /// Configuration for the vtt output format. If this field is set then
-    /// transcripts will be written to the sink in the vtt format.
+    /// Configuration for the VTT output format. If this field is set, then
+    /// transcripts will be written to the sink in the VTT format.
     #[prost(message, optional, tag = "2")]
     pub vtt: ::core::option::Option<VttOutputFileFormatConfig>,
-    /// Configuration for the srt output format. If this field is set then
-    /// transcripts will be written to the sink in the srt format.
+    /// Configuration for the SRT output format. If this field is set, then
+    /// transcripts will be written to the sink in the SRT format.
     #[prost(message, optional, tag = "3")]
     pub srt: ::core::option::Option<SrtOutputFileFormatConfig>,
 }
@@ -2819,7 +2928,7 @@ pub mod speech_client {
         }
     }
 }
-/// Representes a singular feature of a model. If the feature is `recognizer`,
+/// Represents a singular feature of a model. If the feature is `recognizer`,
 /// the release_state of the feature represents the release_state of the model
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ModelFeature {

@@ -557,17 +557,15 @@ pub mod event {
     )]
     #[repr(i32)]
     pub enum FraudPrevention {
-        /// Default, unspecified setting. If opted in for automatic detection,
-        /// `fraud_prevention_assessment` is returned based on the request.
-        /// Otherwise, `fraud_prevention_assessment` is returned if
-        /// `transaction_data` is present in the `Event` and Fraud Prevention is
+        /// Default, unspecified setting. `fraud_prevention_assessment` is returned
+        /// if `transaction_data` is present in `Event` and Fraud Prevention is
         /// enabled in the Google Cloud console.
         Unspecified = 0,
         /// Enable Fraud Prevention for this assessment, if Fraud Prevention is
         /// enabled in the Google Cloud console.
         Enabled = 1,
-        /// Disable Fraud Prevention for this assessment, regardless of opt-in
-        /// status or the Google Cloud console settings.
+        /// Disable Fraud Prevention for this assessment, regardless of the Google
+        /// Cloud console settings.
         Disabled = 2,
     }
     impl FraudPrevention {
@@ -832,22 +830,23 @@ pub mod token_properties {
 /// Assessment for Fraud Prevention.
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct FraudPreventionAssessment {
-    /// Probability (0-1) of this transaction being fraudulent. Summarizes the
-    /// combined risk of attack vectors below.
+    /// Output only. Probability (0-1) of this transaction being fraudulent.
+    /// Summarizes the combined risk of attack vectors below.
     #[prost(float, tag = "1")]
     pub transaction_risk: f32,
-    /// Assessment of this transaction for risk of a stolen instrument.
+    /// Output only. Assessment of this transaction for risk of a stolen
+    /// instrument.
     #[prost(message, optional, tag = "2")]
     pub stolen_instrument_verdict: ::core::option::Option<
         fraud_prevention_assessment::StolenInstrumentVerdict,
     >,
-    /// Assessment of this transaction for risk of being part of a card testing
-    /// attack.
+    /// Output only. Assessment of this transaction for risk of being part of a
+    /// card testing attack.
     #[prost(message, optional, tag = "3")]
     pub card_testing_verdict: ::core::option::Option<
         fraud_prevention_assessment::CardTestingVerdict,
     >,
-    /// Assessment of this transaction for behavioral trust.
+    /// Output only. Assessment of this transaction for behavioral trust.
     #[prost(message, optional, tag = "4")]
     pub behavioral_trust_verdict: ::core::option::Option<
         fraud_prevention_assessment::BehavioralTrustVerdict,
@@ -859,8 +858,8 @@ pub mod fraud_prevention_assessment {
     /// legitimate owner of the instrument being used for the purchase.
     #[derive(Clone, Copy, PartialEq, ::prost::Message)]
     pub struct StolenInstrumentVerdict {
-        /// Probability (0-1) of this transaction being executed with a stolen
-        /// instrument.
+        /// Output only. Probability (0-1) of this transaction being executed with a
+        /// stolen instrument.
         #[prost(float, tag = "1")]
         pub risk: f32,
     }
@@ -868,16 +867,16 @@ pub mod fraud_prevention_assessment {
     /// fraudulently obtained cards or brute forcing their details.
     #[derive(Clone, Copy, PartialEq, ::prost::Message)]
     pub struct CardTestingVerdict {
-        /// Probability (0-1) of this transaction attempt being part of a card
-        /// testing attack.
+        /// Output only. Probability (0-1) of this transaction attempt being part of
+        /// a card testing attack.
         #[prost(float, tag = "1")]
         pub risk: f32,
     }
     /// Information about behavioral trust of the transaction.
     #[derive(Clone, Copy, PartialEq, ::prost::Message)]
     pub struct BehavioralTrustVerdict {
-        /// Probability (0-1) of this transaction attempt being executed in a
-        /// behaviorally trustworthy way.
+        /// Output only. Probability (0-1) of this transaction attempt being executed
+        /// in a behaviorally trustworthy way.
         #[prost(float, tag = "1")]
         pub trust: f32,
     }

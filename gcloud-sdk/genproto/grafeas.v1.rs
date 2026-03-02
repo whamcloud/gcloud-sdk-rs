@@ -87,6 +87,47 @@ pub struct FileLocation {
     /// can indicate the path to war file combined with the path to jar file.
     #[prost(string, tag = "1")]
     pub file_path: ::prost::alloc::string::String,
+    /// Each package found in a file should have its own layer metadata (that is,
+    /// information from the origin layer of the package).
+    #[prost(message, optional, tag = "2")]
+    pub layer_details: ::core::option::Option<LayerDetails>,
+}
+/// BaseImage describes a base image of a container image.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BaseImage {
+    /// The name of the base image.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// The repository name in which the base image is from.
+    #[prost(string, tag = "2")]
+    pub repository: ::prost::alloc::string::String,
+    /// The number of layers that the base image is composed of.
+    #[prost(int32, tag = "3")]
+    pub layer_count: i32,
+    /// The registry in which the base image is from.
+    #[prost(string, tag = "4")]
+    pub registry: ::prost::alloc::string::String,
+}
+/// Details about the layer a package was found in.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct LayerDetails {
+    /// The index of the layer in the container image.
+    #[prost(int32, tag = "1")]
+    pub index: i32,
+    /// The diff ID (typically a sha256 hash) of the layer in the container image.
+    #[prost(string, tag = "2")]
+    pub diff_id: ::prost::alloc::string::String,
+    /// The layer chain ID (sha256 hash) of the layer in the container image.
+    /// <https://github.com/opencontainers/image-spec/blob/main/config.md#layer-chainid>
+    #[prost(string, tag = "5")]
+    pub chain_id: ::prost::alloc::string::String,
+    /// The layer build command that was used to build the layer. This may not be
+    /// found in all layers depending on how the container image is built.
+    #[prost(string, tag = "3")]
+    pub command: ::prost::alloc::string::String,
+    /// The base images the layer is found within.
+    #[prost(message, repeated, tag = "4")]
+    pub base_images: ::prost::alloc::vec::Vec<BaseImage>,
 }
 /// License information.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -142,6 +183,8 @@ pub enum NoteKind {
     VulnerabilityAssessment = 11,
     /// This represents an SBOM Reference.
     SbomReference = 12,
+    /// This represents a secret.
+    Secret = 13,
 }
 impl NoteKind {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -163,6 +206,7 @@ impl NoteKind {
             Self::DsseAttestation => "DSSE_ATTESTATION",
             Self::VulnerabilityAssessment => "VULNERABILITY_ASSESSMENT",
             Self::SbomReference => "SBOM_REFERENCE",
+            Self::Secret => "SECRET",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -181,6 +225,7 @@ impl NoteKind {
             "DSSE_ATTESTATION" => Some(Self::DsseAttestation),
             "VULNERABILITY_ASSESSMENT" => Some(Self::VulnerabilityAssessment),
             "SBOM_REFERENCE" => Some(Self::SbomReference),
+            "SECRET" => Some(Self::Secret),
             _ => None,
         }
     }
@@ -1992,6 +2037,12 @@ pub struct DiscoveryOccurrence {
     pub vulnerability_attestation: ::core::option::Option<
         discovery_occurrence::VulnerabilityAttestation,
     >,
+    /// Files that make up the resource described by the occurrence.
+    #[prost(message, repeated, tag = "11")]
+    pub files: ::prost::alloc::vec::Vec<discovery_occurrence::File>,
+    /// The last time vulnerability scan results changed.
+    #[prost(message, optional, tag = "12")]
+    pub last_vulnerability_update_time: ::core::option::Option<::prost_types::Timestamp>,
 }
 /// Nested message and enum types in `DiscoveryOccurrence`.
 pub mod discovery_occurrence {
@@ -2122,6 +2173,16 @@ pub mod discovery_occurrence {
                 }
             }
         }
+    }
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct File {
+        #[prost(string, tag = "1")]
+        pub name: ::prost::alloc::string::String,
+        #[prost(map = "string, string", tag = "2")]
+        pub digest: ::std::collections::HashMap<
+            ::prost::alloc::string::String,
+            ::prost::alloc::string::String,
+        >,
     }
     /// Whether the resource is continuously analyzed.
     #[derive(
@@ -2629,6 +2690,250 @@ pub struct SbomReferenceIntotoPredicate {
         ::prost::alloc::string::String,
     >,
 }
+/// The note representing a secret.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct SecretNote {}
+/// The occurrence provides details of a secret.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SecretOccurrence {
+    /// Type of secret.
+    #[prost(enumeration = "SecretKind", tag = "1")]
+    pub kind: i32,
+    /// Locations where the secret is detected.
+    #[prost(message, repeated, tag = "2")]
+    pub locations: ::prost::alloc::vec::Vec<SecretLocation>,
+    /// Status of the secret.
+    #[prost(message, repeated, tag = "3")]
+    pub statuses: ::prost::alloc::vec::Vec<SecretStatus>,
+    /// Scan result of the secret.
+    #[prost(message, optional, tag = "4")]
+    pub data: ::core::option::Option<::prost_types::Any>,
+    /// Hash value, typically a digest for the secret data, that allows unique
+    /// identification of a specific secret.
+    #[prost(message, optional, tag = "5")]
+    pub digest: ::core::option::Option<Digest>,
+}
+/// The location of the secret.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SecretLocation {
+    /// The detailed location of the secret.
+    #[prost(oneof = "secret_location::Location", tags = "1")]
+    pub location: ::core::option::Option<secret_location::Location>,
+}
+/// Nested message and enum types in `SecretLocation`.
+pub mod secret_location {
+    /// The detailed location of the secret.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Location {
+        /// The secret is found from a file.
+        #[prost(message, tag = "1")]
+        FileLocation(super::FileLocation),
+    }
+}
+/// The status of the secret with a timestamp.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SecretStatus {
+    /// The status of the secret.
+    #[prost(enumeration = "secret_status::Status", tag = "1")]
+    pub status: i32,
+    /// The time the secret status was last updated.
+    #[prost(message, optional, tag = "2")]
+    pub update_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Optional message about the status code.
+    #[prost(string, tag = "3")]
+    pub message: ::prost::alloc::string::String,
+}
+/// Nested message and enum types in `SecretStatus`.
+pub mod secret_status {
+    /// The status of the secret.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Status {
+        /// Unspecified
+        Unspecified = 0,
+        /// The status of the secret is unknown.
+        Unknown = 1,
+        /// The secret is valid.
+        Valid = 2,
+        /// The secret is invalid.
+        Invalid = 3,
+    }
+    impl Status {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "STATUS_UNSPECIFIED",
+                Self::Unknown => "UNKNOWN",
+                Self::Valid => "VALID",
+                Self::Invalid => "INVALID",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "STATUS_UNSPECIFIED" => Some(Self::Unspecified),
+                "UNKNOWN" => Some(Self::Unknown),
+                "VALID" => Some(Self::Valid),
+                "INVALID" => Some(Self::Invalid),
+                _ => None,
+            }
+        }
+    }
+}
+/// Kind of secret.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum SecretKind {
+    /// Unspecified
+    Unspecified = 0,
+    /// The secret kind is unknown.
+    Unknown = 1,
+    /// A Google Cloud service account key per:
+    /// <https://cloud.google.com/iam/docs/creating-managing-service-account-keys>
+    GcpServiceAccountKey = 2,
+    /// A Google Cloud API key per:
+    /// <https://cloud.google.com/docs/authentication/api-keys>
+    GcpApiKey = 3,
+    /// A Google Cloud OAuth2 client credentials per:
+    /// <https://developers.google.com/identity/protocols/oauth2>
+    GcpOauth2ClientCredentials = 4,
+    /// A Google Cloud OAuth2 access token per:
+    /// <https://cloud.google.com/docs/authentication/token-types#access>
+    GcpOauth2AccessToken = 5,
+    /// An Anthropic Admin API key.
+    AnthropicAdminApiKey = 6,
+    /// An Anthropic API key.
+    AnthropicApiKey = 7,
+    /// An Azure access token.
+    AzureAccessToken = 8,
+    /// An Azure Identity Platform ID token.
+    AzureIdentityToken = 9,
+    /// A Docker Hub personal access token.
+    DockerHubPersonalAccessToken = 10,
+    /// A GitHub App refresh token.
+    GithubAppRefreshToken = 11,
+    /// A GitHub App server-to-server token.
+    GithubAppServerToServerToken = 12,
+    /// A GitHub App user-to-server token.
+    GithubAppUserToServerToken = 13,
+    /// A GitHub personal access token (classic).
+    GithubClassicPersonalAccessToken = 14,
+    /// A GitHub fine-grained personal access token.
+    GithubFineGrainedPersonalAccessToken = 15,
+    /// A GitHub OAuth token.
+    GithubOauthToken = 16,
+    /// A Hugging Face API key.
+    HuggingfaceApiKey = 17,
+    /// An OpenAI API key.
+    OpenaiApiKey = 18,
+    /// A Perplexity API key.
+    PerplexityApiKey = 19,
+    /// A Stripe secret key.
+    StripeSecretKey = 20,
+    /// A Stripe restricted key.
+    StripeRestrictedKey = 21,
+    /// A Stripe webhook secret.
+    StripeWebhookSecret = 22,
+}
+impl SecretKind {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "SECRET_KIND_UNSPECIFIED",
+            Self::Unknown => "SECRET_KIND_UNKNOWN",
+            Self::GcpServiceAccountKey => "SECRET_KIND_GCP_SERVICE_ACCOUNT_KEY",
+            Self::GcpApiKey => "SECRET_KIND_GCP_API_KEY",
+            Self::GcpOauth2ClientCredentials => {
+                "SECRET_KIND_GCP_OAUTH2_CLIENT_CREDENTIALS"
+            }
+            Self::GcpOauth2AccessToken => "SECRET_KIND_GCP_OAUTH2_ACCESS_TOKEN",
+            Self::AnthropicAdminApiKey => "SECRET_KIND_ANTHROPIC_ADMIN_API_KEY",
+            Self::AnthropicApiKey => "SECRET_KIND_ANTHROPIC_API_KEY",
+            Self::AzureAccessToken => "SECRET_KIND_AZURE_ACCESS_TOKEN",
+            Self::AzureIdentityToken => "SECRET_KIND_AZURE_IDENTITY_TOKEN",
+            Self::DockerHubPersonalAccessToken => {
+                "SECRET_KIND_DOCKER_HUB_PERSONAL_ACCESS_TOKEN"
+            }
+            Self::GithubAppRefreshToken => "SECRET_KIND_GITHUB_APP_REFRESH_TOKEN",
+            Self::GithubAppServerToServerToken => {
+                "SECRET_KIND_GITHUB_APP_SERVER_TO_SERVER_TOKEN"
+            }
+            Self::GithubAppUserToServerToken => {
+                "SECRET_KIND_GITHUB_APP_USER_TO_SERVER_TOKEN"
+            }
+            Self::GithubClassicPersonalAccessToken => {
+                "SECRET_KIND_GITHUB_CLASSIC_PERSONAL_ACCESS_TOKEN"
+            }
+            Self::GithubFineGrainedPersonalAccessToken => {
+                "SECRET_KIND_GITHUB_FINE_GRAINED_PERSONAL_ACCESS_TOKEN"
+            }
+            Self::GithubOauthToken => "SECRET_KIND_GITHUB_OAUTH_TOKEN",
+            Self::HuggingfaceApiKey => "SECRET_KIND_HUGGINGFACE_API_KEY",
+            Self::OpenaiApiKey => "SECRET_KIND_OPENAI_API_KEY",
+            Self::PerplexityApiKey => "SECRET_KIND_PERPLEXITY_API_KEY",
+            Self::StripeSecretKey => "SECRET_KIND_STRIPE_SECRET_KEY",
+            Self::StripeRestrictedKey => "SECRET_KIND_STRIPE_RESTRICTED_KEY",
+            Self::StripeWebhookSecret => "SECRET_KIND_STRIPE_WEBHOOK_SECRET",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "SECRET_KIND_UNSPECIFIED" => Some(Self::Unspecified),
+            "SECRET_KIND_UNKNOWN" => Some(Self::Unknown),
+            "SECRET_KIND_GCP_SERVICE_ACCOUNT_KEY" => Some(Self::GcpServiceAccountKey),
+            "SECRET_KIND_GCP_API_KEY" => Some(Self::GcpApiKey),
+            "SECRET_KIND_GCP_OAUTH2_CLIENT_CREDENTIALS" => {
+                Some(Self::GcpOauth2ClientCredentials)
+            }
+            "SECRET_KIND_GCP_OAUTH2_ACCESS_TOKEN" => Some(Self::GcpOauth2AccessToken),
+            "SECRET_KIND_ANTHROPIC_ADMIN_API_KEY" => Some(Self::AnthropicAdminApiKey),
+            "SECRET_KIND_ANTHROPIC_API_KEY" => Some(Self::AnthropicApiKey),
+            "SECRET_KIND_AZURE_ACCESS_TOKEN" => Some(Self::AzureAccessToken),
+            "SECRET_KIND_AZURE_IDENTITY_TOKEN" => Some(Self::AzureIdentityToken),
+            "SECRET_KIND_DOCKER_HUB_PERSONAL_ACCESS_TOKEN" => {
+                Some(Self::DockerHubPersonalAccessToken)
+            }
+            "SECRET_KIND_GITHUB_APP_REFRESH_TOKEN" => Some(Self::GithubAppRefreshToken),
+            "SECRET_KIND_GITHUB_APP_SERVER_TO_SERVER_TOKEN" => {
+                Some(Self::GithubAppServerToServerToken)
+            }
+            "SECRET_KIND_GITHUB_APP_USER_TO_SERVER_TOKEN" => {
+                Some(Self::GithubAppUserToServerToken)
+            }
+            "SECRET_KIND_GITHUB_CLASSIC_PERSONAL_ACCESS_TOKEN" => {
+                Some(Self::GithubClassicPersonalAccessToken)
+            }
+            "SECRET_KIND_GITHUB_FINE_GRAINED_PERSONAL_ACCESS_TOKEN" => {
+                Some(Self::GithubFineGrainedPersonalAccessToken)
+            }
+            "SECRET_KIND_GITHUB_OAUTH_TOKEN" => Some(Self::GithubOauthToken),
+            "SECRET_KIND_HUGGINGFACE_API_KEY" => Some(Self::HuggingfaceApiKey),
+            "SECRET_KIND_OPENAI_API_KEY" => Some(Self::OpenaiApiKey),
+            "SECRET_KIND_PERPLEXITY_API_KEY" => Some(Self::PerplexityApiKey),
+            "SECRET_KIND_STRIPE_SECRET_KEY" => Some(Self::StripeSecretKey),
+            "SECRET_KIND_STRIPE_RESTRICTED_KEY" => Some(Self::StripeRestrictedKey),
+            "SECRET_KIND_STRIPE_WEBHOOK_SECRET" => Some(Self::StripeWebhookSecret),
+            _ => None,
+        }
+    }
+}
 /// An Upgrade Note represents a potential upgrade of a package to a given
 /// version. For each package version combination (i.e. bash 4.0, bash 4.1,
 /// bash 4.1.2), there will be an Upgrade Note. For Windows, windows_update field
@@ -3084,6 +3389,35 @@ pub mod vulnerability_assessment_note {
         }
     }
 }
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Risk {
+    /// CISA maintains the authoritative source of vulnerabilities that have been
+    /// exploited in the wild.
+    #[prost(message, optional, tag = "1")]
+    pub cisa_kev: ::core::option::Option<CisaKnownExploitedVulnerabilities>,
+    /// The Exploit Prediction Scoring System (EPSS) estimates the likelihood
+    /// (probability) that a software vulnerability will be exploited in the wild.
+    #[prost(message, optional, tag = "2")]
+    pub epss: ::core::option::Option<ExploitPredictionScoringSystem>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CisaKnownExploitedVulnerabilities {
+    /// Whether the vulnerability is known to have been leveraged as part of a
+    /// ransomware campaign.
+    #[prost(string, tag = "1")]
+    pub known_ransomware_campaign_use: ::prost::alloc::string::String,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct ExploitPredictionScoringSystem {
+    /// The percentile of the current score, the proportion of all scored
+    /// vulnerabilities with the same or a lower EPSS score
+    #[prost(double, tag = "1")]
+    pub percentile: f64,
+    /// The EPSS score representing the probability \[0-1\] of exploitation in the
+    /// wild in the next 30 days
+    #[prost(double, tag = "2")]
+    pub score: f64,
+}
 /// A security vulnerability that can be found in resources.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct VulnerabilityNote {
@@ -3117,6 +3451,9 @@ pub struct VulnerabilityNote {
     /// The full description of the v2 CVSS for this vulnerability.
     #[prost(message, optional, tag = "8")]
     pub cvss_v2: ::core::option::Option<Cvss>,
+    /// The time this advisory was published by the source.
+    #[prost(message, optional, tag = "9")]
+    pub advisory_publish_time: ::core::option::Option<::prost_types::Timestamp>,
 }
 /// Nested message and enum types in `VulnerabilityNote`.
 pub mod vulnerability_note {
@@ -3281,6 +3618,9 @@ pub struct VulnerabilityOccurrence {
     /// Occurrence-specific extra details about the vulnerability.
     #[prost(string, tag = "14")]
     pub extra_details: ::prost::alloc::string::String,
+    /// Risk information about the vulnerability, such as CISA, EPSS, etc.
+    #[prost(message, optional, tag = "15")]
+    pub risk: ::core::option::Option<Risk>,
 }
 /// Nested message and enum types in `VulnerabilityOccurrence`.
 pub mod vulnerability_occurrence {
@@ -3412,7 +3752,7 @@ pub struct Occurrence {
     /// resource.
     #[prost(
         oneof = "occurrence::Details",
-        tags = "8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19"
+        tags = "8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20"
     )]
     pub details: ::core::option::Option<occurrence::Details>,
 }
@@ -3456,6 +3796,9 @@ pub mod occurrence {
         /// Describes a specific SBOM reference occurrences.
         #[prost(message, tag = "19")]
         SbomReference(super::SbomReferenceOccurrence),
+        /// Describes a secret.
+        #[prost(message, tag = "20")]
+        Secret(super::SecretOccurrence),
     }
 }
 /// A type of analysis that can be done for a resource.
@@ -3495,7 +3838,7 @@ pub struct Note {
     /// Required. Immutable. The type of analysis this note represents.
     #[prost(
         oneof = "note::Type",
-        tags = "10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21"
+        tags = "10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22"
     )]
     pub r#type: ::core::option::Option<note::Type>,
 }
@@ -3540,6 +3883,9 @@ pub mod note {
         /// A note describing an SBOM reference.
         #[prost(message, tag = "21")]
         SbomReference(super::SbomReferenceNote),
+        /// A note describing a secret.
+        #[prost(message, tag = "22")]
+        Secret(super::SecretNote),
     }
 }
 /// Request to get an occurrence.
@@ -3567,6 +3913,13 @@ pub struct ListOccurrencesRequest {
     /// Token to provide to skip to a particular spot in the list.
     #[prost(string, tag = "4")]
     pub page_token: ::prost::alloc::string::String,
+    /// If set, the request will return all reachable Occurrences
+    /// and report all unreachable regions in the `unreachable` field in
+    /// the response.
+    ///
+    /// Only applicable for requests in the global region.
+    #[prost(bool, tag = "5")]
+    pub return_partial_success: bool,
 }
 /// Response for listing occurrences.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -3579,6 +3932,12 @@ pub struct ListOccurrencesResponse {
     /// results.
     #[prost(string, tag = "2")]
     pub next_page_token: ::prost::alloc::string::String,
+    /// Unreachable regions. Populated for requests from the global region
+    /// when `return_partial_success` is set.
+    ///
+    /// Format: `projects/\[PROJECT_ID\]/locations/\[LOCATION\]`
+    #[prost(string, repeated, tag = "3")]
+    pub unreachable: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 /// Request to delete an occurrence.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -3646,6 +4005,13 @@ pub struct ListNotesRequest {
     /// Token to provide to skip to a particular spot in the list.
     #[prost(string, tag = "4")]
     pub page_token: ::prost::alloc::string::String,
+    /// If set, the request will return all reachable Notes
+    /// and report all unreachable regions in the `unreachable` field in
+    /// the response.
+    ///
+    /// Only applicable for requests in the global region.
+    #[prost(bool, tag = "5")]
+    pub return_partial_success: bool,
 }
 /// Response for listing notes.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -3658,6 +4024,12 @@ pub struct ListNotesResponse {
     /// results.
     #[prost(string, tag = "2")]
     pub next_page_token: ::prost::alloc::string::String,
+    /// Unreachable regions. Populated for requests from the global region
+    /// when `return_partial_success` is set.
+    ///
+    /// Format: `projects/\[PROJECT_ID\]/locations/\[LOCATION\]`
+    #[prost(string, repeated, tag = "3")]
+    pub unreachable: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 /// Request to delete a note.
 #[derive(Clone, PartialEq, ::prost::Message)]

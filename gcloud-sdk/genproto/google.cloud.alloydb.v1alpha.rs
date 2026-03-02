@@ -13,68 +13,60 @@ pub struct CloudSqlBackupRunSource {
     #[prost(int64, tag = "3")]
     pub backup_run_id: i64,
 }
-/// SqlResult represents the result for the execution of a sql statement.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SqlResult {
-    /// List of columns included in the result. This also includes the data type
-    /// of the column.
-    #[prost(message, repeated, tag = "1")]
-    pub columns: ::prost::alloc::vec::Vec<SqlResultColumn>,
-    /// Rows returned by the SQL statement.
-    #[prost(message, repeated, tag = "2")]
-    pub rows: ::prost::alloc::vec::Vec<SqlResultRow>,
-}
-/// Contains the name and datatype of a column in a SQL Result.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SqlResultColumn {
-    /// Name of the column.
-    #[prost(string, tag = "1")]
-    pub name: ::prost::alloc::string::String,
-    /// Datatype of the column as reported by the postgres driver.
-    /// Common type names are "VARCHAR", "TEXT", "NVARCHAR", "DECIMAL", "BOOL",
-    /// "INT", and "BIGINT".
-    #[prost(string, tag = "2")]
-    pub r#type: ::prost::alloc::string::String,
-}
-/// A single row from a sql result.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SqlResultRow {
-    /// List of values in a row of sql result.
-    #[prost(message, repeated, tag = "1")]
-    pub values: ::prost::alloc::vec::Vec<SqlResultValue>,
-}
-/// A single value in a row from a sql result.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SqlResultValue {
-    /// The cell value represented in string format.
-    /// Timestamps are converted to string using RFC3339Nano format.
-    #[prost(string, optional, tag = "1")]
-    pub value: ::core::option::Option<::prost::alloc::string::String>,
-    /// Set to true if cell value is null.
-    #[prost(bool, optional, tag = "2")]
-    pub null_value: ::core::option::Option<bool>,
-}
-/// Cluster level configuration parameters related to the Gemini in Databases
-/// add-on.
+/// Deprecated and unused. This message will be removed in the near future.
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct GeminiClusterConfig {
-    /// Output only. Whether the Gemini in Databases add-on is enabled for the
-    /// cluster. It will be true only if the add-on has been enabled for the
-    /// billing account corresponding to the cluster. Its status is toggled from
-    /// the Admin Control Center (ACC) and cannot be toggled using AlloyDB's APIs.
+    /// Output only. Deprecated and unused. This field will be removed in the near
+    /// future.
+    #[deprecated]
     #[prost(bool, tag = "1")]
     pub entitled: bool,
 }
-/// Instance level configuration parameters related to the Gemini in Databases
-/// add-on.
+/// Deprecated and unused. This message will be removed in the near future.
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct GeminiInstanceConfig {
-    /// Output only. Whether the Gemini in Databases add-on is enabled for the
-    /// instance. It will be true only if the add-on has been enabled for the
-    /// billing account corresponding to the instance. Its status is toggled from
-    /// the Admin Control Center (ACC) and cannot be toggled using AlloyDB's APIs.
+    /// Output only. Deprecated and unused. This field will be removed in the near
+    /// future.
+    #[deprecated]
     #[prost(bool, tag = "1")]
     pub entitled: bool,
+}
+/// Instance level configuration parameters related to the Gemini Cloud Assist
+/// product.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct GcaInstanceConfig {
+    /// Output only. Represents the GCA entitlement state of the instance.
+    #[prost(enumeration = "GcaEntitlementType", tag = "1")]
+    pub gca_entitlement: i32,
+}
+/// Enum representing the type of GCA entitlement assigned to a resource.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum GcaEntitlementType {
+    /// No GCA entitlement is assigned.
+    Unspecified = 0,
+    /// The resource is entitled to the GCA Standard Tier.
+    GcaStandard = 1,
+}
+impl GcaEntitlementType {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "GCA_ENTITLEMENT_TYPE_UNSPECIFIED",
+            Self::GcaStandard => "GCA_STANDARD",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "GCA_ENTITLEMENT_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+            "GCA_STANDARD" => Some(Self::GcaStandard),
+            _ => None,
+        }
+    }
 }
 /// The username/password for a database user. Used for specifying initial
 /// users at cluster creation time.
@@ -349,8 +341,7 @@ pub struct AutomatedBackupPolicy {
     pub backup_window: ::core::option::Option<::prost_types::Duration>,
     /// Optional. The encryption config can be specified to encrypt the
     /// backups with a customer-managed encryption key (CMEK). When this field is
-    /// not specified, the backup will then use default encryption scheme to
-    /// protect the user data.
+    /// not specified, the backup will use the cluster's encryption config.
     #[prost(message, optional, tag = "8")]
     pub encryption_config: ::core::option::Option<EncryptionConfig>,
     /// The location where the backup will be stored. Currently, the only supported
@@ -479,8 +470,7 @@ pub struct ContinuousBackupConfig {
     pub recovery_window_days: i32,
     /// The encryption config can be specified to encrypt the
     /// backups with a customer-managed encryption key (CMEK). When this field is
-    /// not specified, the backup will then use default encryption scheme to
-    /// protect the user data.
+    /// not specified, the backup will use the cluster's encryption config.
     #[prost(message, optional, tag = "3")]
     pub encryption_config: ::core::option::Option<EncryptionConfig>,
 }
@@ -496,8 +486,7 @@ pub struct ContinuousBackupInfo {
     /// if ContinuousBackup is not enabled.
     #[prost(message, optional, tag = "2")]
     pub enabled_time: ::core::option::Option<::prost_types::Timestamp>,
-    /// Output only. Days of the week on which a continuous backup is taken. Output
-    /// only field. Ignored if passed into the request.
+    /// Output only. Days of the week on which a continuous backup is taken.
     #[prost(
         enumeration = "super::super::super::r#type::DayOfWeek",
         repeated,
@@ -505,8 +494,16 @@ pub struct ContinuousBackupInfo {
         tag = "3"
     )]
     pub schedule: ::prost::alloc::vec::Vec<i32>,
-    /// Output only. The earliest restorable time that can be restored to. Output
-    /// only field.
+    /// Output only. The earliest restorable time that can be restored to. If
+    /// continuous backups and recovery was recently enabled, the earliest
+    /// restorable time is the creation time of the earliest eligible backup within
+    /// this cluster's continuous backup recovery window. After a cluster has had
+    /// continuous backups enabled for the duration of its recovery window, the
+    /// earliest restorable time becomes "now minus the recovery window". For
+    /// example, assuming a point in time recovery is attempted at 04/16/2025
+    /// 3:23:00PM with a 14d recovery window, the earliest restorable time would be
+    /// 04/02/2025 3:23:00PM. This field is only visible if the
+    /// CLUSTER_VIEW_CONTINUOUS_BACKUP cluster view is provided.
     #[prost(message, optional, tag = "4")]
     pub earliest_restorable_time: ::core::option::Option<::prost_types::Timestamp>,
 }
@@ -543,6 +540,11 @@ pub struct MaintenanceUpdatePolicy {
     pub maintenance_windows: ::prost::alloc::vec::Vec<
         maintenance_update_policy::MaintenanceWindow,
     >,
+    /// Periods to deny maintenance. Currently limited to 1.
+    #[prost(message, repeated, tag = "2")]
+    pub deny_maintenance_periods: ::prost::alloc::vec::Vec<
+        maintenance_update_policy::DenyMaintenancePeriod,
+    >,
 }
 /// Nested message and enum types in `MaintenanceUpdatePolicy`.
 pub mod maintenance_update_policy {
@@ -561,6 +563,30 @@ pub mod maintenance_update_policy {
         pub start_time: ::core::option::Option<
             super::super::super::super::r#type::TimeOfDay,
         >,
+    }
+    /// DenyMaintenancePeriod definition. Excepting emergencies, maintenance
+    /// will not be scheduled to start within this deny period. The start_date must
+    /// be less than the end_date.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct DenyMaintenancePeriod {
+        /// Deny period start date.
+        /// This can be:
+        /// * A full date, with non-zero year, month and day values OR
+        /// * A month and day value, with a zero year for recurring
+        #[prost(message, optional, tag = "1")]
+        pub start_date: ::core::option::Option<super::super::super::super::r#type::Date>,
+        /// Deny period end date.
+        /// This can be:
+        /// * A full date, with non-zero year, month and day values OR
+        /// * A month and day value, with a zero year for recurring
+        #[prost(message, optional, tag = "2")]
+        pub end_date: ::core::option::Option<super::super::super::super::r#type::Date>,
+        /// Time in UTC when the deny period starts on start_date and ends on
+        /// end_date. This can be:
+        /// * Full time OR
+        /// * All zeros for 00:00:00 UTC
+        #[prost(message, optional, tag = "3")]
+        pub time: ::core::option::Option<super::super::super::super::r#type::TimeOfDay>,
     }
 }
 /// MaintenanceSchedule stores the maintenance schedule generated from
@@ -709,8 +735,9 @@ pub struct Cluster {
     /// specific rollout if a maintenance window is set.
     #[prost(message, optional, tag = "37")]
     pub maintenance_schedule: ::core::option::Option<MaintenanceSchedule>,
-    /// Optional. Configuration parameters related to the Gemini in Databases
-    /// add-on.
+    /// Optional. Deprecated and unused. This field will be removed in the near
+    /// future.
+    #[deprecated]
     #[prost(message, optional, tag = "36")]
     pub gemini_config: ::core::option::Option<GeminiClusterConfig>,
     /// Optional. Subscription type of the cluster.
@@ -730,6 +757,12 @@ pub struct Cluster {
         ::prost::alloc::string::String,
         ::prost::alloc::string::String,
     >,
+    /// Output only. AlloyDB per-cluster service account. This service account is
+    /// created per-cluster per-project, and is different from the per-project
+    /// service account. The per-cluster service account naming format is subject
+    /// to change.
+    #[prost(string, tag = "46")]
+    pub service_account_email: ::prost::alloc::string::String,
     /// In case of an imported cluster, this field contains information about the
     /// source this cluster was imported from.
     #[prost(oneof = "cluster::Source", tags = "15, 16, 42")]
@@ -825,11 +858,8 @@ pub mod cluster {
         Unspecified = 0,
         /// The cluster is active and running.
         Ready = 1,
-        /// The cluster is stopped. All instances in the cluster are stopped.
-        /// Customers can start a stopped cluster at any point and all their
-        /// instances will come back to life with same names and IP resources. In
-        /// this state, customer pays for storage.
-        /// Associated backups could also be present in a stopped cluster.
+        /// This is unused. Even when all instances in the cluster are stopped, the
+        /// cluster remains in READY state.
         Stopped = 2,
         /// The cluster is empty and has no associated resources.
         /// All instances, associated storage and backups have been deleted.
@@ -1008,11 +1038,13 @@ pub struct Instance {
     /// zone with available capacity.
     #[prost(string, tag = "12")]
     pub gce_zone: ::prost::alloc::string::String,
-    /// Database flags. Set at instance level.
-    ///   * They are copied from primary instance on read instance creation.
-    ///   * Read instances can set new or override existing flags that are relevant
-    ///     for reads, e.g. for enabling columnar cache on a read instance. Flags
-    ///     set on read instance may or may not be present on primary.
+    /// Database flags. Set at the instance level.
+    /// They are copied from the primary instance on secondary instance creation.
+    /// Flags that have restrictions default to the value at primary
+    /// instance on read instances during creation. Read instances can set new
+    /// flags or override existing flags that are relevant for reads, for example,
+    /// for enabling columnar cache on a read instance. Flags set on read instance
+    /// might or might not be present on the primary instance.
     ///
     ///
     /// This is a list of "key": "value" pairs.
@@ -1100,8 +1132,9 @@ pub struct Instance {
     /// Optional. Instance-level network configuration.
     #[prost(message, optional, tag = "29")]
     pub network_config: ::core::option::Option<instance::InstanceNetworkConfig>,
-    /// Optional. Configuration parameters related to the Gemini in Databases
-    /// add-on.
+    /// Optional. Deprecated and unused. This field will be removed in the near
+    /// future.
+    #[deprecated]
     #[prost(message, optional, tag = "33")]
     pub gemini_config: ::core::option::Option<GeminiInstanceConfig>,
     /// Output only. All outbound public IP addresses configured for the instance.
@@ -1109,32 +1142,53 @@ pub struct Instance {
     pub outbound_public_ip_addresses: ::prost::alloc::vec::Vec<
         ::prost::alloc::string::String,
     >,
+    /// Optional. Specifies whether an instance needs to spin up. Once the instance
+    /// is active, the activation policy can be updated to the `NEVER` to stop the
+    /// instance. Likewise, the activation policy can be updated to `ALWAYS` to
+    /// start the instance.
+    /// There are restrictions around when an instance can/cannot be activated (for
+    /// example, a read pool instance should be stopped before stopping primary
+    /// etc.). Please refer to the API documentation for more details.
+    #[prost(enumeration = "instance::ActivationPolicy", tag = "35")]
+    pub activation_policy: i32,
+    /// Optional. The configuration for Managed Connection Pool (MCP).
+    #[prost(message, optional, tag = "37")]
+    pub connection_pool_config: ::core::option::Option<instance::ConnectionPoolConfig>,
+    /// Output only. Configuration parameters related to Gemini Cloud Assist.
+    #[prost(message, optional, tag = "38")]
+    pub gca_config: ::core::option::Option<GcaInstanceConfig>,
 }
 /// Nested message and enum types in `Instance`.
 pub mod instance {
     /// MachineConfig describes the configuration of a machine.
-    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct MachineConfig {
         /// The number of CPU's in the VM instance.
         #[prost(int32, tag = "1")]
         pub cpu_count: i32,
+        /// Machine type of the VM instance. E.g. "n2-highmem-4",
+        /// "n2-highmem-8", "c4a-highmem-4-lssd".
+        /// cpu_count must match the number of vCPUs in the machine type.
+        #[prost(string, tag = "4")]
+        pub machine_type: ::prost::alloc::string::String,
     }
     /// Details of a single node in the instance.
-    /// Nodes in an AlloyDB instance are ephemereal, they can change during
+    /// Nodes in an AlloyDB instance are ephemeral, they can change during
     /// update, failover, autohealing and resize operations.
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Node {
-        /// The Compute Engine zone of the VM e.g. "us-central1-b".
+        /// Output only. The Compute Engine zone of the VM e.g. "us-central1-b".
         #[prost(string, tag = "1")]
         pub zone_id: ::prost::alloc::string::String,
-        /// The identifier of the VM e.g. "test-read-0601-407e52be-ms3l".
+        /// Output only. The identifier of the VM e.g.
+        /// "test-read-0601-407e52be-ms3l".
         #[prost(string, tag = "2")]
         pub id: ::prost::alloc::string::String,
-        /// The private IP address of the VM e.g. "10.57.0.34".
+        /// Output only. The private IP address of the VM e.g. "10.57.0.34".
         #[prost(string, tag = "3")]
         pub ip: ::prost::alloc::string::String,
-        /// Determined by state of the compute VM and postgres-service health.
-        /// Compute VM state can have values listed in
+        /// Output only. Determined by state of the compute VM and postgres-service
+        /// health. Compute VM state can have values listed in
         /// <https://cloud.google.com/compute/docs/instances/instance-life-cycle> and
         /// postgres-service health can have values: HEALTHY and UNHEALTHY.
         #[prost(string, tag = "4")]
@@ -1180,7 +1234,7 @@ pub mod instance {
         /// Output only. Track wait event types during query execution for an
         /// instance. This flag is turned "on" by default but tracking is enabled
         /// only after observability enabled flag is also turned on. This is
-        /// read-only flag and only modifiable by producer API.
+        /// read-only flag and only modifiable by internal API.
         #[prost(bool, optional, tag = "4")]
         pub track_wait_event_types: ::core::option::Option<bool>,
         /// Query string length. The default value is 10k.
@@ -1203,6 +1257,9 @@ pub mod instance {
         /// If not set, default value is "off".
         #[prost(bool, optional, tag = "9")]
         pub track_client_address: ::core::option::Option<bool>,
+        /// Whether assistive experiences are enabled for this AlloyDB instance.
+        #[prost(bool, optional, tag = "10")]
+        pub assistive_experiences_enabled: ::core::option::Option<bool>,
     }
     /// Configuration for a read pool instance.
     #[derive(Clone, Copy, PartialEq, ::prost::Message)]
@@ -1287,6 +1344,54 @@ pub mod instance {
         #[prost(string, tag = "1")]
         pub network_attachment_resource: ::prost::alloc::string::String,
     }
+    /// Configuration for setting up PSC service automation. Consumer projects in
+    /// the configs will be allowlisted automatically for the instance.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct PscAutoConnectionConfig {
+        /// The consumer project to which the PSC service automation endpoint will
+        /// be created.
+        #[prost(string, tag = "1")]
+        pub consumer_project: ::prost::alloc::string::String,
+        /// The consumer network for the PSC service automation, example:
+        /// "projects/vpc-host-project/global/networks/default".
+        /// The consumer network might be hosted a different project than the
+        /// consumer project.
+        #[prost(string, tag = "2")]
+        pub consumer_network: ::prost::alloc::string::String,
+        /// Output only. The IP address of the PSC service automation endpoint.
+        #[prost(string, tag = "3")]
+        pub ip_address: ::prost::alloc::string::String,
+        /// Output only. The status of the PSC service automation connection.
+        /// Possible values:
+        ///    "STATE_UNSPECIFIED" - An invalid state as the default case.
+        ///    "ACTIVE" - The connection has been created successfully.
+        ///    "FAILED" - The connection is not functional since some resources on the
+        /// connection fail to be created.
+        ///    "CREATING" - The connection is being created.
+        ///    "DELETING" - The connection is being deleted.
+        ///    "CREATE_REPAIRING" - The connection is being repaired to complete
+        /// creation.
+        ///    "DELETE_REPAIRING" - The connection is being repaired to complete
+        /// deletion.
+        #[prost(string, tag = "4")]
+        pub status: ::prost::alloc::string::String,
+        /// Output only. The status of the service connection policy.
+        /// Possible values:
+        ///    "STATE_UNSPECIFIED" - Default state, when Connection Map is created
+        /// initially.
+        ///    "VALID" - Set when policy and map configuration is valid, and their
+        /// matching can lead to allowing creation of PSC Connections subject to
+        /// other constraints like connections limit.
+        ///    "CONNECTION_POLICY_MISSING" - No Service Connection Policy found for
+        /// this network and Service Class
+        ///    "POLICY_LIMIT_REACHED" - Service Connection Policy limit reached for
+        ///    this network and Service Class
+        ///    "CONSUMER_INSTANCE_PROJECT_NOT_ALLOWLISTED" - The consumer instance
+        /// project is not in AllowedGoogleProducersResourceHierarchyLevels of the
+        /// matching ServiceConnectionPolicy.
+        #[prost(string, tag = "5")]
+        pub consumer_network_status: ::prost::alloc::string::String,
+    }
     /// PscInstanceConfig contains PSC related configuration at an
     /// instance level.
     #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1313,6 +1418,9 @@ pub mod instance {
         /// interface.
         #[prost(message, repeated, tag = "8")]
         pub psc_interface_configs: ::prost::alloc::vec::Vec<PscInterfaceConfig>,
+        /// Optional. Configurations for setting up PSC service automation.
+        #[prost(message, repeated, tag = "9")]
+        pub psc_auto_connections: ::prost::alloc::vec::Vec<PscAutoConnectionConfig>,
     }
     /// Metadata related to instance-level network configuration.
     #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1329,6 +1437,22 @@ pub mod instance {
         /// server sending requests out into the internet.
         #[prost(bool, tag = "3")]
         pub enable_outbound_public_ip: bool,
+        /// Output only. The resource link for the VPC network in which instance
+        /// resources are created and from which they are accessible via Private IP.
+        /// This will be the same value as the parent cluster's network. It is
+        /// specified in the form: //
+        /// `projects/{project_number}/global/networks/{network_id}`.
+        #[prost(string, tag = "4")]
+        pub network: ::prost::alloc::string::String,
+        /// Optional. Name of the allocated IP range for the private IP AlloyDB
+        /// instance, for example: "google-managed-services-default". If set, the
+        /// instance IPs will be created from this allocated range and will override
+        /// the IP range used by the parent cluster. The range name must comply with
+        /// [RFC 1035](<http://datatracker.ietf.org/doc/html/rfc1035>). Specifically,
+        /// the name must be 1-63 characters long and match the regular expression
+        /// [a-z](\[-a-z0-9\]*[a-z0-9])?.
+        #[prost(string, tag = "5")]
+        pub allocated_ip_range_override: ::prost::alloc::string::String,
     }
     /// Nested message and enum types in `InstanceNetworkConfig`.
     pub mod instance_network_config {
@@ -1339,6 +1463,22 @@ pub mod instance {
             #[prost(string, tag = "1")]
             pub cidr_range: ::prost::alloc::string::String,
         }
+    }
+    /// Configuration for Managed Connection Pool (MCP).
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct ConnectionPoolConfig {
+        /// Optional. Whether to enable Managed Connection Pool (MCP).
+        #[prost(bool, tag = "12")]
+        pub enabled: bool,
+        /// Optional. Connection Pool flags, as a list of "key": "value" pairs.
+        #[prost(map = "string, string", tag = "13")]
+        pub flags: ::std::collections::HashMap<
+            ::prost::alloc::string::String,
+            ::prost::alloc::string::String,
+        >,
+        /// Output only. The number of running poolers per instance.
+        #[prost(int32, tag = "14")]
+        pub pooler_count: i32,
     }
     /// Instance State
     #[derive(
@@ -1513,6 +1653,49 @@ pub mod instance {
             }
         }
     }
+    /// Specifies whether an instance needs to spin up.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum ActivationPolicy {
+        /// The policy is not specified.
+        Unspecified = 0,
+        /// The instance is running.
+        Always = 1,
+        /// The instance is not running.
+        Never = 2,
+    }
+    impl ActivationPolicy {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "ACTIVATION_POLICY_UNSPECIFIED",
+                Self::Always => "ALWAYS",
+                Self::Never => "NEVER",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "ACTIVATION_POLICY_UNSPECIFIED" => Some(Self::Unspecified),
+                "ALWAYS" => Some(Self::Always),
+                "NEVER" => Some(Self::Never),
+                _ => None,
+            }
+        }
+    }
 }
 /// ConnectionInfo singleton resource.
 /// <https://google.aip.dev/156>
@@ -1570,11 +1753,17 @@ pub struct Backup {
     #[prost(message, optional, tag = "4")]
     pub create_time: ::core::option::Option<::prost_types::Timestamp>,
     /// Output only. Update time stamp
+    ///
+    /// Users should not infer any meaning from this field. Its value is generally
+    /// unrelated to the timing of the backup creation operation.
     #[prost(message, optional, tag = "5")]
     pub update_time: ::core::option::Option<::prost_types::Timestamp>,
     /// Output only. Delete time stamp
     #[prost(message, optional, tag = "15")]
     pub delete_time: ::core::option::Option<::prost_types::Timestamp>,
+    /// Output only. Timestamp when the resource finished being created.
+    #[prost(message, optional, tag = "26")]
+    pub create_completion_time: ::core::option::Option<::prost_types::Timestamp>,
     /// Labels as key value pairs
     #[prost(map = "string, string", tag = "6")]
     pub labels: ::std::collections::HashMap<
@@ -1819,9 +2008,17 @@ pub struct SupportedDatabaseFlag {
     /// availability SLO's).
     #[prost(bool, tag = "6")]
     pub requires_db_restart: bool,
+    /// The scope of the flag.
+    #[prost(enumeration = "supported_database_flag::Scope", tag = "9")]
+    pub scope: i32,
     /// The restrictions on the flag value per type.
     #[prost(oneof = "supported_database_flag::Restrictions", tags = "7, 8")]
     pub restrictions: ::core::option::Option<supported_database_flag::Restrictions>,
+    /// The recommended value for the flag by type, if applicable.
+    #[prost(oneof = "supported_database_flag::RecommendedValue", tags = "10, 11")]
+    pub recommended_value: ::core::option::Option<
+        supported_database_flag::RecommendedValue,
+    >,
 }
 /// Nested message and enum types in `SupportedDatabaseFlag`.
 pub mod supported_database_flag {
@@ -1896,6 +2093,49 @@ pub mod supported_database_flag {
             }
         }
     }
+    /// The scope of the flag.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Scope {
+        /// The scope of the flag is not specified. Default is DATABASE.
+        Unspecified = 0,
+        /// The flag is a database flag.
+        Database = 1,
+        /// The flag is a connection pool flag.
+        ConnectionPool = 2,
+    }
+    impl Scope {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "SCOPE_UNSPECIFIED",
+                Self::Database => "DATABASE",
+                Self::ConnectionPool => "CONNECTION_POOL",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "SCOPE_UNSPECIFIED" => Some(Self::Unspecified),
+                "DATABASE" => Some(Self::Database),
+                "CONNECTION_POOL" => Some(Self::ConnectionPool),
+                _ => None,
+            }
+        }
+    }
     /// The restrictions on the flag value per type.
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Restrictions {
@@ -1905,6 +2145,16 @@ pub mod supported_database_flag {
         /// Restriction on INTEGER type value.
         #[prost(message, tag = "8")]
         IntegerRestrictions(IntegerRestrictions),
+    }
+    /// The recommended value for the flag by type, if applicable.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum RecommendedValue {
+        /// The recommended value for a STRING flag.
+        #[prost(string, tag = "10")]
+        RecommendedStringValue(::prost::alloc::string::String),
+        /// The recommended value for an INTEGER flag.
+        #[prost(message, tag = "11")]
+        RecommendedIntegerValue(i64),
     }
 }
 /// Message describing User object.
@@ -1983,16 +2233,33 @@ pub struct Database {
     /// `projects/{project}/locations/{location}/clusters/{cluster}/databases/{database}`.
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
-    /// Optional. Charset for the database.
+    /// Optional. Immutable. Charset for the database.
     /// This field can contain any PostgreSQL supported charset name.
     /// Example values include "UTF8", "SQL_ASCII", etc.
     #[prost(string, tag = "2")]
     pub charset: ::prost::alloc::string::String,
-    /// Optional. Collation for the database.
-    /// Name of the custom or native collation for postgres.
-    /// Example values include "C", "POSIX", etc
+    /// Optional. Immutable. lc_collate for the database.
+    /// String sort order.
+    /// Example values include "C", "POSIX", etc.
     #[prost(string, tag = "3")]
     pub collation: ::prost::alloc::string::String,
+    /// Optional. Immutable. lc_ctype for the database.
+    /// Character classification (What is a letter? The upper-case equivalent?).
+    /// Example values include "C", "POSIX", etc.
+    #[prost(string, tag = "4")]
+    pub character_type: ::prost::alloc::string::String,
+    /// Optional. Whether the database is a template database.
+    /// Deprecated in favor of is_template_database.
+    #[deprecated]
+    #[prost(bool, tag = "5")]
+    pub is_template: bool,
+    /// Input only. Immutable. Template of the database to be used for creating a
+    /// new database.
+    #[prost(string, tag = "6")]
+    pub database_template: ::prost::alloc::string::String,
+    /// Optional. Whether the database is a template database.
+    #[prost(bool, optional, tag = "7")]
+    pub is_template_database: ::core::option::Option<bool>,
 }
 /// View on Instance. Pass this enum to rpcs that returns an Instance message to
 /// control which subsets of fields to get.
@@ -2083,6 +2350,10 @@ pub enum DatabaseVersion {
     Postgres15 = 3,
     /// The database version is Postgres 16.
     Postgres16 = 4,
+    /// The database version is Postgres 17.
+    Postgres17 = 5,
+    /// The database version is Postgres 18.
+    Postgres18 = 6,
 }
 impl DatabaseVersion {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -2096,6 +2367,8 @@ impl DatabaseVersion {
             Self::Postgres14 => "POSTGRES_14",
             Self::Postgres15 => "POSTGRES_15",
             Self::Postgres16 => "POSTGRES_16",
+            Self::Postgres17 => "POSTGRES_17",
+            Self::Postgres18 => "POSTGRES_18",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -2106,6 +2379,8 @@ impl DatabaseVersion {
             "POSTGRES_14" => Some(Self::Postgres14),
             "POSTGRES_15" => Some(Self::Postgres15),
             "POSTGRES_16" => Some(Self::Postgres16),
+            "POSTGRES_17" => Some(Self::Postgres17),
+            "POSTGRES_18" => Some(Self::Postgres18),
             _ => None,
         }
     }
@@ -2145,6 +2420,47 @@ impl SubscriptionType {
             _ => None,
         }
     }
+}
+/// SqlResult represents the result for the execution of a sql statement.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SqlResult {
+    /// List of columns included in the result. This also includes the data type
+    /// of the column.
+    #[prost(message, repeated, tag = "1")]
+    pub columns: ::prost::alloc::vec::Vec<SqlResultColumn>,
+    /// Rows returned by the SQL statement.
+    #[prost(message, repeated, tag = "2")]
+    pub rows: ::prost::alloc::vec::Vec<SqlResultRow>,
+}
+/// Contains the name and datatype of a column in a SQL Result.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SqlResultColumn {
+    /// Name of the column.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Datatype of the column as reported by the postgres driver.
+    /// Common type names are "VARCHAR", "TEXT", "NVARCHAR", "DECIMAL", "BOOL",
+    /// "INT", and "BIGINT".
+    #[prost(string, tag = "2")]
+    pub r#type: ::prost::alloc::string::String,
+}
+/// A single row from a sql result.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SqlResultRow {
+    /// List of values in a row of sql result.
+    #[prost(message, repeated, tag = "1")]
+    pub values: ::prost::alloc::vec::Vec<SqlResultValue>,
+}
+/// A single value in a row from a sql result.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SqlResultValue {
+    /// The cell value represented in string format.
+    /// Timestamps are converted to string using RFC3339Nano format.
+    #[prost(string, optional, tag = "1")]
+    pub value: ::core::option::Option<::prost::alloc::string::String>,
+    /// Set to true if cell value is null.
+    #[prost(bool, optional, tag = "2")]
+    pub null_value: ::core::option::Option<bool>,
 }
 /// Message for requesting list of Clusters
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -2299,6 +2615,189 @@ pub struct UpdateClusterRequest {
     #[prost(bool, tag = "5")]
     pub allow_missing: bool,
 }
+/// Destination for Export. Export will be done to cloud storage.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GcsDestination {
+    /// Required. The path to the file in Google Cloud Storage where the export
+    /// will be stored. The URI is in the form `gs://bucketName/fileName`.
+    #[prost(string, tag = "1")]
+    pub uri: ::prost::alloc::string::String,
+}
+/// Export cluster request.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ExportClusterRequest {
+    /// Required. The resource name of the cluster.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Required. Name of the database where the export command will be executed.
+    /// Note - Value provided should be the same as expected from
+    /// `SELECT current_database();` and NOT as a resource reference.
+    #[prost(string, tag = "3")]
+    pub database: ::prost::alloc::string::String,
+    /// Oneof field to support other destinations in future.
+    #[prost(oneof = "export_cluster_request::Destination", tags = "2")]
+    pub destination: ::core::option::Option<export_cluster_request::Destination>,
+    /// Required field to specify export file type and options.
+    #[prost(oneof = "export_cluster_request::ExportOptions", tags = "4, 5")]
+    pub export_options: ::core::option::Option<export_cluster_request::ExportOptions>,
+}
+/// Nested message and enum types in `ExportClusterRequest`.
+pub mod export_cluster_request {
+    /// Options for exporting data in CSV format.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct CsvExportOptions {
+        /// Required. The SELECT query used to extract the data.
+        #[prost(string, tag = "1")]
+        pub select_query: ::prost::alloc::string::String,
+        /// Optional. Specifies the character that separates columns within each row
+        /// (line) of the file. The default is comma. The value of this argument has
+        /// to be a character in Hex ASCII Code.
+        #[prost(string, tag = "2")]
+        pub field_delimiter: ::prost::alloc::string::String,
+        /// Optional. Specifies the quoting character to be used when a data value is
+        /// quoted. The default is double-quote. The value of this argument has to be
+        /// a character in Hex ASCII Code.
+        #[prost(string, tag = "3")]
+        pub quote_character: ::prost::alloc::string::String,
+        /// Optional. Specifies the character that should appear before a data
+        /// character that needs to be escaped. The default is the same as quote
+        /// character. The value of this argument has to be a character in Hex ASCII
+        /// Code.
+        #[prost(string, tag = "4")]
+        pub escape_character: ::prost::alloc::string::String,
+    }
+    /// Options for exporting data in SQL format.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct SqlExportOptions {
+        /// Optional. Tables to export from.
+        #[prost(string, repeated, tag = "1")]
+        pub tables: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+        /// Optional. If true, only export the schema.
+        #[prost(bool, optional, tag = "2")]
+        pub schema_only: ::core::option::Option<bool>,
+        /// Optional. If true, output commands to DROP all the dumped database
+        /// objects prior to outputting the commands for creating them.
+        #[prost(bool, optional, tag = "3")]
+        pub clean_target_objects: ::core::option::Option<bool>,
+        /// Optional. If true, use DROP ... IF EXISTS commands to check for the
+        /// object's existence before dropping it in clean_target_objects mode.
+        #[prost(bool, optional, tag = "4")]
+        pub if_exist_target_objects: ::core::option::Option<bool>,
+    }
+    /// Oneof field to support other destinations in future.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Destination {
+        /// Required. Option to export data to cloud storage.
+        #[prost(message, tag = "2")]
+        GcsDestination(super::GcsDestination),
+    }
+    /// Required field to specify export file type and options.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum ExportOptions {
+        /// Options for exporting data in CSV format. Required field to be set for
+        /// CSV file type.
+        #[prost(message, tag = "4")]
+        CsvExportOptions(CsvExportOptions),
+        /// Options for exporting data in SQL format. Required field to be set for
+        /// SQL file type.
+        #[prost(message, tag = "5")]
+        SqlExportOptions(SqlExportOptions),
+    }
+}
+/// Response of export cluster rpc.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ExportClusterResponse {
+    /// Oneof field to support other destinations in future.
+    #[prost(oneof = "export_cluster_response::Destination", tags = "2")]
+    pub destination: ::core::option::Option<export_cluster_response::Destination>,
+}
+/// Nested message and enum types in `ExportClusterResponse`.
+pub mod export_cluster_response {
+    /// Oneof field to support other destinations in future.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Destination {
+        /// Required. Option to export data to cloud storage.
+        #[prost(message, tag = "2")]
+        GcsDestination(super::GcsDestination),
+    }
+}
+/// Import cluster request.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ImportClusterRequest {
+    /// Required. The resource name of the cluster.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Required. The path to the file in Google Cloud Storage where the source
+    /// file for import will be stored. The URI is in the form
+    /// `gs://bucketName/fileName`.
+    #[prost(string, tag = "2")]
+    pub gcs_uri: ::prost::alloc::string::String,
+    /// Optional. Name of the database to which the import will be done.
+    /// For import from SQL file, this is required only if the file does not
+    /// specify a database.
+    /// Note - Value provided should be the same as expected from `SELECT
+    /// current_database();` and NOT as a resource reference.
+    #[prost(string, tag = "3")]
+    pub database: ::prost::alloc::string::String,
+    /// Optional. Database user to be used for importing the data.
+    /// Note - Value provided should be the same as expected from
+    /// `SELECT current_user;` and NOT as a resource reference.
+    #[prost(string, tag = "5")]
+    pub user: ::prost::alloc::string::String,
+    /// oneof field to support various import formats like SQL and CSV.
+    #[prost(oneof = "import_cluster_request::ImportOptions", tags = "4, 7")]
+    pub import_options: ::core::option::Option<import_cluster_request::ImportOptions>,
+}
+/// Nested message and enum types in `ImportClusterRequest`.
+pub mod import_cluster_request {
+    /// Options for importing data in SQL format.
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct SqlImportOptions {}
+    /// Options for importing data in CSV format.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct CsvImportOptions {
+        /// Required. The database table to import CSV file into.
+        #[prost(string, tag = "1")]
+        pub table: ::prost::alloc::string::String,
+        /// Optional. The columns to which CSV data is imported. If not specified,
+        /// all columns of the database table are loaded with CSV data.
+        #[prost(string, repeated, tag = "2")]
+        pub columns: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+        /// Optional. Specifies the character that separates columns within each row
+        /// (line) of the file. The default is comma. The value of this argument has
+        /// to be a character in Hex ASCII Code.
+        #[prost(string, tag = "3")]
+        pub field_delimiter: ::prost::alloc::string::String,
+        /// Optional. Specifies the quoting character to be used when a data value is
+        /// quoted. The default is double-quote. The value of this argument has to be
+        /// a character in Hex ASCII Code.
+        #[prost(string, tag = "4")]
+        pub quote_character: ::prost::alloc::string::String,
+        /// Optional. Specifies the character that should appear before a data
+        /// character that needs to be escaped. The default is same as quote
+        /// character. The value of this argument has to be a character in Hex ASCII
+        /// Code.
+        #[prost(string, tag = "5")]
+        pub escape_character: ::prost::alloc::string::String,
+    }
+    /// oneof field to support various import formats like SQL and CSV.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum ImportOptions {
+        /// Options for importing data in SQL format.
+        #[prost(message, tag = "4")]
+        SqlImportOptions(SqlImportOptions),
+        /// Options for importing data in CSV format.
+        #[prost(message, tag = "7")]
+        CsvImportOptions(CsvImportOptions),
+    }
+}
+/// Response of import rpc.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct ImportClusterResponse {
+    /// Required. Size of the object downloaded from Google Cloud Storage in bytes.
+    #[prost(int64, tag = "1")]
+    pub bytes_downloaded: i64,
+}
 /// Upgrades a cluster.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpgradeClusterRequest {
@@ -2368,7 +2867,7 @@ pub mod upgrade_cluster_response {
         #[prost(string, tag = "3")]
         pub logs_url: ::prost::alloc::string::String,
     }
-    /// Details regarding the upgrade of instaces associated with a cluster.
+    /// Details regarding the upgrade of instances associated with a cluster.
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct InstanceUpgradeDetails {
         /// Normalized name of the instance.
@@ -2631,6 +3130,7 @@ pub struct PromoteClusterRequest {
 }
 /// Message for restoring a Cluster from a backup or another cluster at a given
 /// point in time.
+/// NEXT_ID: 11
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RestoreClusterRequest {
     /// Required. The name of the parent resource. For the required format, see the
@@ -3192,6 +3692,10 @@ pub struct ExecuteSqlRequest {
     /// permitted, including DDL, DML, DQL statements.
     #[prost(string, tag = "4")]
     pub sql_statement: ::prost::alloc::string::String,
+    /// Optional. If set, validates the sql statement by performing
+    /// syntax and semantic validation and doesn't execute the query.
+    #[prost(bool, tag = "6")]
+    pub validate_only: bool,
     /// Oneof field to support other credential mechanisms in future like
     /// SecretManager etc.
     #[prost(oneof = "execute_sql_request::UserCredential", tags = "5")]
@@ -3459,6 +3963,10 @@ pub struct ListSupportedDatabaseFlagsRequest {
     /// A token identifying a page of results the server should return.
     #[prost(string, tag = "3")]
     pub page_token: ::prost::alloc::string::String,
+    /// Optional. The scope for which supported flags are requested. If not
+    /// specified, default is DATABASE.
+    #[prost(enumeration = "supported_database_flag::Scope", tag = "6")]
+    pub scope: i32,
 }
 /// Message for response to listing SupportedDatabaseFlags.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -3508,9 +4016,9 @@ pub struct GenerateClientCertificateRequest {
     /// Optional. The public key from the client.
     #[prost(string, tag = "5")]
     pub public_key: ::prost::alloc::string::String,
-    /// Optional. An optional hint to the endpoint to generate a client
-    /// ceritificate that can be used by AlloyDB connectors to exchange additional
-    /// metadata with the server after TLS handshake.
+    /// Optional. An optional hint to the endpoint to generate a client certificate
+    /// that can be used by AlloyDB connectors to exchange additional metadata with
+    /// the server after TLS handshake.
     #[prost(bool, tag = "6")]
     pub use_metadata_exchange: bool,
 }
@@ -3572,9 +4080,10 @@ pub struct OperationMetadata {
     pub status_message: ::prost::alloc::string::String,
     /// Output only. Identifies whether the user has requested cancellation
     /// of the operation. Operations that have successfully been cancelled
-    /// have [Operation.error][] value with a
-    /// [google.rpc.Status.code][google.rpc.Status.code] of 1, corresponding to
-    /// `Code.CANCELLED`.
+    /// have
+    /// [google.longrunning.Operation.error][google.longrunning.Operation.error]
+    /// value with a [google.rpc.Status.code][google.rpc.Status.code] of 1,
+    /// corresponding to `Code.CANCELLED`.
     #[prost(bool, tag = "6")]
     pub requested_cancellation: bool,
     /// Output only. API version used to start the operation.
@@ -3706,6 +4215,9 @@ pub mod upgrade_cluster_status {
         /// State of this stage.
         #[prost(enumeration = "super::upgrade_cluster_response::Status", tag = "2")]
         pub state: i32,
+        /// Output only. Timing information for the stage execution.
+        #[prost(message, optional, tag = "3")]
+        pub schedule: ::core::option::Option<stage_status::StageSchedule>,
         /// Stage specific status information, if any.
         #[prost(oneof = "stage_status::StageSpecificStatus", tags = "11")]
         pub stage_specific_status: ::core::option::Option<
@@ -3714,6 +4226,24 @@ pub mod upgrade_cluster_status {
     }
     /// Nested message and enum types in `StageStatus`.
     pub mod stage_status {
+        /// Timing information for the stage execution.
+        #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+        pub struct StageSchedule {
+            /// When the stage is expected to start. Set only if the stage has not
+            /// started yet.
+            #[prost(message, optional, tag = "1")]
+            pub estimated_start_time: ::core::option::Option<::prost_types::Timestamp>,
+            /// Actual start time of the stage. Set only if the stage has started.
+            #[prost(message, optional, tag = "2")]
+            pub actual_start_time: ::core::option::Option<::prost_types::Timestamp>,
+            /// When the stage is expected to end. Set only if the stage has not
+            /// completed yet.
+            #[prost(message, optional, tag = "3")]
+            pub estimated_end_time: ::core::option::Option<::prost_types::Timestamp>,
+            /// Actual end time of the stage. Set only if the stage has completed.
+            #[prost(message, optional, tag = "4")]
+            pub actual_end_time: ::core::option::Option<::prost_types::Timestamp>,
+        }
         /// Stage specific status information, if any.
         #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
         pub enum StageSpecificStatus {
@@ -3887,7 +4417,7 @@ pub struct DeleteUserRequest {
     #[prost(bool, tag = "3")]
     pub validate_only: bool,
 }
-/// Message for requesting list of Databases.
+/// Message for ListDatabases request.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListDatabasesRequest {
     /// Required. Parent value for ListDatabasesRequest.
@@ -3909,16 +4439,29 @@ pub struct ListDatabasesRequest {
     #[prost(string, tag = "4")]
     pub filter: ::prost::alloc::string::String,
 }
-/// Message for response to listing Databases.
+/// Message for ListDatabases response.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListDatabasesResponse {
-    /// The list of databases
+    /// The list of databases.
     #[prost(message, repeated, tag = "1")]
     pub databases: ::prost::alloc::vec::Vec<Database>,
     /// A token identifying the next page of results the server should return.
     /// If this field is omitted, there are no subsequent pages.
     #[prost(string, tag = "2")]
     pub next_page_token: ::prost::alloc::string::String,
+}
+/// Message for CreateDatabase request.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateDatabaseRequest {
+    /// Required. Value for parent.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Required. ID of the requesting object.
+    #[prost(string, tag = "2")]
+    pub database_id: ::prost::alloc::string::String,
+    /// Required. The resource being created.
+    #[prost(message, optional, tag = "3")]
+    pub database: ::core::option::Option<Database>,
 }
 /// Generated client implementations.
 pub mod alloy_db_admin_client {
@@ -4125,6 +4668,68 @@ pub mod alloy_db_admin_client {
                     GrpcMethod::new(
                         "google.cloud.alloydb.v1alpha.AlloyDBAdmin",
                         "UpdateCluster",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Exports data from the cluster.
+        /// Imperative only.
+        pub async fn export_cluster(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ExportClusterRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.alloydb.v1alpha.AlloyDBAdmin/ExportCluster",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.alloydb.v1alpha.AlloyDBAdmin",
+                        "ExportCluster",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Imports data to the cluster.
+        /// Imperative only.
+        pub async fn import_cluster(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ImportClusterRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.alloydb.v1alpha.AlloyDBAdmin/ImportCluster",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.alloydb.v1alpha.AlloyDBAdmin",
+                        "ImportCluster",
                     ),
                 );
             self.inner.unary(req, path, codec).await
@@ -5060,6 +5665,184 @@ pub mod alloy_db_admin_client {
                     GrpcMethod::new(
                         "google.cloud.alloydb.v1alpha.AlloyDBAdmin",
                         "ListDatabases",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// Creates a new Database in a given project, location, and cluster.
+        pub async fn create_database(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateDatabaseRequest>,
+        ) -> std::result::Result<tonic::Response<super::Database>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.alloydb.v1alpha.AlloyDBAdmin/CreateDatabase",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.alloydb.v1alpha.AlloyDBAdmin",
+                        "CreateDatabase",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+    }
+}
+/// Message for registering Restoring from CloudSQL resource.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RestoreFromCloudSqlRequest {
+    /// Required. The location of the new cluster. For the required format, see the
+    /// comment on Cluster.name field.
+    #[prost(string, tag = "1")]
+    pub parent: ::prost::alloc::string::String,
+    /// Required. ID of the requesting object.
+    #[prost(string, tag = "2")]
+    pub cluster_id: ::prost::alloc::string::String,
+    /// Required. The resource being created
+    #[prost(message, optional, tag = "3")]
+    pub cluster: ::core::option::Option<Cluster>,
+    /// The source CloudSQL resource to restore from.
+    #[prost(oneof = "restore_from_cloud_sql_request::Source", tags = "101")]
+    pub source: ::core::option::Option<restore_from_cloud_sql_request::Source>,
+}
+/// Nested message and enum types in `RestoreFromCloudSQLRequest`.
+pub mod restore_from_cloud_sql_request {
+    /// The source CloudSQL resource to restore from.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Source {
+        /// Cluster created from CloudSQL backup run.
+        #[prost(message, tag = "101")]
+        CloudsqlBackupRunSource(super::CloudSqlBackupRunSource),
+    }
+}
+/// Generated client implementations.
+pub mod alloy_dbcsql_admin_client {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value,
+    )]
+    use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
+    /// Service for interactions with CloudSQL.
+    #[derive(Debug, Clone)]
+    pub struct AlloyDbcsqlAdminClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl AlloyDbcsqlAdminClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> AlloyDbcsqlAdminClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> AlloyDbcsqlAdminClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+        {
+            AlloyDbcsqlAdminClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        /// Restores an AlloyDB cluster from a CloudSQL resource.
+        pub async fn restore_from_cloud_sql(
+            &mut self,
+            request: impl tonic::IntoRequest<super::RestoreFromCloudSqlRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::super::super::longrunning::Operation>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/google.cloud.alloydb.v1alpha.AlloyDBCSQLAdmin/RestoreFromCloudSQL",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "google.cloud.alloydb.v1alpha.AlloyDBCSQLAdmin",
+                        "RestoreFromCloudSQL",
                     ),
                 );
             self.inner.unary(req, path, codec).await
