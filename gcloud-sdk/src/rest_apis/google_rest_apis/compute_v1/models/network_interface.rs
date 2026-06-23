@@ -103,11 +103,13 @@ impl Default for Ipv6AccessType {
         Self::External
     }
 }
-/// The type of vNIC to be used on this interface. This may be gVNIC or VirtioNet.
+/// The type of vNIC to be used on this interface. This may be gVNIC, VirtioNet, or IRDMA.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum NicType {
     #[serde(rename = "GVNIC")]
     Gvnic,
+    #[serde(rename = "IRDMA")]
+    Irdma,
     #[serde(rename = "UNSPECIFIED_NIC_TYPE")]
     UnspecifiedNicType,
     #[serde(rename = "VIRTIO_NET")]
@@ -131,5 +133,46 @@ pub enum StackType {
 impl Default for StackType {
     fn default() -> StackType {
         Self::Ipv6
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_nic_type_deserialization() {
+        // Test GVNIC
+        let json = r#""GVNIC""#;
+        let nic_type: NicType = serde_json::from_str(json).unwrap();
+        assert_eq!(nic_type, NicType::Gvnic);
+
+        // Test IRDMA
+        let json = r#""IRDMA""#;
+        let nic_type: NicType = serde_json::from_str(json).unwrap();
+        assert_eq!(nic_type, NicType::Irdma);
+
+        // Test VIRTIO_NET
+        let json = r#""VIRTIO_NET""#;
+        let nic_type: NicType = serde_json::from_str(json).unwrap();
+        assert_eq!(nic_type, NicType::VirtioNet);
+
+        // Test UNSPECIFIED_NIC_TYPE
+        let json = r#""UNSPECIFIED_NIC_TYPE""#;
+        let nic_type: NicType = serde_json::from_str(json).unwrap();
+        assert_eq!(nic_type, NicType::UnspecifiedNicType);
+    }
+
+    #[test]
+    fn test_network_interface_with_irdma() {
+        let json = r#"{
+            "name": "nic0",
+            "nicType": "IRDMA",
+            "networkIP": "10.0.0.1"
+        }"#;
+        let interface: NetworkInterface = serde_json::from_str(json).unwrap();
+        assert_eq!(interface.nic_type, Some(NicType::Irdma));
+        assert_eq!(interface.name, Some("nic0".to_string()));
+        assert_eq!(interface.network_ip, Some("10.0.0.1".to_string()));
     }
 }
